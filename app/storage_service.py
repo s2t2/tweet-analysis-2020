@@ -43,12 +43,10 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def migrate_user_friends(self):
+    def migrate_users(self):
         sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.dataset_address}.user_friends as (
-                SELECT
-                    distinct(status_id) as user_id
-                    ,NULL as friend_ids
+            CREATE TABLE IF NOT EXISTS {self.dataset_address}.users as (
+                SELECT distinct(user_id) as user_id
                 FROM `{self.dataset_address}.tweets`
                 ORDER BY 1
             );
@@ -56,33 +54,32 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def fetch_user_friends(self):
+    def fetch_users(self):
         """Returns a list of table rows"""
-        sql = f"""
-            SELECT user_id, friend_ids
-            FROM `{self.dataset_address}.user_friends`
-            ORDER BY user_id;
-        """
-        results = self.execute_query(sql)
-        return list(results)
-
-    def fetch_friendless_users(self, min_id=None, max_id=None, limit=None):
-        """Returns a list of table rows"""
-
         sql = f"""
             SELECT user_id
-            FROM `{self.dataset_address}.user_friends`
-            WHERE friend_ids IS NULL
+            FROM `{self.dataset_address}.users`;
         """
-
-        if min_id is not None and max_id is not None:
-            sql += "  AND CAST(user_id as int64) BETWEEN {min_id} AND {max_id}"
-
-        if limit is not None:
-            sql += f"LIMIT {limit}"
-
         results = self.execute_query(sql)
         return list(results)
+
+    #def fetch_friendless_users(self, min_id=None, max_id=None, limit=None):
+    #    """Returns a list of table rows"""
+#
+    #    sql = f"""
+    #        SELECT user_id
+    #        FROM `{self.dataset_address}.user_friends`
+    #        WHERE friend_ids IS NULL
+    #    """
+#
+    #    if min_id is not None and max_id is not None:
+    #        sql += "  AND CAST(user_id as int64) BETWEEN {min_id} AND {max_id}"
+#
+    #    if limit is not None:
+    #        sql += f"LIMIT {limit}"
+#
+    #    results = self.execute_query(sql)
+    #    return list(results)
 
     #def update_user_friends(self, user_id, friend_ids):
     #    table_ref = self.dataset_ref.table("topics")
