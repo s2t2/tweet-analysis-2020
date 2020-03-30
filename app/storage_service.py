@@ -30,7 +30,7 @@ class BigQueryService():
     def init_tables(self):
         self.migrate_populate_users()
         self.migrate_user_friends()
-        user_friends_table_ref = self.dataset_ref.table("user_friends")
+        user_friends_table_ref = self.dataset_ref.table("user_friends_temp")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
     def migrate_populate_users(self):
@@ -47,7 +47,9 @@ class BigQueryService():
     def migrate_user_friends(self):
         # see: https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#array-type
         sql = f"""
-            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
+            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends;
+            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_temp;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_temp` (
                 user_id STRING,
                 friends_count INT64,
                 friend_ids ARRAY<STRING>

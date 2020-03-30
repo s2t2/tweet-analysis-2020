@@ -11,7 +11,7 @@ CONSUMER_SECRET = os.getenv("TWITTER_CONSUMER_SECRET", default="OOPS")
 ACCESS_KEY = os.getenv("TWITTER_ACCESS_TOKEN", default="OOPS")
 ACCESS_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
 
-SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk")
+SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
 
 def twitter_api():
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -19,35 +19,62 @@ def twitter_api():
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
     return api
 
-if __name__ == "__main__":
+def twitter_faster_api():
+    """
+    Use auth with less rate-limiting, see: http://docs.tweepy.org/en/v3.8.0/auth_tutorial.html
+    """
+    auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+    return api
+
+def get_friends(screen_name=None, user_id=None, max_friends=2000):
+    """
+    Params:
+        screen_name like "barackobama" or "s2t2" or
+        max_friends for now, for performacne, because we can always go back later and re-scrape those who hit this max
+
+    Returns a list of dictionaries with the user_id and friend_ids
+
+    See: http://docs.tweepy.org/en/v3.8.0/api.html#API.friends_ids
+         https://github.com/tweepy/tweepy/blob/3733fd673b04b9aa193886d6b8eb9fdaf1718341/tweepy/api.py#L542-L551
+         http://docs.tweepy.org/en/v3.8.0/cursor_tutorial.html
+    """
+    print("-------------")
 
     api = twitter_api()
-
-    # see: http://docs.tweepy.org/en/v3.8.0/api.html#API.friends_ids
-    # ... https://github.com/tweepy/tweepy/blob/3733fd673b04b9aa193886d6b8eb9fdaf1718341/tweepy/api.py#L542-L551
-    # ... http://docs.tweepy.org/en/v3.8.0/cursor_tutorial.html
-
-    friends_ids = api.friends_ids(SCREEN_NAME)
-    print("-------------")
-    print(SCREEN_NAME)
-    print(len(friends_ids))
-
-    print("-------------")
-    screen_name = "barackobama"
-    print(screen_name)
     #response = api.friends_ids(screen_name, cursor=-1)
     #friends_ids = response[0] #> list of max 5000 user_ids
     #pagination = response[1] #> (0, 1302882473214455035)
 
-    cursor = tweepy.Cursor(api.friends_ids, screen_name=screen_name, cursor=-1)
+    if screen_name is not None:
+        print("GETTING FRIENDS FOR SCREEN NAME:", screen_name.upper())
+        cursor = tweepy.Cursor(api.friends_ids, screen_name=screen_name, cursor=-1)
+    elif user_id is not None:
+        print("GETTING FRIENDS FOR USER:", user_id)
+        cursor = tweepy.Cursor(api.friends_ids, user_id=user_id, cursor=-1)
+    else:
+        print("OOPS PLEASE PASS SCREEN NAME OR USER ID")
+        return None
     print(cursor)
 
-    max_friends = 2000 # just for now, we can go back later and re-scrape those who hit this max
-
-    friends_counter = 0
-    friends_ids = []
+    friend_ids = []
     for friend_id in cursor.items(max_friends):
-        friends_ids.append(friend_id)
-        friends_counter += 1
+        friend_ids.append(friend_id)
+    return friend_ids
 
-    print("TOTAL FRIENDS:", friends_counter)
+if __name__ == "__main__":
+
+    print("-------------")
+    print(SCREEN_NAME)
+    api = twitter_api()
+    friend_ids = api.friends_ids(SCREEN_NAME)
+    print(len(friend_ids))
+    faster_api = twitter_faster_api()
+    friend_ids = faster_api.friends_ids(SCREEN_NAME)
+    print(len(friend_ids))
+
+    friend_ids = get_friends(screen_name=SCREEN_NAME)
+    print(len(friend_ids))
+
+    friend_ids = get_friends(user_id=148529707)
+    print(len(friend_ids))
