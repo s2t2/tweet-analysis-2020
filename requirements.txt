@@ -1,0 +1,5 @@
+python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
+tweepy # for interfacing with the Twitter API
+google-cloud-bigquery # for interfacing with the BigQuery API
+#pandas
+#sendgrid==6.0.5

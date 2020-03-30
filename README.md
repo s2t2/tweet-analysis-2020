@@ -16,5 +16,5 @@ conda activate tweets-env
 ## Usage
 
 ```sh
-# TODO: python app/_____.py
+python -m app.user_follows
 ```
