@@ -42,7 +42,7 @@ if __name__ == "__main__":
     cursor = tweepy.Cursor(api.friends_ids, screen_name=screen_name, cursor=-1)
     print(cursor)
 
-    max_friends = 20000 # just for now, we can go back later and re-scrape those who hit this max
+    max_friends = 2000 # just for now, we can go back later and re-scrape those who hit this max
 
     friends_counter = 0
     friends_ids = []
