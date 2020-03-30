@@ -18,5 +18,13 @@ conda activate tweets-env
 ## Usage
 
 ```sh
-python -m app.user_follows
+python -m app.twitter_service
+```
+
+```sh
+python -m app.storage_service
+```
+
+```sh
+python -m app.collect_friends
 ```

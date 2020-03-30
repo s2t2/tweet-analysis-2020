@@ -10,13 +10,20 @@ PROJECT_NAME = os.getenv("BIGQUERY_PROJECT_NAME", default="tweet-collector-py")
 DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_development") #> "_test" or "_production"
 
 class BigQueryService():
+    """
+    See:
+        https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
+        https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
+
+    """
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME):
         self.project_name = project_name
-        self.dataset_name = dataset_name #> "impeachment_production", "impeachment_test", etc.
+        self.dataset_name = dataset_name
+        self.dataset_address = f"{self.project_name}.{self.dataset_name}"
+
         self.client = bigquery.Client()
         self.dataset_ref = self.client.dataset(self.dataset_name)
-        self.dataset_address = f"{self.project_name}.{self.dataset_name}"
         #self.tweets_table_ref = self.dataset_ref.table("tweets")
         #self.tweets_table = self.client.get_table(self.tweets_table_ref) # an API call (caches results for subsequent inserts)
         #self.topics_table_ref = self.dataset_ref.table("topics")
@@ -57,9 +64,40 @@ class BigQueryService():
             ORDER BY user_id;
         """
         results = self.execute_query(sql)
-        print(type(results))
-        print(results)
         return list(results)
+
+    def fetch_friendless_users(self, min_id=None, max_id=None, limit=None):
+        """Returns a list of table rows"""
+
+        sql = f"""
+            SELECT user_id
+            FROM `{self.dataset_address}.user_friends`
+            WHERE friend_ids IS NULL
+        """
+
+        if min_id is not None and max_id is not None:
+            sql += "  AND CAST(user_id as int64) BETWEEN {min_id} AND {max_id}"
+
+        if limit is not None:
+            sql += f"LIMIT {limit}"
+
+        results = self.execute_query(sql)
+        return list(results)
+
+    #def update_user_friends(self, user_id, friend_ids):
+    #    table_ref = self.dataset_ref.table("topics")
+    #    table = self.client.get_table(table_ref) # an API call (caches results for subsequent inserts)
+#
+    #    sql = """
+    #        UPDATE Customers
+    #        SET ContactName = 'Alfred Schmidt', City= 'Frankfurt'
+    #        WHERE CustomerID = 1;
+    #    """
+#
+    #    # TODO
+
+
+
 
 if __name__ == "__main__":
 
