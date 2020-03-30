@@ -30,7 +30,7 @@ class BigQueryService():
     def init_tables(self):
         self.migrate_populate_users()
         self.migrate_user_friends()
-        user_friends_table_ref = self.dataset_ref.table("user_friends_temp")
+        user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
     def migrate_populate_users(self):
@@ -46,10 +46,9 @@ class BigQueryService():
 
     def migrate_user_friends(self):
         # see: https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#array-type
+        # f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`;"
         sql = f"""
-            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends;
-            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_temp;
-            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_temp` (
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
                 user_id STRING,
                 friends_count INT64,
                 friend_ids ARRAY<STRING>
@@ -85,13 +84,23 @@ class BigQueryService():
             FROM `{self.dataset_address}.users`;
         """
 
-        #
-        #    if min_id is not None and max_id is not None:
-        #        sql += "  AND CAST(user_id as int64) BETWEEN {min_id} AND {max_id}"
-        #
-        #    if limit is not None:
-        #        sql += f"LIMIT {limit}"
+    def fetch_remaining_users(self, limit=500, min_id=None, max_id=None):
+        """Returns a list of table rows"""
+        sql = f"""
+            SELECT
+                u.user_id
+            FROM `{self.dataset_address}.users` u -- 3503
+            LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
+            WHERE f.user_id IS NULL
+        """
 
+        if min_id is not None and max_id is not None:
+            sql += "  AND CAST(u.user_id as int64) BETWEEN {min_id} AND {max_id} "
+
+        sql += f"ORDER BY u.user_id "
+        sql += f"LIMIT {limit};"
+
+        print(sql)
         results = self.execute_query(sql)
         return list(results)
 
@@ -99,54 +108,55 @@ class BigQueryService():
 
 if __name__ == "__main__":
 
-        service = BigQueryService()
-        print("BIGQUERY DATASET:", service.dataset_address.upper())
+    service = BigQueryService()
+    print("BIGQUERY DATASET:", service.dataset_address.upper())
 
-        user_friends = service.fetch_user_friends()
-        for row in user_friends:
-            print("USER:", row.user_id)
-
-
+    if input("CONTINUE? (Y/N): ").upper() != "Y":
+        print("EXITING...")
         exit()
 
+    service.init_tables()
+
+
+
+    exit()
+
+    user_friends = service.fetch_user_friends()
+    for row in user_friends:
+        print("USER:", row.user_id)
+
+    print("--------------------")
+    print("FETCHING TOPICS...")
+    results = service.fetch_topics()
+    for row in results:
+        print(row)
+        print("---")
+
+    print("--------------------")
+    print("COUNTING TWEETS...")
+    sql = f"SELECT count(distinct status_id) as tweets_count FROM `{service.dataset_address}.tweets`"
+    results = service.execute_query(sql)
+    print(list(results)[0].tweets_count)
+
+    print("--------------------")
+    print("FETCHING LATEST TWEETS...")
+    sql = f"""
+        SELECT
+            status_id, status_text, geo, created_at,
+            user_id, user_screen_name, user_description, user_location, user_verified
+        FROM `{service.dataset_address}.tweets`
+        ORDER BY created_at DESC
+        LIMIT 3
+    """
+    results = service.execute_query(sql)
+    for row in results:
+        print(row)
+        print("---")
 
 
 
 
+    exit()
 
-
-        print("--------------------")
-        print("FETCHING TOPICS...")
-        results = service.fetch_topics()
-        for row in results:
-            print(row)
-            print("---")
-
-        print("--------------------")
-        print("COUNTING TWEETS...")
-        sql = f"SELECT count(distinct status_id) as tweets_count FROM `{service.dataset_address}.tweets`"
-        results = service.execute_query(sql)
-        print(list(results)[0].tweets_count)
-
-        print("--------------------")
-        print("FETCHING LATEST TWEETS...")
-        sql = f"""
-            SELECT
-                status_id, status_text, geo, created_at,
-                user_id, user_screen_name, user_description, user_location, user_verified
-            FROM `{service.dataset_address}.tweets`
-            ORDER BY created_at DESC
-            LIMIT 3
-        """
-        results = service.execute_query(sql)
-        for row in results:
-            print(row)
-            print("---")
-
-
-
-
-        exit()
-
-        #results = service.migrate_user_friends()
-        #print(results)
+    #results = service.migrate_user_friends()
+    #print(results)

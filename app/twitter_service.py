@@ -21,7 +21,10 @@ def twitter_api():
 
 def twitter_faster_api():
     """
-    Use auth with less rate-limiting, see: http://docs.tweepy.org/en/v3.8.0/auth_tutorial.html
+    Use auth with less rate-limiting.
+    See:
+        http://docs.tweepy.org/en/v3.8.0/auth_tutorial.html
+        https://bhaskarvk.github.io/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
     """
     auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
@@ -33,7 +36,7 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
         screen_name like "barackobama" or "s2t2" or
         max_friends for now, for performacne, because we can always go back later and re-scrape those who hit this max
 
-    Returns a list of dictionaries with the user_id and friend_ids
+    Returns a list of the user's friend_ids (or empty list if the account was private)
 
     See: http://docs.tweepy.org/en/v3.8.0/api.html#API.friends_ids
          https://github.com/tweepy/tweepy/blob/3733fd673b04b9aa193886d6b8eb9fdaf1718341/tweepy/api.py#L542-L551
@@ -41,7 +44,7 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
     """
     print("-------------")
 
-    api = twitter_api()
+    api = twitter_faster_api()
     #response = api.friends_ids(screen_name, cursor=-1)
     #friends_ids = response[0] #> list of max 5000 user_ids
     #pagination = response[1] #> (0, 1302882473214455035)
@@ -58,8 +61,11 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
     print(cursor)
 
     friend_ids = []
-    for friend_id in cursor.items(max_friends):
-        friend_ids.append(friend_id)
+    try:
+        for friend_id in cursor.items(max_friends):
+            friend_ids.append(friend_id)
+    except tweepy.error.TweepError as err:
+        print("OOPS", err) #> "Not authorized." if user is private / protected (e.g. 1003322728890462209)
     return friend_ids
 
 if __name__ == "__main__":

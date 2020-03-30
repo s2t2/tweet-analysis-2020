@@ -92,3 +92,7 @@ CREATE TABLE IF NOT EXISTS impeachment_test.user_friends as (
   ORDER BY 1
 );
 ```
+
+## Resources
+
+  + https://tweeterid.com/ for on-the-fly `user_id` / `screen_name` conversions
