@@ -3,6 +3,8 @@
 
 So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets. Now it's time to analyze them.
 
+## [Reproducibility Notes](NOTES.md)
+
 ## Setup
 
 ```sh
