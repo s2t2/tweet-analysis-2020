@@ -11,12 +11,15 @@ if __name__ == "__main__":
     service = BigQueryService()
     print("BIGQUERY DATASET:", service.dataset_address.upper())
 
-    service.migrate_users()
-    service.migrate_user_friends()
+    if input("CONTINUE? (Y/N)").upper() != "Y":
+        print("EXITING...")
+        exit()
+
+    service.init_tables()
 
     batch = []
     batch_size = 0
-    users = service.fetch_users()
+    users = service.fetch_users() # todo: specific ones / join where no matching record in the friends table
     for row in users:
         print("USER:", row.user_id)
 
