@@ -4,6 +4,13 @@
 
 Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
 
+## Database Resources
+
+Working with BigQuery:
+
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
+
 ## Database Queries
 
 ### Tweets
@@ -16,6 +23,10 @@ SELECT
   ,count(DISTINCT status_id) as tweet_count -- 67,655,058
 FROM impeachment_production.tweets
 ```
+
+tweet_count	| user_count
+---	        | ---
+67,655,058	| 3,600,545
 
 Counting users and tweets per month:
 

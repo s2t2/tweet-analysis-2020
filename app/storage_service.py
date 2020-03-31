@@ -8,13 +8,10 @@ load_dotenv()
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud (and keras)
 PROJECT_NAME = os.getenv("BIGQUERY_PROJECT_NAME", default="tweet-collector-py")
 DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_development") #> "_test" or "_production"
+DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
+VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
 class BigQueryService():
-    """
-    See:
-        https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
-        https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
-    """
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False):
         self.project_name = project_name
@@ -26,39 +23,55 @@ class BigQueryService():
         if init_tables == True:
             self.init_tables()
 
-    def init_tables(self):
+    def init_tables(self, destructive=DESTRUCTIVE_MIGRATIONS):
         """ Creates new tables for storing follower graphs """
-        self.migrate_populate_users()
-        self.migrate_user_friends()
+        self.migrate_populate_users(destructive=destructive)
+        self.migrate_user_friends(destructive=destructive)
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
-    def migrate_populate_users(self):
-        sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.dataset_address}.users as (
-                SELECT distinct(user_id) as user_id
+    def migrate_populate_users(self, destructive=False):
+        """
+        Resulting table has a row for each user id / screen name combo
+            (multiple rows per user id if they changed their screen name)
+        """
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.users`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.users` as (
+                SELECT
+                    user_id
+                    ,user_screen_name as screen_name
+                    ,max(user_verified) as verified
                 FROM `{self.dataset_address}.tweets`
+                GROUP BY 1, 2
                 ORDER BY 1
             );
         """
         results = self.execute_query(sql)
         return list(results)
 
-    def migrate_user_friends(self):
-        # see: https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#array-type
-        # f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`;"
-        sql = f"""
+    def migrate_user_friends(self, destructive=False):
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`; "
+        sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
                 user_id STRING,
+                screen_name STRING,
+                verified BOOLEAN,
                 friends_count INT64,
-                friend_ids ARRAY<STRING>
+                friend_names ARRAY<STRING>
             );
         """
         results = self.execute_query(sql)
         return list(results)
 
-    def execute_query(self, sql):
+    def execute_query(self, sql, verbose=VERBOSE_QUERIES):
         """Param: sql (str)"""
+        if verbose:
+            print(sql)
         job = self.client.query(sql)
         return job.result()
 
@@ -67,6 +80,7 @@ class BigQueryService():
         sql = f"""
             SELECT
                 u.user_id
+                ,u.screen_name
             FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
