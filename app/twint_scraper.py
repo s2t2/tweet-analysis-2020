@@ -9,15 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
+VERBOSE = (os.getenv("VERBOSE_SCRAPER", default="false") == "true") # set like... VERBOSE_SCRAPER="true"
 
 class TwitterScraper():
-    """ See:
-        https://pielco11.ovh/posts/twint-osint/#followersfollowing
-        https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
-        https://github.com/twintproject/twint/pull/685
-        https://github.com/twintproject/twint/issues/704
-        https://github.com/twintproject/twint/issues/270
-    """
 
     def __init__(self, screen_name, max_friends=2000, verbose=False):
         """ Params:
@@ -56,7 +50,7 @@ class TwitterScraper():
 
 if __name__ == "__main__":
 
-    scraper = TwitterScraper(screen_name=SCREEN_NAME)
+    scraper = TwitterScraper(screen_name=SCREEN_NAME, verbose=VERBOSE)
     print("USER:", scraper.screen_name)
 
     friend_names = scraper.get_friend_names()

@@ -83,7 +83,16 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 
 ## Twitter Resources
 
-  + https://tweeterid.com/ for on-the-fly `user_id` / `screen_name` conversions
+Ad-hoc conversions between user ids and screen names:
+  + https://tweeterid.com/
+
+Working with the `twint` package:
+  + https://github.com/twintproject/twint
+  + https://pielco11.ovh/posts/twint-osint/#followersfollowing
+  + https://github.com/twintproject/twint/pull/685
+  + https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
+  + https://github.com/twintproject/twint/issues/270
+  + https://github.com/twintproject/twint/issues/704
 
 ## Partitioning Users
 
