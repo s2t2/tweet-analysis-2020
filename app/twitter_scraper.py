@@ -40,10 +40,12 @@ if __name__ == "__main__":
     config = twint.Config()
     config.Username = SCREEN_NAME
     config.Limit = 20
+    config.Hide_output = True
     config.Store_object = True
     #config.User_full = True
-    #config.Pandas = True
+    config.Pandas = True
     config.Store_object_follow_list = []
+    #config.Format = "ID {id} | Username {username}"
     print(config)
 
     twint.run.Following(config)
@@ -53,3 +55,6 @@ if __name__ == "__main__":
     print("FOLLOWS LIST:", twint.output.follows_list) #> []
     print("USERS LIST:", twint.output.users_list) #> []
     print("STORED OBJECT FOLLOWS LIST:", config.Store_object_follow_list)
+
+    print(dir(twint.storage.panda))
+    print(twint.storage.panda.Follow_df.head())
