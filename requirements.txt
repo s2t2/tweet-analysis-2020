@@ -1,3 +1,4 @@
 python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
 twint # for unoficially interfacing with twitter data
 google-cloud-bigquery # for interfacing with the BigQuery API
+beautifulsoup4

@@ -5,6 +5,7 @@ from http.cookiejar import CookieJar
 import urllib
 
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 load_dotenv()
 
@@ -37,10 +38,15 @@ def get_friends(screen_name, max_friends=2000):
         response_body = response.read()
         print(type(response_body))
 
-        parsed_response = response_body.decode().split("\n")
-        print(type(parsed_response))
+        soup = BeautifulSoup(response_body.decode(), "html.parser")
+        print(type(soup))
+        print(soup.prettify())
+
         breakpoint()
 
+
+        parsed_response = response_body.decode().split("\n")
+        print(type(parsed_response))
 
 
         #
@@ -52,6 +58,7 @@ def get_friends(screen_name, max_friends=2000):
         #    accessible=False
         #    INACCESSIBLE.append(toquery[count-1])
         #
+
         #if(accessible):
         #    #if count%10==0:
         #    print('\tUser %s of %s: %s has %s following, we will only get %s'%(count,n,screen_name,nfriends,max_friends))
