@@ -96,3 +96,35 @@ CREATE TABLE IF NOT EXISTS impeachment_test.user_friends as (
 ## Resources
 
   + https://tweeterid.com/ for on-the-fly `user_id` / `screen_name` conversions
+
+## Partitioning Users
+
+Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
+
+```sql
+SELECT
+  partition_id
+  ,count(DISTINCT user_id) as user_count
+  ,min(user_id) as min_id
+  ,max(user_id) as max_id
+FROM (
+  SELECT
+    NTILE(10) OVER (ORDER BY CAST(user_id as int64)) as partition_id
+    ,CAST(user_id as int64) as user_id
+  FROM (SELECT DISTINCT user_id FROM impeachment_production.tweets)
+) user_partitions
+GROUP BY partition_id
+```
+
+partition_id    | user_count	| min_id	            | max_id
+---	            | ---	        | ---	                | ---
+1	            | 360055	    | 17	                | 49223966
+2	            | 360055	    | 49224083	            | 218645473
+3	            | 360055	    | 218645600	            | 446518003
+4	            | 360055	    | 446520525	            | 1126843322
+5	            | 360055	    | 1126843458	        | 2557922900
+6	            | 360054	    | 2557923828	        | 4277913148
+7	            | 360054	    | 4277927001	        | 833566039577239552
+8	            | 360054	    | 833567097506533376	| 1012042187482202113
+9	            | 360054	    | 1012042227844075522	| 1154556355883089920
+10	            | 360054	    | 1154556513031266304	| 1242523027058769920
