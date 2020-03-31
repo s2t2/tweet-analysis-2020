@@ -3,7 +3,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 from app.storage_service import BigQueryService
-from app.twitter_service import twitter_faster_api, get_friends
+from app.twitter_service import twitter_api, get_friends
 
 load_dotenv()
 
@@ -15,7 +15,7 @@ MAX_FRIENDS = int(os.getenv("MAX_FRIENDS", default=2000)) # the max number of fr
 
 if __name__ == "__main__":
 
-    api = twitter_faster_api()
+    api = twitter_api()
     print("TWITTER API CLIENT", api)
 
     #

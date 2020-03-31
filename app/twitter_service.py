@@ -14,6 +14,11 @@ ACCESS_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
 SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
 
 def twitter_api():
+    """
+    But this one might be faster?
+    See:
+        https://developer.twitter.com/en/docs/basics/rate-limiting
+    """
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
@@ -41,6 +46,8 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
     See: http://docs.tweepy.org/en/v3.8.0/api.html#API.friends_ids
          https://github.com/tweepy/tweepy/blob/3733fd673b04b9aa193886d6b8eb9fdaf1718341/tweepy/api.py#L542-L551
          http://docs.tweepy.org/en/v3.8.0/cursor_tutorial.html
+         https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-friends-ids
+         https://developer.twitter.com/en/docs/basics/cursoring
     """
 
     api = twitter_faster_api() # todo: OOP
@@ -68,6 +75,16 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
     return friend_ids
 
 if __name__ == "__main__":
+
+
+    api = twitter_api()
+
+    cursor = tweepy.Cursor(api.friends_ids, screen_name="barackobama", cursor=-1)
+    for page in cursor.pages(3):
+        print(type(page)) #> list
+        print(len(page)) #> 5000
+
+    exit()
 
     print("-------------")
     print(SCREEN_NAME)
