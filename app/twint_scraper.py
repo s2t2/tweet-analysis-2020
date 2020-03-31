@@ -10,20 +10,36 @@ load_dotenv()
 
 SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
 
-def get_friends(screen_name=None, user_id=None, max_friends=2000):
-    """
-    Params:
-        screen_name like "barackobama" or "s2t2" or
-        max_friends for now, for performacne, because we can always go back later and re-scrape those who hit this max
-
-    Returns a list of the user's friend_ids (or empty list if the account was private)
-    """
+def init_config(screen_name, max_friends, verbose=True):
     config = twint.Config()
     config.Username = screen_name
     config.Limit = max_friends
-    config.Hide_output = True
+    config.Hide_output = False
     config.Store_object = True
-    config.User_full = True # a somewhat slow approach
+    return config
+
+def get_friend_names(screen_name=None, max_friends=2000):
+    """ (FASTER APPROACH)
+    Params:
+        screen_name like "barackobama" or "s2t2"
+        max_friends (int)
+    Returns a list of the user's friend screen names (or empty list if the account was private)
+    """
+    config = init_config(screen_name, max_friends)
+    config.User_full = False # a faster approach, but only has screen names
+    config.Store_object_follow_list = [] # initialize a place to store the screen names
+    twint.run.Following(config)
+    return config.Store_object_follow_list
+
+def get_friend_ids(screen_name=None, max_friends=2000):
+    """ (SLOWER APPROACH)
+    Params:
+        screen_name like "barackobama" or "s2t2" or
+        max_friends (int)
+    Returns a list of the user's friend_ids (or empty list if the account was private)
+    """
+    config = init_config(screen_name, max_friends)
+    config.User_full = True # a somewhat slow approach, but has ids
     twint.run.Following(config)
     #print("USERS LIST:", twint.output.users_list) #> []
     return [obj["id"] for obj in twint.output.users_list]
@@ -31,8 +47,11 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
 if __name__ == "__main__":
 
     print("USER:", SCREEN_NAME)
-    friend_ids = get_friends(SCREEN_NAME)
-    print("FRIENDS COUNT:", len(friend_ids))
+    #friend_ids = get_friend_ids(SCREEN_NAME)
+    #print("FRIENDS COUNT:", len(friend_ids))
+
+    friend_names = get_friend_names(SCREEN_NAME)
+    print("FRIENDS COUNT:", len(friend_names))
 
 
 
