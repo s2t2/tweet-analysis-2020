@@ -18,7 +18,15 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
 
     Returns a list of the user's friend_ids (or empty list if the account was private)
     """
-    return [1,2,3]
+    config = twint.Config()
+    config.Username = screen_name
+    config.Limit = max_friends
+    config.Hide_output = True
+    config.Store_object = True
+    config.User_full = True # a somewhat slow approach
+    twint.run.Following(config)
+    #print("USERS LIST:", twint.output.users_list) #> []
+    return [obj["id"] for obj in twint.output.users_list]
 
 if __name__ == "__main__":
 
@@ -28,9 +36,7 @@ if __name__ == "__main__":
 
 
 
-
-
-
+    exit()
 
     # h/t:
     #   https://pielco11.ovh/posts/twint-osint/#followersfollowing
@@ -40,12 +46,14 @@ if __name__ == "__main__":
 
     config = twint.Config()
     config.Username = SCREEN_NAME
-    config.Limit = 20
+    config.Limit = 2000
     config.Hide_output = True
     config.Store_object = True
-    #config.User_full = True
+    config.User_full = True
     #config.Pandas = True
     config.Store_object_follow_list = []
+    #config.Custom = ['id']
+    #config.Custom["user"] = ['id']
     #config.Format = "ID {id} | Username {username}"
     print(config)
 
@@ -59,3 +67,6 @@ if __name__ == "__main__":
 
     #print(dir(twint.storage.panda))
     #print(twint.storage.panda.Follow_df.head())
+
+    friend_ids = [obj["id"] for obj in twint.output.users_list]
+    print(friend_ids)
