@@ -32,20 +32,24 @@ if __name__ == "__main__":
 
 
 
-
-    # h/t: https://pielco11.ovh/posts/twint-osint/#followersfollowing
+    # h/t:
+    #   https://pielco11.ovh/posts/twint-osint/#followersfollowing
+    #   https://github.com/twintproject/twint/pull/685
+    #   https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
 
     config = twint.Config()
     config.Username = SCREEN_NAME
+    config.Limit = 20
     config.Store_object = True
-    config.User_full = True
+    #config.User_full = True
+    #config.Pandas = True
+    config.Store_object_follow_list = []
     print(config)
 
-    #breakpoint()
+    twint.run.Following(config)
+    # takes a few requests
+    # seeing the occasional "CRITICAL:root:twint.feed:Follow:IndexError"
 
-    twint.run.Followers(config) # this takes forever, request per follower!
-
-    breakpoint()
-
-    target_followers = twint.output.users_list
-    print(type(target_followers))
+    print("FOLLOWS LIST:", twint.output.follows_list) #> []
+    print("USERS LIST:", twint.output.users_list) #> []
+    print("STORED OBJECT FOLLOWS LIST:", config.Store_object_follow_list)
