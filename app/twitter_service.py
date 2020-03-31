@@ -19,7 +19,7 @@ def twitter_api():
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
     return api
 
-def twitter_faster_api():
+def twitter_faster_api(wait=True):
     """
     Use auth with less rate-limiting.
     See:
@@ -27,7 +27,10 @@ def twitter_faster_api():
         https://bhaskarvk.github.io/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
     """
     auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+    if wait == True:
+        api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+    else:
+        api = tweepy.API(auth, wait_on_rate_limit=False, wait_on_rate_limit_notify=False)
     return api
 
 def get_friends(screen_name=None, user_id=None, max_friends=2000):
@@ -61,11 +64,30 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
 
     friend_ids = []
     try:
-        for friend_id in cursor.items(max_friends):
+        for friend_id in limit_handled(cursor.items(max_friends)):
             friend_ids.append(friend_id)
     except tweepy.error.TweepError as err:
         print("OOPS", err) #> "Not authorized." if user is private / protected (e.g. 1003322728890462209)
     return friend_ids
+
+def limit_handled(cursor):
+    """See: http://docs.tweepy.org/en/v3.5.0/code_snippet.html#handling-the-rate-limit-using-cursors """
+    print(type(cursor)) #> actually a <class 'tweepy.cursor.ItemIterator'>
+    while True:
+        try:
+            yield cursor.next()
+        except tweepy.RateLimitError as err:
+            print("RATE LIMIT ERR", err)
+            sleep_seconds = 15 * 60
+            print("SLEEPING FOR:", sleep_seconds)
+            time.sleep(sleep_seconds)
+
+#def backoff_strategy(i):
+#    """
+#    Param: i (int) increasing rate limit number from the twitter api
+#    Returns: number of seconds to sleep for
+#    """
+#    return (int(i) + 1) ** 2 # raise to the power of two
 
 if __name__ == "__main__":
 

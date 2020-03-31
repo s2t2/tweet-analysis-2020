@@ -15,7 +15,7 @@ MAX_FRIENDS = int(os.getenv("MAX_FRIENDS", default=2000)) # the max number of fr
 
 if __name__ == "__main__":
 
-    api = twitter_faster_api()
+    api = twitter_faster_api(wait=False)
     print("TWITTER API CLIENT", api)
 
     #
