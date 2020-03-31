@@ -40,9 +40,10 @@ if __name__ == "__main__":
 
     # h/t:
     #   https://pielco11.ovh/posts/twint-osint/#followersfollowing
-    #   https://github.com/twintproject/twint/pull/685
     #   https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
+    #   https://github.com/twintproject/twint/pull/685
     #   https://github.com/twintproject/twint/issues/704
+    #   https://github.com/twintproject/twint/issues/270
 
     config = twint.Config()
     config.Username = SCREEN_NAME
