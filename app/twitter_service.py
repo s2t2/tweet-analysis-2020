@@ -42,23 +42,22 @@ def get_friends(screen_name=None, user_id=None, max_friends=2000):
          https://github.com/tweepy/tweepy/blob/3733fd673b04b9aa193886d6b8eb9fdaf1718341/tweepy/api.py#L542-L551
          http://docs.tweepy.org/en/v3.8.0/cursor_tutorial.html
     """
-    print("-------------")
 
-    api = twitter_faster_api()
+    api = twitter_faster_api() # todo: OOP
     #response = api.friends_ids(screen_name, cursor=-1)
     #friends_ids = response[0] #> list of max 5000 user_ids
     #pagination = response[1] #> (0, 1302882473214455035)
 
     if screen_name is not None:
-        print("GETTING FRIENDS FOR SCREEN NAME:", screen_name.upper())
+        #print("GETTING FRIENDS FOR SCREEN NAME:", screen_name.upper())
         cursor = tweepy.Cursor(api.friends_ids, screen_name=screen_name, cursor=-1)
     elif user_id is not None:
-        print("GETTING FRIENDS FOR USER:", user_id)
+        #print("GETTING FRIENDS FOR USER:", user_id)
         cursor = tweepy.Cursor(api.friends_ids, user_id=user_id, cursor=-1)
     else:
         print("OOPS PLEASE PASS SCREEN NAME OR USER ID")
         return None
-    print(cursor)
+    #print(cursor)
 
     friend_ids = []
     try:

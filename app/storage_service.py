@@ -84,22 +84,23 @@ class BigQueryService():
             FROM `{self.dataset_address}.users`;
         """
 
-    def fetch_remaining_users(self, limit=500, min_id=None, max_id=None):
+    def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
         sql = f"""
             SELECT
                 u.user_id
-            FROM `{self.dataset_address}.users` u -- 3503
+            FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
         """
-
-        if min_id is not None and max_id is not None:
-            sql += "  AND CAST(u.user_id as int64) BETWEEN {min_id} AND {max_id} "
-
-        sql += f"ORDER BY u.user_id "
-        sql += f"LIMIT {limit};"
-
+        if min_id and max_id:
+            sql += f"  AND CAST(u.user_id as int64) BETWEEN {int(min_id)} AND {int(max_id)} "
+            sql += f"ORDER BY u.user_id;"
+        elif limit:
+            sql += f"ORDER BY u.user_id "
+            sql += f"LIMIT {limit};"
+        else:
+            sql += f"ORDER BY u.user_id;"
         print(sql)
         results = self.execute_query(sql)
         return list(results)
