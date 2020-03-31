@@ -16,8 +16,8 @@ cd tweet-analysis-py/
 Create and activate a virtual environment, using anaconda for example, if you like that kind of thing:
 
 ```sh
-conda create -n tweets-env python=3.7 # (first time only)
-conda activate tweets-env
+conda create -n tweet-analyzer-env python=3.7 # (first time only)
+conda activate tweet-analyzer-env
 ```
 
 Install package dependencies:
