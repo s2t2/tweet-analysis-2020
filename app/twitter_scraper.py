@@ -36,6 +36,7 @@ if __name__ == "__main__":
     #   https://pielco11.ovh/posts/twint-osint/#followersfollowing
     #   https://github.com/twintproject/twint/pull/685
     #   https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
+    #   https://github.com/twintproject/twint/issues/704
 
     config = twint.Config()
     config.Username = SCREEN_NAME
@@ -43,7 +44,7 @@ if __name__ == "__main__":
     config.Hide_output = True
     config.Store_object = True
     #config.User_full = True
-    config.Pandas = True
+    #config.Pandas = True
     config.Store_object_follow_list = []
     #config.Format = "ID {id} | Username {username}"
     print(config)
@@ -56,5 +57,5 @@ if __name__ == "__main__":
     print("USERS LIST:", twint.output.users_list) #> []
     print("STORED OBJECT FOLLOWS LIST:", config.Store_object_follow_list)
 
-    print(dir(twint.storage.panda))
-    print(twint.storage.panda.Follow_df.head())
+    #print(dir(twint.storage.panda))
+    #print(twint.storage.panda.Follow_df.head())
