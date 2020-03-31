@@ -43,17 +43,7 @@ BATCH_SIZE=100
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
 BIGQUERY_PROJECT_NAME="tweet-collector-py"
 BIGQUERY_DATASET_NAME="impeachment_development"
-
-# TWITTER API
-TWITTER_CONSUMER_KEY="_______"
-TWITTER_CONSUMER_SECRET="________"
-TWITTER_ACCESS_TOKEN="_______________"
-TWITTER_ACCESS_TOKEN_SECRET="____________"
 ```
-
-### Twitter API Credentials
-
-Obtain credentials which provide read and write access to the Twitter API. Set the environment variables `TWITTER_CONSUMER_KEY`, `TWITTER_CONSUMER_SECRET`, `TWITTER_ACCESS_TOKEN`, and `TWITTER_ACCESS_TOKEN_SECRET` accordingly.
 
 ### Google API Credentials
 
@@ -64,7 +54,7 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 Fetch data from Twitter:
 
 ```sh
-python -m app.twitter_service
+python -m app.twitter_scraper
 ```
 
 Fetch data from BigQuery:
