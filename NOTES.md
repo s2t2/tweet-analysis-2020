@@ -2,7 +2,7 @@
 
 ## Notebook Conversion
 
-Uploaded / imported the notebook [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then select "File" > "Download .py" and store the result in the "start" dir.
+Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
 
 ## Database Queries
 
@@ -86,14 +86,14 @@ Let's create a table of unique user ids and prepare to assemble network graphs:
 ```sql
 CREATE TABLE IF NOT EXISTS impeachment_test.user_friends as (
   SELECT
-    distinct(status_id) as user_id
+    distinct(user_id) as user_id
     ,NULL as friend_ids
   FROM impeachment_test.tweets
   ORDER BY 1
 );
 ```
 
-## Resources
+## Twitter Resources
 
   + https://tweeterid.com/ for on-the-fly `user_id` / `screen_name` conversions
 
