@@ -79,19 +79,7 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 
 
 
-## Database Migrations
 
-Let's create a table of unique user ids and prepare to assemble network graphs:
-
-```sql
-CREATE TABLE IF NOT EXISTS impeachment_test.user_friends as (
-  SELECT
-    distinct(user_id) as user_id
-    ,NULL as friend_ids
-  FROM impeachment_test.tweets
-  ORDER BY 1
-);
-```
 
 ## Twitter Resources
 

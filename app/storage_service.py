@@ -14,7 +14,6 @@ class BigQueryService():
     See:
         https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
         https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
-
     """
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False):
@@ -28,6 +27,7 @@ class BigQueryService():
             self.init_tables()
 
     def init_tables(self):
+        """ Creates new tables for storing follower graphs """
         self.migrate_populate_users()
         self.migrate_user_friends()
         user_friends_table_ref = self.dataset_ref.table("user_friends")
@@ -57,32 +57,10 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def append_user_friends(self, records):
-        """Param: records (list of dictionaries)"""
-        rows_to_insert = [list(d.values()) for d in records]
-        errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
-        return errors
-
     def execute_query(self, sql):
         """Param: sql (str)"""
         job = self.client.query(sql)
         return job.result()
-
-    def fetch_topics(self):
-        sql = f"""
-            SELECT topic, created_at
-            FROM `{self.dataset_address}.topics`
-            ORDER BY created_at;
-        """
-        results = self.execute_query(sql)
-        return list(results)
-
-    def fetch_users(self):
-        """Returns a list of table rows"""
-        sql = f"""
-            SELECT user_id
-            FROM `{self.dataset_address}.users`;
-        """
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
@@ -105,7 +83,11 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-
+    def append_user_friends(self, records):
+        """Param: records (list of dictionaries)"""
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
+        return errors
 
 if __name__ == "__main__":
 
@@ -116,48 +98,58 @@ if __name__ == "__main__":
         print("EXITING...")
         exit()
 
-    service.init_tables()
-
-
-
-    exit()
-
-    user_friends = service.fetch_user_friends()
-    for row in user_friends:
-        print("USER:", row.user_id)
-
-    print("--------------------")
-    print("FETCHING TOPICS...")
-    results = service.fetch_topics()
-    for row in results:
-        print(row)
-        print("---")
+    #print("--------------------")
+    #print("FETCHING TOPICS...")
+    #sql = f"""
+    #    SELECT topic, created_at
+    #    FROM `{self.dataset_address}.topics`
+    #    ORDER BY created_at;
+    #"""
+    #results = service.execute_query(sql)
+    #for row in results:
+    #    print(row)
+    #    print("---")
 
     print("--------------------")
-    print("COUNTING TWEETS...")
-    sql = f"SELECT count(distinct status_id) as tweets_count FROM `{service.dataset_address}.tweets`"
-    results = service.execute_query(sql)
-    print(list(results)[0].tweets_count)
-
-    print("--------------------")
-    print("FETCHING LATEST TWEETS...")
+    #print("COUNTING TWEETS AND USERS...")
     sql = f"""
         SELECT
-            status_id, status_text, geo, created_at,
-            user_id, user_screen_name, user_description, user_location, user_verified
+            count(distinct status_id) as tweet_count
+            ,count(distinct user_id) as user_count
         FROM `{service.dataset_address}.tweets`
-        ORDER BY created_at DESC
-        LIMIT 3
     """
     results = service.execute_query(sql)
-    for row in results:
-        print(row)
-        print("---")
+    first_row = list(results)[0]
+    user_count = first_row.user_count
+    print(f"TWEETS: {first_row.tweet_count:,}") # formatting with comma separators for large numbers
+    print(f"USERS: {user_count:,}") # formatting with comma separators for large numbers
 
+    #print("--------------------")
+    #print("FETCHING LATEST TWEETS...")
+    #sql = f"""
+    #    SELECT
+    #        status_id, status_text, geo, created_at,
+    #        user_id, user_screen_name, user_description, user_location, user_verified
+    #    FROM `{service.dataset_address}.tweets`
+    #    ORDER BY created_at DESC
+    #    LIMIT 3
+    #"""
+    #results = service.execute_query(sql)
+    #for row in results:
+    #    print(row)
+    #    print("---")
 
+    service.init_tables()
 
-
-    exit()
-
-    #results = service.migrate_user_friends()
-    #print(results)
+    print("--------------------")
+    #print("COUNTING USER FRIEND GRAPHS...")
+    sql = f"""
+        SELECT count(distinct user_id) as user_count
+        FROM `{service.dataset_address}.user_friends`
+    """
+    results = service.execute_query(sql)
+    graphed_user_count = list(results)[0].user_count
+    print("USERS WITH FRIEND GRAPHS:", graphed_user_count)
+    percent_collected = graphed_user_count / user_count
+    print(f"{(percent_collected * 100):.1f}% COLLECTED")
+    print(f"{((1 - percent_collected) * 100):.1f}% REMAINING")
