@@ -10,6 +10,9 @@ Working with BigQuery:
 
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
+  + https://cloud.google.com/dataprep/docs/html/DATEDIF-Function_57344707
+  + https://towardsdatascience.com/google-bigquery-sql-dates-and-times-cheat-sheet-805b5502c7f0
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
 
 ## Database Queries
 
@@ -136,3 +139,50 @@ partition_id    | user_count	| min_id	            | max_id
 8	            | 360054	    | 833567097506533376	| 1012042187482202113
 9	            | 360054	    | 1012042227844075522	| 1154556355883089920
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
+
+## Collecting User Friends
+
+Checking progress of friend-collection, including runtime performances:
+
+```sql
+/*select
+  count(distinct screen_name) as user_count
+FROM impeachment_production.user_friends
+*/
+
+SELECT
+   count(distinct user_id) as user_count
+   ,min(runtime_seconds) as shortest_run_seconds
+   ,max(runtime_seconds) as longest_run_seconds
+   ,round(avg(runtime_seconds),2) as avg_run_seconds
+   ,min(friend_count) as min_friends
+   ,max(friend_count) as max_friends
+   ,round(avg(friend_count),2) as avg_friends
+   ,round(avg(friend_count/runtime_seconds),2) as avg_friends_per_second
+
+FROM (
+  SELECT
+    user_id
+    ,friend_count
+    ,start_at
+    ,end_at
+    ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
+  FROM impeachment_production.user_friends
+) subq
+```
+
+## Increasing Performance Capacity
+
+With 3.6M users, with 10 servers over 10 days, we'd need to process an average of 360K users per server per day. This is a **goal of at least 25 users per minute**.
+
+Currently Twitter API restricts to 15 requests per 15 minutes, which is like 1 user per minute. In the rate limit guide, it suggests there might be a way to make 180 requests per 15 minutes, which is like 12 users per minute. This would get us half-way to the goal. Would need to figure out how to get approved for the increased capacity. Update: this table shows the [break-down of limits for each kind of API call](https://developer.twitter.com/en/docs/basics/rate-limits), for each kind of API auth strategy.
+
+Based on the performance logging so far, the Twint package takes 1-2 minutes to collect friends for each user.
+
+Neither of these approaches is currently going to get us the desired performance at scale.
+
+Resources and Research into multiple threads:
+
+  + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
+  + https://devcenter.heroku.com/articles/limits#processes-threads
+  + https://devcenter.heroku.com/articles/dynos#process-thread-limits
