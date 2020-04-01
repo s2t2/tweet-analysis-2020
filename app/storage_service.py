@@ -13,37 +13,41 @@ VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
 class BigQueryService():
 
-    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False):
+    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
+                        verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS):
         self.project_name = project_name
         self.dataset_name = dataset_name
         self.dataset_address = f"{self.project_name}.{self.dataset_name}"
+
+        self.verbose = (verbose == True)
+        self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
         self.dataset_ref = self.client.dataset(self.dataset_name)
         if init_tables == True:
             self.init_tables()
 
-    def init_tables(self, destructive=DESTRUCTIVE_MIGRATIONS):
+    def init_tables(self):
         """ Creates new tables for storing follower graphs """
-        self.migrate_populate_users(destructive=destructive)
-        self.migrate_user_friends(destructive=destructive)
+        self.migrate_populate_users()
+        self.migrate_user_friends()
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
-    def execute_query(self, sql, verbose=VERBOSE_QUERIES):
+    def execute_query(self, sql):
         """Param: sql (str)"""
-        if verbose:
+        if self.verbose:
             print(sql)
         job = self.client.query(sql)
         return job.result()
 
-    def migrate_populate_users(self, destructive=False):
+    def migrate_populate_users(self):
         """
         Resulting table has a row for each user id / screen name combo
             (multiple rows per user id if they changed their screen name)
         """
         sql = ""
-        if destructive:
+        if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.users`; "
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.users` as (
@@ -60,9 +64,9 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def migrate_user_friends(self, destructive=False):
+    def migrate_user_friends(self):
         sql = ""
-        if destructive:
+        if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`; "
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
@@ -97,7 +101,6 @@ class BigQueryService():
             sql += f"LIMIT {limit};"
         else:
             sql += f"ORDER BY u.user_id;"
-        print(sql)
         results = self.execute_query(sql)
         return list(results)
 

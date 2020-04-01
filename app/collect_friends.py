@@ -23,10 +23,13 @@ if __name__ == "__main__":
 
     service = BigQueryService()
     print("BIGQUERY DATASET:", service.dataset_address.upper())
+    print("DESTRUCTIVE MIGRATIONS:", service.destructive)
+    print("VERBOSE QUERIES:", service.verbose)
 
     if input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
         exit()
+
     service.init_tables()
 
     if MIN_ID and MAX_ID:
@@ -36,14 +39,15 @@ if __name__ == "__main__":
     else:
         print("USERS LIMIT:", LIMIT)
         users = service.fetch_remaining_users(limit=LIMIT)
+
     users_count = len(users)
-    print("FETCHED", users_count, "USERS...")
+    #print("FETCHED", users_count, "USERS...")
 
     #
     # PROCESS USERS
     #
 
-    print("PROCESSING USERS IN BATCHES OF:", BATCH_SIZE)
+    print("BATCH SIZE:", BATCH_SIZE)
     batch = []
     batch_size = 0
     for row_index, row in enumerate(users):
@@ -75,8 +79,10 @@ if __name__ == "__main__":
         # STORE USERS AND FRIENDS
         #
 
-        # store full batches, and the final batch, even if the final batch isn't full:
-        if (batch_size >= BATCH_SIZE) or (row_index + 1 >= users_count):
+        # store full batches,
+        # ... and the final batch, even if the final batch isn't full:
+        # ... but don't store any empty batches
+        if any(batch) and ((batch_size >= BATCH_SIZE) or (row_index + 1 >= users_count)):
             print("------------------")
             print(f"SAVING BATCH (SIZE: {batch_size})...")
             service.append_user_friends(batch)
