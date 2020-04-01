@@ -25,7 +25,6 @@ if __name__ == "__main__":
     print("BIGQUERY DATASET:", service.dataset_address.upper())
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
-
     if input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
         exit()

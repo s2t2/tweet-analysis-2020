@@ -118,7 +118,8 @@ if __name__ == "__main__":
 
     service = BigQueryService()
     print("BIGQUERY DATASET:", service.dataset_address.upper())
-
+    print("DESTRUCTIVE MIGRATIONS:", service.destructive)
+    print("VERBOSE QUERIES:", service.verbose)
     if input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
         exit()
@@ -178,3 +179,23 @@ if __name__ == "__main__":
     percent_collected = graphed_user_count / user_count
     print(f"{(percent_collected * 100):.1f}% COLLECTED")
     print(f"{((1 - percent_collected) * 100):.1f}% REMAINING")
+
+    print("--------------------")
+    print("FETCHING LATEST FRIEND GRAPHS...")
+    sql = f"""
+        SELECT
+            user_id
+            ,screen_name
+            ,verified
+            ,friend_count
+            ,friend_names
+            ,start_at
+            ,end_at
+        FROM `{service.dataset_address}.user_friends`
+        ORDER BY start_at DESC
+        LIMIT 3
+    """
+    results = service.execute_query(sql)
+    for row in results:
+        print("---")
+        print(row.screen_name, row.friend_count, len(row.friend_names))
