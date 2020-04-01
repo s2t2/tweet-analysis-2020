@@ -10,10 +10,11 @@ load_dotenv()
 
 SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
 VERBOSE = (os.getenv("VERBOSE_SCRAPER", default="false") == "true") # set like... VERBOSE_SCRAPER="true"
+MAX_FRIENDS = int(os.getenv("MAX_FRIENDS", default=2000)) # the max number of friends to get for each user
 
 class TwitterScraper():
 
-    def __init__(self, screen_name, max_friends=2000, verbose=False):
+    def __init__(self, screen_name, max_friends=MAX_FRIENDS, verbose=VERBOSE):
         """ Params:
             screen_name (str) like "barackobama" or "s2t2"
             max_friends (int)
@@ -50,7 +51,7 @@ class TwitterScraper():
 
 if __name__ == "__main__":
 
-    scraper = TwitterScraper(screen_name=SCREEN_NAME, verbose=VERBOSE)
+    scraper = TwitterScraper(SCREEN_NAME)
     print("USER:", scraper.screen_name)
 
     friend_names = scraper.get_friend_names()

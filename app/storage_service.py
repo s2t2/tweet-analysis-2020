@@ -30,6 +30,13 @@ class BigQueryService():
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
+    def execute_query(self, sql, verbose=VERBOSE_QUERIES):
+        """Param: sql (str)"""
+        if verbose:
+            print(sql)
+        job = self.client.query(sql)
+        return job.result()
+
     def migrate_populate_users(self, destructive=False):
         """
         Resulting table has a row for each user id / screen name combo
@@ -61,19 +68,14 @@ class BigQueryService():
                 user_id STRING,
                 screen_name STRING,
                 verified BOOLEAN,
-                friends_count INT64,
-                friend_names ARRAY<STRING>
+                friend_count INT64,
+                friend_names ARRAY<STRING>,
+                start_at TIMESTAMP,
+                end_at TIMESTAMP
             );
         """
         results = self.execute_query(sql)
         return list(results)
-
-    def execute_query(self, sql, verbose=VERBOSE_QUERIES):
-        """Param: sql (str)"""
-        if verbose:
-            print(sql)
-        job = self.client.query(sql)
-        return job.result()
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
@@ -81,6 +83,7 @@ class BigQueryService():
             SELECT
                 u.user_id
                 ,u.screen_name
+                ,u.verified
             FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
@@ -98,8 +101,11 @@ class BigQueryService():
         return list(results)
 
     def append_user_friends(self, records):
-        """Param: records (list of dictionaries)"""
-        rows_to_insert = [list(d.values()) for d in records]
+        """
+        Param: records (list of dictionaries)
+        """
+        #rows_to_insert = [list(d.values()) for d in records]
+        rows_to_insert = [list(d.values()) for d in records if any(d["friend_names"])] # doesn't store failed attempts. can try those again later
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
 

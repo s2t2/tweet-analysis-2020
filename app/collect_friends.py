@@ -3,7 +3,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 from app.storage_service import BigQueryService
-from app.twitter_service import twitter_api, get_friends
+from app.twint_scraper import TwitterScraper
 
 load_dotenv()
 
@@ -11,12 +11,11 @@ LIMIT = int(os.getenv("USERS_LIMIT", default=10)) # max number of users to fetch
 MIN_ID = os.getenv("MIN_USER_ID") # if partitioning users, the lower bound of the partition
 MAX_ID = os.getenv("MAX_USER_ID") # if partitioning users, the upper bound of the partition
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=4)) # the number of users to store in a single BQ call
-MAX_FRIENDS = int(os.getenv("MAX_FRIENDS", default=2000)) # the max number of friends to get for each user
+
+def generate_timestamp():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S") # a format for storing in BQ (consider moving)
 
 if __name__ == "__main__":
-
-    api = twitter_api()
-    print("TWITTER API CLIENT", api)
 
     #
     # FETCH USERS
@@ -24,6 +23,7 @@ if __name__ == "__main__":
 
     service = BigQueryService()
     print("BIGQUERY DATASET:", service.dataset_address.upper())
+
     if input("CONTINUE? (Y/N): ").upper() != "Y":
         print("EXITING...")
         exit()
@@ -48,18 +48,27 @@ if __name__ == "__main__":
     batch_size = 0
     for row_index, row in enumerate(users):
         print("------------------")
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "|", row_index, "|", row.user_id)
+        start_at = generate_timestamp()
+        print(start_at, "|", row_index, "|", row.user_id)
 
         #
         # GET FRIENDS
         #
 
-        friend_ids = get_friends(user_id=row.user_id, max_friends=MAX_FRIENDS)
+        scraper = TwitterScraper(row.screen_name)
+        friend_names = sorted(scraper.get_friend_names())
+        friend_count = len(friend_names)
+        print("FRIENDS COUNT:", friend_count)
         batch.append({
             "user_id": row.user_id,
-            "friends_count": len(friend_ids), # it is possible there could be more than the limit
-            "friend_ids": friend_ids,
+            "screen_name": row.screen_name,
+            "verified": row.verified,
+            "friend_count": friend_count, # it is possible there could be more than the limit
+            "friend_names": friend_names,
+            "start_at": start_at,
+            "end_at": generate_timestamp(),
         })
+
         batch_size += 1
 
         #
@@ -71,6 +80,6 @@ if __name__ == "__main__":
             print("------------------")
             print(f"SAVING BATCH (SIZE: {batch_size})...")
             service.append_user_friends(batch)
+            print(f"CLEARING BATCH...")
             batch = []
             batch_size = 0
-            print(f"CLEARING BATCH...")
