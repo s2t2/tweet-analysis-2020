@@ -20,6 +20,7 @@ Configure the rest of the environment variables:
 ```sh
 heroku config:set APP_ENV="production"
 
+
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
 heroku config:set MIN_USER_ID=""
 heroku config:set MAX_USER_ID=""
