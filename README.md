@@ -54,7 +54,7 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 Fetch data from Twitter:
 
 ```sh
-python -m app.twitter_scraper
+python -m app.twint_scraper
 ```
 
 Fetch data from BigQuery:
