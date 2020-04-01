@@ -105,13 +105,11 @@ class BigQueryService():
         """
         Param: records (list of dictionaries)
         """
-        #rows_to_insert = [list(d.values()) for d in records]
-        rows_to_insert = [list(d.values()) for d in records if any(d["friend_names"])] # doesn't store failed attempts. can try those again later
-        if any(rows_to_insert):
-            errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
-            return errors
-        else:
-            return None
+        rows_to_insert = [list(d.values()) for d in records]
+        #rows_to_insert = [list(d.values()) for d in records if any(d["friend_names"])] # doesn't store failed attempts. can try those again later
+        #if any(rows_to_insert):
+        errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
+        return errors
 
 if __name__ == "__main__":
 

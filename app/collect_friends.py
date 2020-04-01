@@ -58,18 +58,18 @@ if __name__ == "__main__":
         scraper = TwitterScraper(row.screen_name)
         friend_names = sorted(scraper.get_friend_names())
         friend_count = len(friend_names)
-        print("FRIENDS COUNT:", friend_count)
-        batch.append({
-            "user_id": row.user_id,
-            "screen_name": row.screen_name,
-            "verified": row.verified,
-            "friend_count": friend_count, # it is possible there could be more than the limit
-            "friend_names": friend_names,
-            "start_at": start_at,
-            "end_at": generate_timestamp(),
-        })
-
-        batch_size += 1
+        if any(friend_names):
+            print("FRIENDS COUNT:", friend_count)
+            batch.append({
+                "user_id": row.user_id,
+                "screen_name": row.screen_name,
+                "verified": row.verified,
+                "friend_count": friend_count, # it is possible there could be more than the limit
+                "friend_names": friend_names,
+                "start_at": start_at,
+                "end_at": generate_timestamp(),
+            })
+            batch_size += 1
 
         #
         # STORE USERS AND FRIENDS
