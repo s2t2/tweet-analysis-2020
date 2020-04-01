@@ -5,9 +5,13 @@ import threading
 import time
 import random
 
-def foo(x, s):
-    time.sleep(s)
-    print ("%s %s %s" % (threading.current_thread(), x, s))
+def foo(counter, sleep_seconds):
+    time.sleep(sleep_seconds)
+    print(threading.current_thread(), counter, sleep_seconds)
 
-for x in range(4):
-    threading.Thread(target=foo, args=(x, random.random())).start()
+if __name__ == "__main__":
+
+    for counter in range(4):
+        sleep_seconds = random.random()
+        #foo(counter, sleep_seconds)
+        threading.Thread(target=foo, args=(counter, sleep_seconds)).start()
