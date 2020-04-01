@@ -66,7 +66,7 @@ python -m app.storage_service
 If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery:
 
 ```sh
-python -m app.collect_friends
+python -m app.friend_collector
 ```
 
 ## [Deploying](/DEPLOYING.md)
