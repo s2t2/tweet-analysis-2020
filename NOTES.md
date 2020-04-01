@@ -186,5 +186,8 @@ Resources and Research into multiple threads:
   + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
   + https://devcenter.heroku.com/articles/limits#processes-threads
   + https://devcenter.heroku.com/articles/dynos#process-thread-limits
+  + https://docs.python.org/3/library/threading.html
+  + https://realpython.com/intro-to-python-threading/
+  + https://pymotw.com/2/threading/
 
 Heroku can support 256 threads / processes on the free tier. So let's try to take advantage of that capability.
