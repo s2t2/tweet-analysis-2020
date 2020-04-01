@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
+from app import APP_ENV
+
 load_dotenv()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud (and keras)
@@ -120,9 +122,10 @@ if __name__ == "__main__":
     print("BIGQUERY DATASET:", service.dataset_address.upper())
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
-    if input("CONTINUE? (Y/N): ").upper() != "Y":
-        print("EXITING...")
-        exit()
+    if APP_ENV == "development":
+        if input("CONTINUE? (Y/N): ").upper() != "Y":
+            print("EXITING...")
+            exit()
 
     #print("--------------------")
     #print("FETCHING TOPICS...")

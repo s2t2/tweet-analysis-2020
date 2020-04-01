@@ -69,4 +69,6 @@ If both of those commands work, you can collect the friend graphs, which will be
 python -m app.collect_friends
 ```
 
+## [Deploying](/DEPLOYING.md)
+
 ## [License](/LICENSE.md)

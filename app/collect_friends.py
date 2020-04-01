@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
+from app import APP_ENV
 from app.storage_service import BigQueryService
 from app.twint_scraper import TwitterScraper
 
@@ -25,9 +26,10 @@ if __name__ == "__main__":
     print("BIGQUERY DATASET:", service.dataset_address.upper())
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
-    if input("CONTINUE? (Y/N): ").upper() != "Y":
-        print("EXITING...")
-        exit()
+    if APP_ENV == "development":
+        if input("CONTINUE? (Y/N): ").upper() != "Y":
+            print("EXITING...")
+            exit()
 
     service.init_tables()
 
