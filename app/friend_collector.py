@@ -9,7 +9,7 @@ from app.twint_scraper import TwitterScraper
 
 load_dotenv()
 
-MAX_THREADS = int(os.getenv("MAX_THREADS", default=3)) # the maximum number of threads to use. each thread will process a batch of the specified size
+#MAX_THREADS = int(os.getenv("MAX_THREADS", default=3)) # the maximum number of threads to use. each thread will process a batch of the specified size
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=4)) # the max number of processed users to store in BQ at once (with a single insert API call)
 # optional:
 MIN_ID = os.getenv("MIN_USER_ID") # if partitioning users, the lower bound of the partition
@@ -23,7 +23,7 @@ def generate_timestamp():
 def split_into_batches(users, batch_size=3):
     """
     A generator to split list into batches of the specified size
-        h/t: https://stackoverflow.com/a/8290508/670433
+        h/t: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
     """
     user_count = len(users)
     for i in range(0, user_count, batch_size):
@@ -55,7 +55,7 @@ def process_users(users):
     storable_records = [r for r in records if any(r["friend_names"])] # for now we are not storing friend-less users, so we can go back and try again later
     if any(storable_records):
         print("------------------")
-        print(f"SAVING RECORDS (SIZE: {len(storable_records)})...")
+        print(f"SAVING RECORDS (SIZE: {len(storable_records)}) {current_thread()}...")
         service.append_user_friends(storable_records)
 
 if __name__ == "__main__":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     print("MIN USER ID:", MIN_ID)
     print("MAX USER ID:", MAX_ID)
     print("USERS LIMIT:", LIMIT)
-    print("MAX THREADS:", MAX_THREADS)
+    #print("MAX THREADS:", MAX_THREADS)
     print("BATCH SIZE:", BATCH_SIZE)
     if APP_ENV == "development":
         if input("CONTINUE? (Y/N): ").upper() != "Y":
@@ -80,8 +80,13 @@ if __name__ == "__main__":
     users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
     print("FETCHED UNIVERSE OF", len(users), "USERS")
 
-    pool = BoundedSemaphore(value=MAX_THREADS)
-    print(pool)
-    with pool:
-        for users_batch in split_into_batches(users, BATCH_SIZE):
-            Thread(target=process_users, args=([users_batch])).start() # wrap users in a list or else it will try to unpack them and think there are multiple arguments being passed
+    # not sure if this MAX_THREADS approach applies in a non-DB environment?
+    #
+    # pool = BoundedSemaphore(value=MAX_THREADS)
+    # print(pool)
+    # with pool:
+    #     for users_batch in split_into_batches(users, BATCH_SIZE):
+    #         Thread(target=process_users, args=([users_batch])).start() # wrap users in a list or else it will try to unpack them and think there are multiple arguments being passed
+
+    for users_batch in split_into_batches(users, BATCH_SIZE):
+        Thread(target=process_users, args=([users_batch])).start() # wrap users in a list or else it will try to unpack them and think there are multiple arguments being passed
