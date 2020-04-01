@@ -3,23 +3,26 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
+from app import APP_ENV
+
 load_dotenv()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud (and keras)
 PROJECT_NAME = os.getenv("BIGQUERY_PROJECT_NAME", default="tweet-collector-py")
 DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_development") #> "_test" or "_production"
+DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
+VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
 class BigQueryService():
-    """
-    See:
-        https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
-        https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
-    """
 
-    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False):
+    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
+                        verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS):
         self.project_name = project_name
         self.dataset_name = dataset_name
         self.dataset_address = f"{self.project_name}.{self.dataset_name}"
+
+        self.verbose = (verbose == True)
+        self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
         self.dataset_ref = self.client.dataset(self.dataset_name)
@@ -33,11 +36,30 @@ class BigQueryService():
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
 
+    def execute_query(self, sql):
+        """Param: sql (str)"""
+        if self.verbose:
+            print(sql)
+        job = self.client.query(sql)
+        return job.result()
+
     def migrate_populate_users(self):
-        sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.dataset_address}.users as (
-                SELECT distinct(user_id) as user_id
+        """
+        Resulting table has a row for each user id / screen name combo
+            (multiple rows per user id if they changed their screen name)
+        """
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.users`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.users` as (
+                SELECT
+                    user_id
+                    ,user_screen_name as screen_name
+                    ,max(user_verified) as verified
                 FROM `{self.dataset_address}.tweets`
+                WHERE user_id IS NOT NULL AND user_screen_name IS NOT NULL
+                GROUP BY 1, 2
                 ORDER BY 1
             );
         """
@@ -45,28 +67,30 @@ class BigQueryService():
         return list(results)
 
     def migrate_user_friends(self):
-        # see: https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#array-type
-        # f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`;"
-        sql = f"""
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_friends`; "
+        sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
                 user_id STRING,
-                friends_count INT64,
-                friend_ids ARRAY<STRING>
+                screen_name STRING,
+                verified BOOLEAN,
+                friend_count INT64,
+                friend_names ARRAY<STRING>,
+                start_at TIMESTAMP,
+                end_at TIMESTAMP
             );
         """
         results = self.execute_query(sql)
         return list(results)
-
-    def execute_query(self, sql):
-        """Param: sql (str)"""
-        job = self.client.query(sql)
-        return job.result()
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
         sql = f"""
             SELECT
                 u.user_id
+                ,u.screen_name
+                ,u.verified
             FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
@@ -79,13 +103,16 @@ class BigQueryService():
             sql += f"LIMIT {limit};"
         else:
             sql += f"ORDER BY u.user_id;"
-        print(sql)
         results = self.execute_query(sql)
         return list(results)
 
     def append_user_friends(self, records):
-        """Param: records (list of dictionaries)"""
+        """
+        Param: records (list of dictionaries)
+        """
         rows_to_insert = [list(d.values()) for d in records]
+        #rows_to_insert = [list(d.values()) for d in records if any(d["friend_names"])] # doesn't store failed attempts. can try those again later
+        #if any(rows_to_insert):
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
 
@@ -93,10 +120,12 @@ if __name__ == "__main__":
 
     service = BigQueryService()
     print("BIGQUERY DATASET:", service.dataset_address.upper())
-
-    if input("CONTINUE? (Y/N): ").upper() != "Y":
-        print("EXITING...")
-        exit()
+    print("DESTRUCTIVE MIGRATIONS:", service.destructive)
+    print("VERBOSE QUERIES:", service.verbose)
+    if APP_ENV == "development":
+        if input("CONTINUE? (Y/N): ").upper() != "Y":
+            print("EXITING...")
+            exit()
 
     #print("--------------------")
     #print("FETCHING TOPICS...")
@@ -153,3 +182,23 @@ if __name__ == "__main__":
     percent_collected = graphed_user_count / user_count
     print(f"{(percent_collected * 100):.1f}% COLLECTED")
     print(f"{((1 - percent_collected) * 100):.1f}% REMAINING")
+
+    print("--------------------")
+    print("FETCHING LATEST FRIEND GRAPHS...")
+    sql = f"""
+        SELECT
+            user_id
+            ,screen_name
+            ,verified
+            ,friend_count
+            ,friend_names
+            ,start_at
+            ,end_at
+        FROM `{service.dataset_address}.user_friends`
+        ORDER BY start_at DESC
+        LIMIT 3
+    """
+    results = service.execute_query(sql)
+    for row in results:
+        print("---")
+        print(row.screen_name, row.friend_count, len(row.friend_names))

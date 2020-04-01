@@ -16,8 +16,8 @@ cd tweet-analysis-py/
 Create and activate a virtual environment, using anaconda for example, if you like that kind of thing:
 
 ```sh
-conda create -n tweets-env python=3.7 # (first time only)
-conda activate tweets-env
+conda create -n tweet-analyzer-env python=3.7 # (first time only)
+conda activate tweet-analyzer-env
 ```
 
 Install package dependencies:
@@ -43,17 +43,7 @@ BATCH_SIZE=100
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
 BIGQUERY_PROJECT_NAME="tweet-collector-py"
 BIGQUERY_DATASET_NAME="impeachment_development"
-
-# TWITTER API
-TWITTER_CONSUMER_KEY="_______"
-TWITTER_CONSUMER_SECRET="________"
-TWITTER_ACCESS_TOKEN="_______________"
-TWITTER_ACCESS_TOKEN_SECRET="____________"
 ```
-
-### Twitter API Credentials
-
-Obtain credentials which provide read and write access to the Twitter API. Set the environment variables `TWITTER_CONSUMER_KEY`, `TWITTER_CONSUMER_SECRET`, `TWITTER_ACCESS_TOKEN`, and `TWITTER_ACCESS_TOKEN_SECRET` accordingly.
 
 ### Google API Credentials
 
@@ -64,7 +54,7 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 Fetch data from Twitter:
 
 ```sh
-python -m app.twitter_service
+python -m app.twint_scraper
 ```
 
 Fetch data from BigQuery:
@@ -76,7 +66,9 @@ python -m app.storage_service
 If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery:
 
 ```sh
-python -m app.collect_friends
+python -m app.friend_collector
 ```
+
+## [Deploying](/DEPLOYING.md)
 
 ## [License](/LICENSE.md)

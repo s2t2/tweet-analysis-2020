@@ -4,6 +4,13 @@
 
 Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
 
+## Database Resources
+
+Working with BigQuery:
+
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
+
 ## Database Queries
 
 ### Tweets
@@ -16,6 +23,10 @@ SELECT
   ,count(DISTINCT status_id) as tweet_count -- 67,655,058
 FROM impeachment_production.tweets
 ```
+
+tweet_count	| user_count
+---	        | ---
+67,655,058	| 3,600,545
 
 Counting users and tweets per month:
 
@@ -83,7 +94,16 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 
 ## Twitter Resources
 
-  + https://tweeterid.com/ for on-the-fly `user_id` / `screen_name` conversions
+Ad-hoc conversions between user ids and screen names:
+  + https://tweeterid.com/
+
+Working with the `twint` package:
+  + https://github.com/twintproject/twint
+  + https://pielco11.ovh/posts/twint-osint/#followersfollowing
+  + https://github.com/twintproject/twint/pull/685
+  + https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
+  + https://github.com/twintproject/twint/issues/270
+  + https://github.com/twintproject/twint/issues/704
 
 ## Partitioning Users
 
