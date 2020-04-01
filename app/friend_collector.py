@@ -9,17 +9,22 @@ from app.twint_scraper import TwitterScraper
 
 load_dotenv()
 
+MAX_THREADS = int(os.getenv("MAX_THREADS", default=3)) # the maximum number of threads to use. each thread will process a batch of the specified size
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=4)) # the max number of processed users to store in BQ at once (with a single insert API call)
+# optional:
 MIN_ID = os.getenv("MIN_USER_ID") # if partitioning users, the lower bound of the partition
 MAX_ID = os.getenv("MAX_USER_ID") # if partitioning users, the upper bound of the partition
-LIMIT = int(os.getenv("USERS_LIMIT", default=20)) # max number of users to fetch from the db
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=4)) # the max number of users to store in a single BQ call
-MAX_THREADS = int(os.getenv("MAX_THREADS", default=3)) # the maximum number of threads to use
+LIMIT = os.getenv("USERS_LIMIT") # max number of users to fetch from the db
 
 def generate_timestamp():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S") # a format for storing in BQ (consider moving)
+    """Formats datetime for storing in BigQuery (consider moving)"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def split_into_batches(users, batch_size=3):
-    # h/t: https://stackoverflow.com/a/8290508/670433
+    """
+    A generator to split list into batches of the specified size
+        h/t: https://stackoverflow.com/a/8290508/670433
+    """
     user_count = len(users)
     for i in range(0, user_count, batch_size):
         print()
@@ -55,23 +60,16 @@ def process_users(users):
 
 if __name__ == "__main__":
 
-    #for batch in split_into_batches([0,1,2,3,4,5,6,7,8,9,10], 3):
-    #    print(batch)
-    ##> [0, 1, 2]
-    ##> [3, 4, 5]
-    ##> [6, 7, 8]
-    ##> [9, 10]
-    #exit()
-
     service = BigQueryService()
+
     print("BIGQUERY DATASET:", service.dataset_address.upper())
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
     print("MIN USER ID:", MIN_ID)
     print("MAX USER ID:", MAX_ID)
     print("USERS LIMIT:", LIMIT)
-    print("BATCH SIZE:", BATCH_SIZE)
     print("MAX THREADS:", MAX_THREADS)
+    print("BATCH SIZE:", BATCH_SIZE)
     if APP_ENV == "development":
         if input("CONTINUE? (Y/N): ").upper() != "Y":
             print("EXITING...")
@@ -79,12 +77,8 @@ if __name__ == "__main__":
 
     service.init_tables()
 
-    if MIN_ID and MAX_ID:
-        users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
-    else:
-        users = service.fetch_remaining_users(limit=LIMIT)
-    users_count = len(users)
-    print("FETCHED", users_count, "USERS")
+    users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
+    print("FETCHED UNIVERSE OF", len(users), "USERS")
 
     pool = BoundedSemaphore(value=MAX_THREADS)
     print(pool)

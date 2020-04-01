@@ -99,7 +99,7 @@ class BigQueryService():
             sql += f"  AND CAST(u.user_id as int64) BETWEEN {int(min_id)} AND {int(max_id)} "
         sql += f"ORDER BY u.user_id "
         if limit:
-            sql += f"LIMIT {limit};"
+            sql += f"LIMIT {int(limit)};"
         results = self.execute_query(sql)
         return list(results)
 
