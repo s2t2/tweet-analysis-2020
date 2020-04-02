@@ -20,10 +20,12 @@ Configure the rest of the environment variables (see [Partitioning Users](/NOTES
 ```sh
 heroku config:set APP_ENV="production"
 
+
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
+heroku config:set USERS_LIMIT="10000"
+heroku config:set BATCH_SIZE="25"
 heroku config:set MIN_USER_ID="17"
 heroku config:set MAX_USER_ID="49223966"
-heroku config:set BATCH_SIZE="50"
 ```
 
 Deploy:
