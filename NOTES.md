@@ -194,11 +194,23 @@ Resources and Research into multiple threads:
 
 Heroku says it can support up to 256 threads on the free tier. So let's try to take advantage of that capability.
 
-When running the multi-threaded approach on Heroku however, we are seeing "RuntimeError: can't start new thread" errors.
+When running the multi-threaded approach on Heroku however, we are seeing "RuntimeError: can't start new thread" errors when the number of threads is set to anything more than 10.
 
 ```sh
-USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector # OK
-USERS_LIMIT=40 MAX_THREADS=15 BATCH_SIZE=5 python -m app.friend_collector # FAIL
-
-USERS_LIMIT=200 MAX_THREADS=200 BATCH_SIZE=200 python -m app.friend_collector # FAIL
+USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector #> OK ON HEROKU
+USERS_LIMIT=40 MAX_THREADS=15 BATCH_SIZE=5 python -m app.friend_collector #> FAIL ON HEROKU
 ```
+
+Interestingly enough, the example executor script is able to run on Heroku and my local machine with 100 threads. But the friend collector won't run on either machine with that number of threads.
+
+```sh
+USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.executor #> OK ON HEROKU AND LOCAL
+
+USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.friend_collector #> FAIL ON HEROKU
+#> RuntimeError: can't start new thread
+
+USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.friend_collector #> FAIL ON LOCAL
+#> AttributeError: '_UnixSelectorEventLoop' object has no attribute '_ssock'
+```
+
+Maybe we are hitting memory capacity on Heroku. Checking the performance metrics might help...

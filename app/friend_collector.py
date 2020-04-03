@@ -25,9 +25,9 @@ def fetch_friends(row):
     start_at = generate_timestamp()
     print(start_at, "|", current_thread().name, "|", row.user_id)
     scraper = TwitterScraper(row.screen_name)
-    end_at = generate_timestamp()
     friend_names = sorted(scraper.get_friend_names())
-    print(start_at, "|", current_thread().name, "|", row.user_id, "FRIENDS:", len(friend_names))
+    end_at = generate_timestamp()
+    print(end_at, "|", current_thread().name, "|", row.user_id, "FRIENDS:", len(friend_names))
     return {
         "user_id": row.user_id,
         "screen_name": row.screen_name,
