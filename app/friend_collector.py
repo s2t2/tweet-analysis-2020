@@ -63,16 +63,20 @@ if __name__ == "__main__":
     print("FETCHED UNIVERSE OF", len(users), "USERS")
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-        batch = []
         futures = [executor.submit(fetch_friends, row) for row in users]
-        for future in as_completed(futures):
+        print("FUTURE RESULTS", len(futures))
+        batch = []
+        for index, future in enumerate(as_completed(futures)):
             result = future.result()
             #print(result)
 
-            if any(result["friend_names"]):
-                batch.append(result)
+            # this results in all the first few having zero on the next run, so let's just store them
+            # if any(result["friend_names"]):
+            #     batch.append(result)
+            batch.append(result)
 
-            if len(batch) >= BATCH_SIZE:
+            # store full batch or when there are no more left to store...
+            if (len(batch) >= BATCH_SIZE) or (index + 1 >= len(futures)):
                 print("-------------------------")
                 print(f"SAVING BATCH OF {len(batch)}...")
                 print("-------------------------")
