@@ -10,8 +10,8 @@ from threading import Thread, Lock, BoundedSemaphore, current_thread
 
 load_dotenv()
 
-MAX_THREADS = int(os.getenv("MAX_THREADS", 200)) # heroku supports max 256, see: https://devcenter.heroku.com/articles/dynos#process-thread-limits
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", 20)) # heroku supports max 256, see: https://devcenter.heroku.com/articles/dynos#process-thread-limits
+MAX_THREADS = int(os.getenv("MAX_THREADS", default=200)) # heroku supports max 256, see: https://devcenter.heroku.com/articles/dynos#process-thread-limits
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=20))
 
 def fetch_friends(user_id, sleep_seconds=1):
     thread_id = int(current_thread().name.replace("THREAD_", "")) + 1
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
         batch = []
         results = []
-        futures = [executor.submit(fetch_friends, user_id, random.choice([1,2,3])) for user_id in user_ids]
+        futures = [executor.submit(fetch_friends, user_id, random.choice([1,5,10])) for user_id in user_ids]
         for index, future in enumerate(as_completed(futures)):
             result = future.result()
             print(result)
