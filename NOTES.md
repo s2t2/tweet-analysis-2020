@@ -183,9 +183,6 @@ Neither of these approaches is currently going to get us the desired performance
 
 Resources and Research into multiple threads:
 
-  + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
-  + https://devcenter.heroku.com/articles/limits#processes-threads
-  + https://devcenter.heroku.com/articles/dynos#process-thread-limits
   + https://docs.python.org/3/library/threading.html
   + https://realpython.com/intro-to-python-threading/
   + https://pymotw.com/2/threading/
@@ -193,6 +190,10 @@ Resources and Research into multiple threads:
 ### Threading on Heroku
 
 Heroku says it can support up to 256 threads on the free tier. So let's try to take advantage of that capability.
+
+  + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
+  + https://devcenter.heroku.com/articles/limits#processes-threads
+  + https://devcenter.heroku.com/articles/dynos#process-thread-limits
 
 When running the multi-threaded approach on Heroku however, we are seeing "RuntimeError: can't start new thread" errors when the number of threads is set to anything more than 10.
 
@@ -214,3 +215,60 @@ USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.friend_collector #> 
 ```
 
 Maybe we are hitting memory capacity on Heroku. Checking the performance metrics might help...
+
+Memory load was high. Dyno load was high as well. Scaling up the dyno seems to alleviate the situation. Maybe it was a memory capacity thing.
+
+
+
+Monitoring results...
+
+```sql
+/*
+select
+  count(distinct screen_name) as user_count
+FROM impeachment_production.user_friends
+*/
+
+/*
+select
+  -- count(distinct screen_name) as user_count
+  screen_name
+  ,end_at
+FROM impeachment_production.user_friends
+WHERE end_at BETWEEN "2020-04-03 02:30:00" AND "2020-04-03 03:50:00"
+order by end_at
+*/
+
+
+SELECT
+   count(distinct user_id) as user_count
+   ,DATETIME_DIFF(max(CAST(end_at as DATETIME)), min(cast(end_at as DATETIME)), MINUTE) as runtime_mins
+   -- ,count(distinct screen_name) as name_count
+   --,sum(if(friend_count > 0, 1, 0)) as users_with_friends
+   -- ,count(distinct if(friend_count > 0, user_id, NULL)) as users_with_friends
+   -- ,min(runtime_seconds) as shortest_run_seconds
+   -- ,max(runtime_seconds) as longest_run_seconds
+   ,round(avg(runtime_seconds),2) as avg_run_seconds
+   --,min(friend_count) as min_friends
+   --,max(friend_count) as max_friends
+   ,round(avg(friend_count),2) as avg_friends
+   -- ,round(avg(friend_count/runtime_seconds),2) as avg_friends_per_second
+FROM (
+  SELECT
+    user_id
+    ,screen_name
+    ,friend_count
+    ,start_at
+    ,end_at
+    ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
+  FROM impeachment_production.user_friends
+  WHERE end_at BETWEEN "2020-04-03 04:15:00" AND "2022-04-03 05:15:00"
+) subq
+
+```
+
+Current best working results on Heroku "performance-m" ($250/mo) server are something like:
+
+```sh
+USERS_LIMIT=1000 BATCH_SIZE=20	MAX_THREADS=200
+```
