@@ -23,24 +23,10 @@ heroku config:set APP_ENV="production"
 
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
 heroku config:set USERS_LIMIT="10000"
-heroku config:set BATCH_SIZE="25"
+heroku config:set BATCH_SIZE="20"
 heroku config:set MIN_USER_ID="17"
 heroku config:set MAX_USER_ID="49223966"
 ```
-
-
-```sh
-USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector # OK
-USERS_LIMIT=400 MAX_THREADS=50 BATCH_SIZE=20 python -m app.friend_collector
-```
-
-
-
-
-
-
-
-
 
 Deploy:
 

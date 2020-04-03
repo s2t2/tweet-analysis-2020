@@ -190,4 +190,15 @@ Resources and Research into multiple threads:
   + https://realpython.com/intro-to-python-threading/
   + https://pymotw.com/2/threading/
 
-Heroku can support 256 threads / processes on the free tier. So let's try to take advantage of that capability.
+### Threading on Heroku
+
+Heroku says it can support up to 256 threads on the free tier. So let's try to take advantage of that capability.
+
+When running the multi-threaded approach on Heroku however, we are seeing "RuntimeError: can't start new thread" errors.
+
+```sh
+USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector # OK
+USERS_LIMIT=40 MAX_THREADS=15 BATCH_SIZE=5 python -m app.friend_collector # FAIL
+
+USERS_LIMIT=200 MAX_THREADS=200 BATCH_SIZE=200 python -m app.friend_collector # FAIL
+```

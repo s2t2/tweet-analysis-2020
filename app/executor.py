@@ -10,6 +10,7 @@ from threading import Thread, Lock, BoundedSemaphore, current_thread
 
 load_dotenv()
 
+LIMIT = int(os.getenv("USERS_LIMIT", default=500))
 MAX_THREADS = int(os.getenv("MAX_THREADS", default=200)) # heroku supports max 256, see: https://devcenter.heroku.com/articles/dynos#process-thread-limits
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=20))
 
@@ -20,7 +21,7 @@ def fetch_friends(user_id, sleep_seconds=1):
 
 if __name__ == "__main__":
 
-    user_ids = range(1,111)
+    user_ids = range(1, LIMIT + 1)
     start_at = time.perf_counter()
     print(f"USERS: {len(user_ids)}")
     print(f"THREADS: {MAX_THREADS}")
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 
             if len(batch) == BATCH_SIZE:
                 print(f"CLEARING BATCH OF {len(batch)}...")
-                time.sleep(5)
+                #time.sleep(5)
                 batch = []
 
     end_at = time.perf_counter()
