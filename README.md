@@ -34,10 +34,11 @@ Create a new file in the root directory of this repo called ".env", and set your
 # example .env file
 
 # JOB CONFIG
-USERS_LIMIT=5000
-BATCH_SIZE=100
 #MIN_USER_ID="________"
 #MAX_USER_ID="_______"
+USERS_LIMIT=10000
+BATCH_SIZE=20
+MAX_THREADS=10
 
 # GOOGLE APIs
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
@@ -51,13 +52,13 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 
 ## Usage
 
-Fetch data from Twitter:
+Fetch example data from Twitter:
 
 ```sh
 python -m app.twint_scraper
 ```
 
-Fetch data from BigQuery:
+Fetch users from BigQuery:
 
 ```sh
 python -m app.storage_service
@@ -67,6 +68,8 @@ If both of those commands work, you can collect the friend graphs, which will be
 
 ```sh
 python -m app.friend_collector
+# ... or specify confg vars:
+USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector
 ```
 
 ## [Deploying](/DEPLOYING.md)

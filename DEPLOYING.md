@@ -15,15 +15,17 @@ heroku config:set GOOGLE_CREDENTIALS="$(< credentials.json)" # references local 
 heroku config:set GOOGLE_APPLICATION_CREDENTIALS="google-credentials.json"
 ```
 
-Configure the rest of the environment variables:
+Configure the rest of the environment variables (see [Partitioning Users](/NOTES.md#partitioning-users)):
 
 ```sh
 heroku config:set APP_ENV="production"
 
+
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
-heroku config:set MIN_USER_ID=""
-heroku config:set MAX_USER_ID=""
-heroku config:set BATCH_SIZE="200"
+heroku config:set USERS_LIMIT="10000"
+heroku config:set BATCH_SIZE="20"
+heroku config:set MIN_USER_ID="17"
+heroku config:set MAX_USER_ID="49223966"
 ```
 
 Deploy:
