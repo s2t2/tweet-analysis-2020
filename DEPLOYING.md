@@ -50,7 +50,7 @@ heroku run "python -m app.storage_service"
 Run the collection script in production, manually:
 
 ```sh
-heroku run "python -m app.friend_collector"
+heroku run "python -m app.workers.friend_collector"
 ```
 
 ... though ultimately you'll want to setup a Heroku "dyno" (hobby tier) to run the collection script as a background process (see the "Procfile"):
@@ -64,3 +64,7 @@ Checking logs:
 ```sh
 heroku logs --ps friend_collector
 ```
+
+## Scaling
+
+Have had luck with "performance-m" tier ($250/mo) in terms of its ability to run lots of threads, but seeing if we can get this working on a "standard-2x" server ($50/mo)...

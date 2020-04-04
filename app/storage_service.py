@@ -205,16 +205,17 @@ if __name__ == "__main__":
     ) subq
     """
     results = service.execute_query(sql)
-    results_row = list(results)[0]
-    #print(dict(results_row))
+    row = list(results)[0]
+    #print(dict(row))
 
-    collected_count = results_row.user_count
+    collected_count = row.user_count
     pct = collected_count / user_count
     print("--------------------")
     print("USERS COLLECTED:", collected_count)
     print("  PCT COLLECTED:", f"{(pct * 100):.1f}%")
-    print("  AVG DURATION:", results_row.avg_duration)
-    print("--------------------")
-    print(f"USERS WITH FRIENDS: {results_row.pct_friendly * 100}%")
-    print("  AVG FRIENDS:", round(results_row.avg_friends_friendly))
-    print("  AVG DURATION:", results_row.avg_duration_friendly)
+    print("  AVG DURATION:", row.avg_duration)
+    if collected_count > 0:
+        print("--------------------")
+        print(f"USERS WITH FRIENDS: {row.pct_friendly * 100}%")
+        print("  AVG FRIENDS:", round(row.avg_friends_friendly))
+        print("  AVG DURATION:", row.avg_duration_friendly)

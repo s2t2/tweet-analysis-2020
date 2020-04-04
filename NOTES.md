@@ -108,6 +108,9 @@ Working with the `twint` package:
   + https://github.com/twintproject/twint/issues/270
   + https://github.com/twintproject/twint/issues/704
 
+> NOTE: deciding ultimately not to go with the twint package. was able to use a custom scraper which seems to be faster.
+
+
 ## Partitioning Users
 
 Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
@@ -139,37 +142,6 @@ partition_id    | user_count	| min_id	            | max_id
 8	            | 360054	    | 833567097506533376	| 1012042187482202113
 9	            | 360054	    | 1012042227844075522	| 1154556355883089920
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
-
-## Collecting User Friends
-
-Checking progress of friend-collection, including runtime performances:
-
-```sql
-/*select
-  count(distinct screen_name) as user_count
-FROM impeachment_production.user_friends
-*/
-
-SELECT
-   count(distinct user_id) as user_count
-   ,min(runtime_seconds) as shortest_run_seconds
-   ,max(runtime_seconds) as longest_run_seconds
-   ,round(avg(runtime_seconds),2) as avg_run_seconds
-   ,min(friend_count) as min_friends
-   ,max(friend_count) as max_friends
-   ,round(avg(friend_count),2) as avg_friends
-   ,round(avg(friend_count/runtime_seconds),2) as avg_friends_per_second
-
-FROM (
-  SELECT
-    user_id
-    ,friend_count
-    ,start_at
-    ,end_at
-    ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
-  FROM impeachment_production.user_friends
-) subq
-```
 
 ## Increasing Performance Capacity
 
