@@ -37,11 +37,8 @@ class BigQueryService():
         """ Creates new tables for storing follower graphs """
         self.migrate_populate_users()
         self.migrate_user_friends()
-        #self.migrate_user_no_friends()
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
-        #user_no_friends_table_ref = self.dataset_ref.table("user_no_friends")
-        #self.user_no_friends_table = self.client.get_table(user_no_friends_table_ref) # an API call (caches results for subsequent inserts)
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -87,21 +84,6 @@ class BigQueryService():
         """
         results = self.execute_query(sql)
         return list(results)
-
-    #def migrate_user_no_friends(self):
-    #    sql = ""
-    #    if self.destructive:
-    #        sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_no_friends`; "
-    #    sql += f"""
-    #        CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_no_friends` (
-    #            user_id STRING,
-    #            screen_name STRING,
-    #            start_at TIMESTAMP,
-    #            end_at TIMESTAMP
-    #        );
-    #    """
-    #    self.execute_query(sql)
-    #    return list(results)
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
