@@ -138,6 +138,7 @@ if __name__ == "__main__":
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
     if APP_ENV == "development":
+        print("--------------------")
         if input("CONTINUE? (Y/N): ").upper() != "Y":
             print("EXITING...")
             exit()
@@ -185,34 +186,35 @@ if __name__ == "__main__":
 
     service.init_tables()
 
-    print("--------------------")
-    #print("COUNTING USER FRIEND GRAPHS...")
     sql = f"""
-        SELECT count(distinct user_id) as user_count
-        FROM `{service.dataset_address}.user_friends`
-    """
-    results = service.execute_query(sql)
-    graphed_user_count = list(results)[0].user_count
-    print("USERS WITH FRIEND GRAPHS:", graphed_user_count)
-    percent_collected = graphed_user_count / user_count
-    print(f"{(percent_collected * 100):.1f}% COLLECTED")
-    print(f"{((1 - percent_collected) * 100):.1f}% REMAINING")
-
-    print("--------------------")
-    print("FETCHING LATEST FRIEND GRAPHS...")
-    sql = f"""
+    SELECT
+        count(distinct user_id) as user_count
+        ,round(avg(runtime_seconds), 2) as avg_duration
+        ,round(sum(has_friends) / count(distinct user_id), 2) as pct_friendly
+        ,round(avg(CASE WHEN has_friends = 1 THEN runtime_seconds END), 2) as avg_duration_friendly
+        ,round(avg(CASE WHEN has_friends = 1 THEN friend_count END), 2) as avg_friends_friendly
+    FROM (
         SELECT
             user_id
-            ,screen_name
             ,friend_count
-            ,friend_names
+            ,if(friend_count > 0, 1, 0) as has_friends
             ,start_at
             ,end_at
+            ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
         FROM `{service.dataset_address}.user_friends`
-        ORDER BY start_at DESC
-        LIMIT 3
+    ) subq
     """
     results = service.execute_query(sql)
-    for row in results:
-        print("---")
-        print(row.screen_name, row.friend_count, len(row.friend_names))
+    results_row = list(results)[0]
+    #print(dict(results_row))
+
+    collected_count = results_row.user_count
+    pct = collected_count / user_count
+    print("--------------------")
+    print("USERS COLLECTED:", collected_count)
+    print("  PCT COLLECTED:", f"{(pct * 100):.1f}%")
+    print("  AVG DURATION:", results_row.avg_duration)
+    print("--------------------")
+    print(f"USERS WITH FRIENDS: {results_row.pct_friendly * 100}%")
+    print("  AVG FRIENDS:", round(results_row.avg_friends_friendly))
+    print("  AVG DURATION:", results_row.avg_duration_friendly)
