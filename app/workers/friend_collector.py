@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from threading import current_thread
+from threading import current_thread, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
 
 from app import APP_ENV
@@ -40,9 +40,10 @@ def user_with_friends(row):
 def cautiously_initialized_storage_service():
     service = BigQueryService()
     print("-------------------------")
-    print("BIGQUERY DATASET:", service.dataset_address.upper())
-    print("DESTRUCTIVE MIGRATIONS:", service.destructive)
-    print("VERBOSE QUERIES:", service.verbose)
+    print("DB CONFIG...")
+    print("  BIGQUERY DATASET:", service.dataset_address.upper())
+    print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+    print("  VERBOSE QUERIES:", service.verbose)
     print("-------------------------")
     print("WORKER CONFIG...")
     print("  MIN USER ID:", MIN_ID)
@@ -51,8 +52,10 @@ def cautiously_initialized_storage_service():
     print("  MAX THREADS:", MAX_THREADS)
     print("  BATCH SIZE:", BATCH_SIZE)
     print("-------------------------")
-    print("VERBOSE SCRAPER:", VERBOSE_SCRAPER)
-    print("MAX FRIENDS:", MAX_FRIENDS)
+    print("SCRAPER CONFIG...")
+    print("  VERBOSE SCRAPER:", VERBOSE_SCRAPER)
+    print("  MAX FRIENDS:", MAX_FRIENDS)
+    print("-------------------------")
     if APP_ENV == "development":
         if input("CONTINUE? (Y/N): ").upper() != "Y":
             print("EXITING...")
@@ -68,21 +71,22 @@ if __name__ == "__main__":
     print("FETCHED UNIVERSE OF", len(users), "USERS")
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
+        batch = []
+        lock = BoundedSemaphore()
         futures = [executor.submit(user_with_friends, row) for row in users]
         print("FUTURE RESULTS", len(futures))
-        batch = []
         for index, future in enumerate(as_completed(futures)):
             result = future.result()
 
-            # if any(result["friend_names"]):
-            #     batch.append(result)
-            # else:
-            #     friendless_batch.append(result)
+            # OK, so this locking business:
+            # ... prevents random threads from clearing the batch, which was causing results to almost never get stored, and
+            # ... restricts a thread's ability to acquire access to the batch until another one has released it
+            lock.acquire()
             batch.append(result)
-
             if (len(batch) >= BATCH_SIZE) or (index + 1 >= len(futures)): # when batch is full or is last
                 print("-------------------------")
                 print(f"SAVING BATCH OF {len(batch)}...")
                 print("-------------------------")
                 service.append_user_friends(batch)
                 batch = []
+            lock.release()

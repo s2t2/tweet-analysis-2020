@@ -272,3 +272,17 @@ Current best working results on Heroku "performance-m" ($250/mo) server are some
 ```sh
 USERS_LIMIT=1000 BATCH_SIZE=20	MAX_THREADS=200
 ```
+
+### Avoiding Race Conditions
+
+So, the threads were all doing their jobs, but the results weren't reliably getting stored in the database. Perhaps due to race-conditions around clearing of the batch of users that are to be stored. Perhaps the batches were being cleared so the condition was never getting reached. Looking into locking and semaphores, which are supposed to be desired to help this situation.
+
+Resources:
+
+  + https://docs.python.org/3.7/library/threading.html#threading.Lock
+  + https://docs.python.org/3.7/library/threading.html#threading.Semaphore
+  + https://docs.python.org/3.7/library/threading.html#threading.BoundedSemaphore
+  + https://stackoverflow.com/questions/48971121/what-is-the-difference-between-semaphore-and-boundedsemaphore
+  + https://www.pythonstudio.us/reference-2/semaphore-and-bounded-semaphore.html
+
+Seems to be helping the situation.

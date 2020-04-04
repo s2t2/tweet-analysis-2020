@@ -72,6 +72,7 @@ If both of those commands work, you can collect the friend graphs, which will be
 ```sh
 python -m app.workers.friend_collector
 # USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=20 python -m app.workers.friend_collector
+# USERS_LIMIT=200 MAX_THREADS=10 BATCH_SIZE=20 python -m app.workers.friend_collector
 ```
 
 ## [Deploying](/DEPLOYING.md)
