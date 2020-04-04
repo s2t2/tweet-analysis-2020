@@ -53,13 +53,11 @@ class BigQueryService():
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.users`; "
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.users` as (
-                SELECT
+                SELECT DISTINCT
                     user_id
                     ,user_screen_name as screen_name
-                    ,max(user_verified) as verified
                 FROM `{self.dataset_address}.tweets`
                 WHERE user_id IS NOT NULL AND user_screen_name IS NOT NULL
-                GROUP BY 1, 2
                 ORDER BY 1
             );
         """
@@ -74,7 +72,6 @@ class BigQueryService():
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
                 user_id STRING,
                 screen_name STRING,
-                verified BOOLEAN,
                 friend_count INT64,
                 friend_names ARRAY<STRING>,
                 start_at TIMESTAMP,
@@ -90,7 +87,6 @@ class BigQueryService():
             SELECT
                 u.user_id
                 ,u.screen_name
-                ,u.verified
             FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
@@ -186,7 +182,6 @@ if __name__ == "__main__":
         SELECT
             user_id
             ,screen_name
-            ,verified
             ,friend_count
             ,friend_names
             ,start_at
