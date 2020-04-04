@@ -55,21 +55,24 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 Fetch example data from Twitter:
 
 ```sh
-python -m app.twint_scraper
+python -m app.twitter_scraper
+SCREEN_NAME="s2t2" python -m app.twitter_scraper
+MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
 ```
 
-Fetch users from BigQuery:
+Manage and query the existing BigQuery database:
 
 ```sh
 python -m app.storage_service
+# DESTRUCTIVE_MIGRATIONS="true" python -m app.storage_service
 ```
 
 If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery:
 
 ```sh
-python -m app.friend_collector
-# ... or specify confg vars:
-USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector
+python -m app.workers.friend_collector
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=20 python -m app.workers.friend_collector
+# USERS_LIMIT=200 MAX_THREADS=10 BATCH_SIZE=20 python -m app.workers.friend_collector
 ```
 
 ## [Deploying](/DEPLOYING.md)

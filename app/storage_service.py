@@ -13,6 +13,10 @@ DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_developme
 DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
 VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
+def generate_timestamp(): # todo: maybe a class method
+    """Formats datetime for storing in BigQuery (consider moving)"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
@@ -53,13 +57,11 @@ class BigQueryService():
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.users`; "
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.users` as (
-                SELECT
+                SELECT DISTINCT
                     user_id
                     ,user_screen_name as screen_name
-                    ,max(user_verified) as verified
                 FROM `{self.dataset_address}.tweets`
                 WHERE user_id IS NOT NULL AND user_screen_name IS NOT NULL
-                GROUP BY 1, 2
                 ORDER BY 1
             );
         """
@@ -74,7 +76,6 @@ class BigQueryService():
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends` (
                 user_id STRING,
                 screen_name STRING,
-                verified BOOLEAN,
                 friend_count INT64,
                 friend_names ARRAY<STRING>,
                 start_at TIMESTAMP,
@@ -90,7 +91,6 @@ class BigQueryService():
             SELECT
                 u.user_id
                 ,u.screen_name
-                ,u.verified
             FROM `{self.dataset_address}.users` u
             LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
             WHERE f.user_id IS NULL
@@ -120,6 +120,7 @@ if __name__ == "__main__":
     print("DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("VERBOSE QUERIES:", service.verbose)
     if APP_ENV == "development":
+        print("--------------------")
         if input("CONTINUE? (Y/N): ").upper() != "Y":
             print("EXITING...")
             exit()
@@ -167,35 +168,36 @@ if __name__ == "__main__":
 
     service.init_tables()
 
-    print("--------------------")
-    #print("COUNTING USER FRIEND GRAPHS...")
     sql = f"""
-        SELECT count(distinct user_id) as user_count
-        FROM `{service.dataset_address}.user_friends`
-    """
-    results = service.execute_query(sql)
-    graphed_user_count = list(results)[0].user_count
-    print("USERS WITH FRIEND GRAPHS:", graphed_user_count)
-    percent_collected = graphed_user_count / user_count
-    print(f"{(percent_collected * 100):.1f}% COLLECTED")
-    print(f"{((1 - percent_collected) * 100):.1f}% REMAINING")
-
-    print("--------------------")
-    print("FETCHING LATEST FRIEND GRAPHS...")
-    sql = f"""
+    SELECT
+        count(distinct user_id) as user_count
+        ,round(avg(runtime_seconds), 2) as avg_duration
+        ,round(sum(has_friends) / count(distinct user_id), 2) as pct_friendly
+        ,round(avg(CASE WHEN has_friends = 1 THEN runtime_seconds END), 2) as avg_duration_friendly
+        ,round(avg(CASE WHEN has_friends = 1 THEN friend_count END), 2) as avg_friends_friendly
+    FROM (
         SELECT
             user_id
-            ,screen_name
-            ,verified
             ,friend_count
-            ,friend_names
+            ,if(friend_count > 0, 1, 0) as has_friends
             ,start_at
             ,end_at
+            ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
         FROM `{service.dataset_address}.user_friends`
-        ORDER BY start_at DESC
-        LIMIT 3
+    ) subq
     """
     results = service.execute_query(sql)
-    for row in results:
-        print("---")
-        print(row.screen_name, row.friend_count, len(row.friend_names))
+    row = list(results)[0]
+    #print(dict(row))
+
+    collected_count = row.user_count
+    pct = collected_count / user_count
+    print("--------------------")
+    print("USERS COLLECTED:", collected_count)
+    print("  PCT COLLECTED:", f"{(pct * 100):.1f}%")
+    print("  AVG DURATION:", row.avg_duration)
+    if collected_count > 0:
+        print("--------------------")
+        print(f"USERS WITH FRIENDS: {row.pct_friendly * 100}%")
+        print("  AVG FRIENDS:", round(row.avg_friends_friendly))
+        print("  AVG DURATION:", row.avg_duration_friendly)

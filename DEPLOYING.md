@@ -22,10 +22,11 @@ heroku config:set APP_ENV="production"
 
 
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
-heroku config:set USERS_LIMIT="10000"
-heroku config:set BATCH_SIZE="20"
 heroku config:set MIN_USER_ID="17"
 heroku config:set MAX_USER_ID="49223966"
+heroku config:set USERS_LIMIT="10000"
+heroku config:set BATCH_SIZE="20"
+heroku config:set MAX_THREADS="20"
 ```
 
 Deploy:
@@ -49,7 +50,7 @@ heroku run "python -m app.storage_service"
 Run the collection script in production, manually:
 
 ```sh
-heroku run "python -m app.friend_collector"
+heroku run "python -m app.workers.friend_collector"
 ```
 
 ... though ultimately you'll want to setup a Heroku "dyno" (hobby tier) to run the collection script as a background process (see the "Procfile"):
@@ -63,3 +64,7 @@ Checking logs:
 ```sh
 heroku logs --ps friend_collector
 ```
+
+## Scaling
+
+Have had luck with "performance-m" tier ($250/mo) in terms of its ability to run lots of threads, but seeing if we can get this working on a "standard-2x" server ($50/mo)...
