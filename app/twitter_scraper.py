@@ -18,7 +18,7 @@ def get_friends(screen_name=SCREEN_NAME, max_friends=MAX_FRIENDS):
     friend_names = []
     next_page_id = None
     page_counter = 0
-    while True: # len(friend_names) <= max_friends:
+    while True:
         page, next_page_id = next_page_of_friends(screen_name, next_page_id)
         friend_names += page
         page_counter += 1
@@ -30,14 +30,11 @@ def next_page_of_friends(screen_name, next_cursor_id=None):
     """
     Raises urllib.error.HTTPError if the user is private or their screen name has changed
     """
-
+    request_url = f"https://mobile.twitter.com/{screen_name}/following"
     if next_cursor_id:
-        request_url = f"https://mobile.twitter.com/{screen_name}/following?cursor={next_cursor_id}"
-    else:
-        request_url = f"https://mobile.twitter.com/{screen_name}/following"
+        request_url += f"?cursor={next_cursor_id}"
 
     cookie_jar = CookieJar()
-    #print(type(cookie_jar)) #> <class 'http.cookiejar.CookieJar'>
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
     headers = [
         ('Host', "twitter.com"),
