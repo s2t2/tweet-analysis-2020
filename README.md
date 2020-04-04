@@ -55,8 +55,9 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 Fetch example data from Twitter:
 
 ```sh
-SCREEN_NAME="elonmusk" python -m app.twitter_scraper
-SCREEN_NAME="barackobama" python -m app.twitter_scraper
+python -m app.twitter_scraper
+SCREEN_NAME="s2t2" python -m app.twitter_scraper
+MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
 ```
 
 Fetch users from BigQuery:
