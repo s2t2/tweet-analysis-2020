@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 load_dotenv()
 
-SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
+SCREEN_NAME = os.getenv("SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
 
 def get_friends(screen_name, max_friends=2000):
     print("USER:", screen_name)
@@ -44,7 +44,7 @@ def get_friends(screen_name, max_friends=2000):
     # <span class="count">262</span>
     #
     friends_count = int(soup.find("span", "count").text)
-    print("FRIENDS COUNT:", friends_count)
+    print("FRIENDS COUNT (EXPECTED):", friends_count)
 
     #
     # <form action="/i/guest/follow/SCREEN_NAME_X" method="post">
@@ -59,7 +59,8 @@ def get_friends(screen_name, max_friends=2000):
     forms = soup.find_all("form")
     substr = "/i/guest/follow/"
     friend_names = [f.attrs["action"].replace(substr, "") for f in forms if substr in f.attrs["action"]]
-    print("FRIENDS PAGE:", friend_names) #> 20
+    #print("FRIENDS PAGE:", friend_names) #> 20
+    print("FRIENDS COUNT (PAGE):", len(friend_names))
 
     #
     # <div class="w-button-more">
