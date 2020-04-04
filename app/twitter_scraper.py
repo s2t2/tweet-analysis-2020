@@ -11,7 +11,7 @@ load_dotenv()
 
 SCREEN_NAME = os.getenv("SCREEN_NAME", default="s2t2")
 MAX_FRIENDS = int(os.getenv("MAX_FRIENDS", default=2000)) # the max number of friends to fetch per user
-#VERBOSE_MODE = os.getenv("VERBOSE_MODE", default="false") == "true"
+VERBOSE_SCRAPER = os.getenv("VERBOSE_SCRAPER", default="false") == "true"
 
 def get_friends(screen_name=SCREEN_NAME, max_friends=MAX_FRIENDS):
     """For a given user, fetches all screen names of users they follow, up to a specified limit"""
@@ -20,10 +20,8 @@ def get_friends(screen_name=SCREEN_NAME, max_friends=MAX_FRIENDS):
     page_counter = 0
     while True: # len(friend_names) <= max_friends:
         page, next_page_id = next_page_of_friends(screen_name, next_page_id)
-        #print("PAGE #", page_counter, "| FRIENDS:", len(page)) #> 20 friends per page
         friend_names += page
         page_counter += 1
-
         if len(friend_names) >= max_friends or next_page_id is None:
             break
     return friend_names
@@ -49,8 +47,13 @@ def next_page_of_friends(screen_name, next_cursor_id=None):
     opener.addheaders = headers
     #print(type(opener)) #> <class 'urllib.request.OpenerDirector'>
 
-    response = opener.open(request_url)
-    #print(type(response)) #> <class 'http.client.HTTPResponse'>
+    try:
+        response = opener.open(request_url)
+        #print(type(response)) #> <class 'http.client.HTTPResponse'>
+    except urllib.error.HTTPError as err:
+        if VERBOSE_SCRAPER:
+            print("FRIENDS PAGE NOT FOUND:", screen_name.upper())
+        return [], None
 
     response_body = response.read()
     #print(type(response_body)) #> bytes
@@ -78,7 +81,7 @@ def next_page_of_friends(screen_name, next_cursor_id=None):
     forms = soup.find_all("form")
     substr = "/i/guest/follow/"
     friend_names = [f.attrs["action"].replace(substr, "") for f in forms if substr in f.attrs["action"]]
-    print("FRIENDS PAGE:", len(friend_names)) #> 20
+    if VERBOSE_SCRAPER: print("FRIENDS PAGE:", len(friend_names)) #> 20
 
     try:
         #

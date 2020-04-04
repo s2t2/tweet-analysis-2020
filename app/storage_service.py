@@ -13,6 +13,10 @@ DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_developme
 DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
 VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
+def generate_timestamp(): # todo: maybe a class method
+    """Formats datetime for storing in BigQuery (consider moving)"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
@@ -33,8 +37,11 @@ class BigQueryService():
         """ Creates new tables for storing follower graphs """
         self.migrate_populate_users()
         self.migrate_user_friends()
+        #self.migrate_user_no_friends()
         user_friends_table_ref = self.dataset_ref.table("user_friends")
         self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
+        #user_no_friends_table_ref = self.dataset_ref.table("user_no_friends")
+        #self.user_no_friends_table = self.client.get_table(user_no_friends_table_ref) # an API call (caches results for subsequent inserts)
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -80,6 +87,21 @@ class BigQueryService():
         """
         results = self.execute_query(sql)
         return list(results)
+
+    #def migrate_user_no_friends(self):
+    #    sql = ""
+    #    if self.destructive:
+    #        sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_no_friends`; "
+    #    sql += f"""
+    #        CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_no_friends` (
+    #            user_id STRING,
+    #            screen_name STRING,
+    #            start_at TIMESTAMP,
+    #            end_at TIMESTAMP
+    #        );
+    #    """
+    #    self.execute_query(sql)
+    #    return list(results)
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
