@@ -22,7 +22,7 @@ LIMIT = os.getenv("USERS_LIMIT") # max number of users to fetch from the db
 
 def user_with_friends(row):
     start_at = generate_timestamp()
-    print(f"{start_at} | {current_thread().name} | {row.user_id}")
+    #print(f"{start_at} | {current_thread().name} | {row.user_id}")
 
     friend_names = sorted(get_friends(row.screen_name))
     end_at = generate_timestamp()

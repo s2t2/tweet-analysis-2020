@@ -27,6 +27,10 @@ def get_friends(screen_name=SCREEN_NAME, max_friends=MAX_FRIENDS):
     return friend_names
 
 def next_page_of_friends(screen_name, next_cursor_id=None):
+    """
+    Raises urllib.error.HTTPError if the user is private or their screen name has changed
+    """
+
     if next_cursor_id:
         request_url = f"https://mobile.twitter.com/{screen_name}/following?cursor={next_cursor_id}"
     else:
@@ -50,7 +54,7 @@ def next_page_of_friends(screen_name, next_cursor_id=None):
     try:
         response = opener.open(request_url)
         #print(type(response)) #> <class 'http.client.HTTPResponse'>
-    except urllib.error.HTTPError as err:
+    except urllib.error.HTTPError as err: # consider allowing error to bubble up and be handled at the worker level (friend_collector.py)
         if VERBOSE_SCRAPER:
             print("FRIENDS PAGE NOT FOUND:", screen_name.upper())
         return [], None
