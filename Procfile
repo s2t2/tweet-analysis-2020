@@ -1,1 +1,1 @@
-friend_collector: python -m app.friend_collector
+friend_collector: python -m app.workers.friend_collector

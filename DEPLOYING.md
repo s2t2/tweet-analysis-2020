@@ -22,10 +22,11 @@ heroku config:set APP_ENV="production"
 
 
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
-heroku config:set USERS_LIMIT="10000"
-heroku config:set BATCH_SIZE="20"
 heroku config:set MIN_USER_ID="17"
 heroku config:set MAX_USER_ID="49223966"
+heroku config:set USERS_LIMIT="10000"
+heroku config:set BATCH_SIZE="20"
+heroku config:set MAX_THREADS="20"
 ```
 
 Deploy:
