@@ -103,6 +103,19 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
+    def count_remaining_users(self, min_id=None, max_id=None):
+        """Returns a list of table rows"""
+        sql = f"""
+            SELECT count(distinct u.user_id) as user_count
+            FROM `{self.dataset_address}.users` u
+            LEFT JOIN `{self.dataset_address}.user_friends` f ON u.user_id = f.user_id
+            WHERE f.user_id IS NULL
+        """
+        if min_id and max_id:
+            sql += f"  AND CAST(u.user_id as int64) BETWEEN {int(min_id)} AND {int(max_id)} "
+        results = self.execute_query(sql)
+        return list(results)[0].user_count
+
     def append_user_friends(self, records):
         """
         Param: records (list of dictionaries)
