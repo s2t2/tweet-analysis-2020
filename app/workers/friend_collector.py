@@ -18,15 +18,15 @@ MIN_ID = os.getenv("MIN_USER_ID") # if partitioning users, the lower bound of th
 MAX_ID = os.getenv("MAX_USER_ID") # if partitioning users, the upper bound of the partition
 LIMIT = os.getenv("USERS_LIMIT") # max number of users to fetch from the db
 
-#VERBOSE_COLLECTOR = os.getenv("VERBOSE_COLLECTOR", default="true") == "true"
+VERBOSE_COLLECTOR = os.getenv("VERBOSE_COLLECTOR", default="true") == "true"
 
 def user_with_friends(row):
     start_at = generate_timestamp()
     #print(f"{start_at} | {current_thread().name} | {row.user_id}")
-
     friend_names = sorted(get_friends(row.screen_name))
     end_at = generate_timestamp()
-    print(f"{end_at} | {current_thread().name} | {row.user_id} | FRIENDS: {len(friend_names)}")
+    if VERBOSE_COLLECTOR:
+        print(f"{end_at} | {current_thread().name} | {row.user_id} | FRIENDS: {len(friend_names)}")
 
     return {
         "user_id": row.user_id,
