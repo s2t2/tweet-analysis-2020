@@ -6,28 +6,22 @@
 
 import time
 from datetime import datetime
+from random import choice
 from threading import current_thread, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
 
 def process_batch(user_ids):
     print(f"PROCESSING {len(user_ids)} USERS (FROM {min(user_ids)} TO {max(user_ids)})")
-    time.sleep(1)
-    #results = []
-    #with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-    #    futures = [executor.submit(fetch_friends, row) for row in users]
-    #    print("FUTURE RESULTS", len(futures))
-#
-    #    for future in as_completed(futures):
-    #        result = future.result()
-    #        results.append(result)
-    #        print(result)
-
-    #return results
+    results = []
+    for user_id in user_ids:
+        result = fetch_friends(user_id, choice([1,3]))
+        print(result)
+        results.append(result)
+    return results
 
 def fetch_friends(user_id, sleep_seconds=10):
-    thread_id = int(current_thread().name.replace("THREAD_", "")) + 1
     time.sleep(sleep_seconds)
-    return {"thread_id": thread_id, "user_id": user_id, "duration": sleep_seconds}
+    return {"user_id": user_id, "duration": sleep_seconds, "thread_id": current_thread().name.split("_")[-1]}
 
 if __name__ == "__main__":
 
