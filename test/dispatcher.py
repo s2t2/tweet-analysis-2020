@@ -9,7 +9,7 @@ from datetime import datetime
 from threading import current_thread, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
 
-def process_users(user_ids):
+def process_batch(user_ids):
     print(f"PROCESSING {len(user_ids)} USERS (FROM {min(user_ids)} TO {max(user_ids)})")
     time.sleep(1)
     #results = []
@@ -31,20 +31,22 @@ def fetch_friends(user_id, sleep_seconds=10):
 
 if __name__ == "__main__":
 
+    TOTAL_USERS = 300
+    BATCH_SIZE = 100
+
     print("----------------")
     start_at = time.perf_counter()
-    users_count = 300
+    user_ids = list(range(1, TOTAL_USERS + 1))
+    users_count = len(user_ids)
     print("REMAINING USERS:", users_count)
 
     print("----------------")
-    users_processed = 0
-    while users_processed < users_count:
-        users = list(range(1, 100 + 1))
-        process_users(users)
-        users_processed += len(users)
-        print(users_processed)
+    while len(user_ids) > 0:
+        batch = user_ids[0:BATCH_SIZE]
+        process_batch(batch)
+        user_ids = list(set(user_ids) - set(batch))
 
     print("----------------")
     end_at = time.perf_counter()
     clock_seconds = round(end_at - start_at, 2)
-    print(f"PROCESSED {users_processed} USERS IN {clock_seconds} SECONDS")
+    print(f"PROCESSED {users_count} USERS IN {clock_seconds} SECONDS")
