@@ -1,5 +1,6 @@
 
 import os
+import time
 from pprint import pprint
 from http.cookiejar import CookieJar
 import urllib
@@ -105,5 +106,8 @@ if __name__ == "__main__":
     print("--------------------")
     print("USER:", SCREEN_NAME)
     print("MAX_FRIENDS:", MAX_FRIENDS)
+    start_at = time.perf_counter()
     friend_names = get_friends()
-    print("FRIENDS:", len(friend_names))
+    end_at = time.perf_counter()
+    clock_seconds = round(end_at - start_at, 2)
+    print(f"PROCESSED {len(friend_names)} FRIENDS IN {clock_seconds} SECONDS ({round(len(friend_names) / clock_seconds * 60.0, 0)} PER MINUTE)")
