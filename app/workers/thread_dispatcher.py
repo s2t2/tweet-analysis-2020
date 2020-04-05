@@ -82,25 +82,11 @@ if __name__ == "__main__":
         users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
         print("FETCHED BATCH OF", len(users), "USERS")
 
-        users_processed += len(users)
+        with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
+            futures = [executor.submit(user_with_friends, row) for row in users]
+            print("FUTURE RESULTS", len(futures))
+            for index, future in enumerate(as_completed(futures)):
+                result = future.result()
 
-        #with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-        #    batch = []
-        #    lock = BoundedSemaphore()
-        #    futures = [executor.submit(user_with_friends, row) for row in users]
-        #    print("FUTURE RESULTS", len(futures))
-        #    for index, future in enumerate(as_completed(futures)):
-        #        result = future.result()
-#
-        #        # OK, so this locking business:
-        #        # ... prevents random threads from clearing the batch, which was causing results to almost never get stored, and
-        #        # ... restricts a thread's ability to acquire access to the batch until another one has released it
-        #        lock.acquire()
-        #        batch.append(result)
-        #        if (len(batch) >= BATCH_SIZE) or (index + 1 >= len(futures)): # when batch is full or is last
-        #            print("-------------------------")
-        #            print(f"SAVING BATCH OF {len(batch)}...")
-        #            print("-------------------------")
-        #            service.append_user_friends(batch)
-        #            batch = []
-        #        lock.release()
+        print("UPDATING USERS PROCESSED...")
+        users_processed += len(users)
