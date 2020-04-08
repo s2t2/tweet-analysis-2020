@@ -76,6 +76,7 @@ if __name__ == "__main__":
         futures = [executor.submit(user_with_friends, row) for row in users]
         print("FUTURE RESULTS", len(futures))
         for index, future in enumerate(as_completed(futures)):
+            #print(index)
             result = future.result()
 
             # OK, so this locking business:
