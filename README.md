@@ -75,6 +75,14 @@ python -m app.workers.friend_collector
 # USERS_LIMIT=200 MAX_THREADS=10 BATCH_SIZE=20 python -m app.workers.friend_collector
 ```
 
+## Testing
+
+Run tests:
+
+```sh
+pytest
+```
+
 ## [Deploying](/DEPLOYING.md)
 
 ## [License](/LICENSE.md)

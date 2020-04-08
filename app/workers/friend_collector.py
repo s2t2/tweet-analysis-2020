@@ -11,7 +11,7 @@ from app.twitter_scraper import get_friends, VERBOSE_SCRAPER, MAX_FRIENDS
 
 load_dotenv()
 
-MAX_THREADS = int(os.getenv("MAX_THREADS", default=10)) # the max number of threads to use, for concurrent processing
+MAX_THREADS = int(os.getenv("MAX_THREADS", default=3)) # the max number of threads to use, for concurrent processing
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=20)) # the max number of processed users to store in BQ at once (with a single insert API call)
 
 MIN_ID = os.getenv("MIN_USER_ID") # if partitioning users, the lower bound of the partition
