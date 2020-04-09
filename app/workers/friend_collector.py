@@ -91,3 +91,6 @@ if __name__ == "__main__":
                 service.append_user_friends(batch)
                 batch = []
             lock.release()
+
+        print("NAP TIME...")
+        time.sleep(10) # let the memory load cool down a bit before the server restarts this script. maybe?

@@ -21,12 +21,8 @@ if __name__ == "__main__":
     batches = list(split_into_batches(users))
     print(f"ASSEMBLED {len(batches)} BATCHES OF {BATCH_SIZE}")
 
-    exit()
-
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-        #futures = [executor.submit(process_batch, batch) for batch in batches]
 
         results = executor.map(process_batch, batches)
-        for index, result in enumerate(results):
-            print(index)
-            print(len(result))
+        #for index, result in enumerate(results):
+        #    print("RESULTS... INDEX:", index, "SIZE:", len(result))

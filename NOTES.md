@@ -214,13 +214,13 @@ order by end_at
 
 SELECT
    count(distinct user_id) as user_count
-   ,DATETIME_DIFF(max(CAST(end_at as DATETIME)), min(cast(end_at as DATETIME)), MINUTE) as runtime_mins
+   ,DATETIME_DIFF(max(CAST(end_at as DATETIME)), min(cast(start_at as DATETIME)), MINUTE) as runtime_mins
    -- ,count(distinct screen_name) as name_count
    --,sum(if(friend_count > 0, 1, 0)) as users_with_friends
    -- ,count(distinct if(friend_count > 0, user_id, NULL)) as users_with_friends
    -- ,min(runtime_seconds) as shortest_run_seconds
    -- ,max(runtime_seconds) as longest_run_seconds
-   ,round(avg(runtime_seconds),2) as avg_run_seconds
+   ,round(avg(runtime_seconds),4) as avg_run_seconds
    --,min(friend_count) as min_friends
    --,max(friend_count) as max_friends
    ,round(avg(friend_count),2) as avg_friends
@@ -234,9 +234,8 @@ FROM (
     ,end_at
     ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
   FROM impeachment_production.user_friends
-  WHERE end_at BETWEEN "2020-04-03 04:15:00" AND "2022-04-03 05:15:00"
+  WHERE start_at BETWEEN "2020-04-08 00:50:00" AND "2020-04-08 04:25:00"
 ) subq
-
 ```
 
 Current best working results on Heroku "performance-m" ($250/mo) server are something like:
