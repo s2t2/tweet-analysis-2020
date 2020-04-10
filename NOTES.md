@@ -194,4 +194,20 @@ where start_at > "2020-04-10 15:55:00"
 
 ```
 
+Selected Results (where "Thread Coordination" refers to `friend_collector.py`, and "Batch per Thread" refers to `batch_per_thread.py`):
+
+
+Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start | End | Users Collected | Runtime Mins | Seconds per User | Friends Per User | Users Per Min | Users Per Hr | Users Per Day
+-- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
+1 | standard-2x | 100 | 20 | 3 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 00:50:00" | "2020-04-08 04:25:00" | 1,688 | 214 | 17.2 | 972.5 | 7.9 | 473 | 11,359
+1 | standard-2x | 500 | 100 | 15 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 04:55:00" | "2020-04-08 13:35:00" | 5,586 | 519 | 56.4 | 925.4 | 10.8 | 646 | 15,499
+1 | standard-2x | 5,000 | 100 | 30 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 19:40:00" |   | 1,000 |   |   |   | #DIV/0! | #DIV/0! | #DIV/0!
+1 | standard-2x | 5,000 | 20 | 50 | Batch per Thread | SUCCESSFUL | "2020-04-09 04:45:00" | "2020-04-09 15:21:09" | 13,447 | 631 | 129.1 | 470.8 | 21.3 | 1,279 | 30,687
+1 | standard-2x | 10,000 | 20 | 100 | Batch per Thread | SUCCESSFUL | "2020-04-09 15:30:00" | "2020-04-09 21:18:00" | 8,016 | 347 | 221.8 | 464.0 | 23.1 | 1,386 | 33,265
+1 | standard-2x | 5,000 | 20 | 250 | Batch per Thread | FAILED TO SAVE AFTER A WHILE | "2020-04-09 21:25:00" | "2020-04-10 00:30:00" | 12,880 | 512.0 | 286.9 | 467.5 | 25.2 | 1,509 | 36,225
+1 | performance-m | 50,000 | 20 | 2500 | Batch per Thread | FAILED TO SAVE BARELY ANYTHING | "2020-04-10 01:10:00" | "2020-04-10 04:25:00" | 40 | 191.0 | 442.4 | 214.0 | 0.2 | 13 | 302
+1 | performance-m | 5,000 | 20 | 250 | Batch per Thread | SUCCESSFUL | "2020-04-10 04:35:00" | "2020-04-10 13:15:00" | 18,604 | 722.0 | 331.7 | 466.0 | 25.8 | 1,546 | 37,105
+1 | standard-1x | 5,000 | 20 | 50 | Batch per Thread | IN PROGRESS | "2020-04-10 15:55:00" |   | 2,107 | 93.0 | 104.2 | 425.0 | 22.7 | 1,359 | 32,625
+
+
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
