@@ -1,18 +1,4 @@
-# Reproducibility Notes
-
-## Notebook Conversion
-
-Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
-
-## Database Resources
-
-Working with BigQuery:
-
-  + https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
-  + https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
-  + https://cloud.google.com/dataprep/docs/html/DATEDIF-Function_57344707
-  + https://towardsdatascience.com/google-bigquery-sql-dates-and-times-cheat-sheet-805b5502c7f0
-  + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
+# Notes
 
 ## Database Queries
 
@@ -91,26 +77,6 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 #MoscowMitch	        | 2020-02-06 01:37:30 UTC
 #CountryOverParty	    | 2020-02-06 01:37:13 UTC
 
-
-
-
-
-## Twitter Resources
-
-Ad-hoc conversions between user ids and screen names:
-  + https://tweeterid.com/
-
-Working with the `twint` package:
-  + https://github.com/twintproject/twint
-  + https://pielco11.ovh/posts/twint-osint/#followersfollowing
-  + https://github.com/twintproject/twint/pull/685
-  + https://github.com/twintproject/twint/wiki/Storing-objects-in-RAM
-  + https://github.com/twintproject/twint/issues/270
-  + https://github.com/twintproject/twint/issues/704
-
-> NOTE: deciding ultimately not to go with the twint package. was able to use a custom scraper which seems to be faster.
-
-
 ## Partitioning Users
 
 Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
@@ -143,88 +109,62 @@ partition_id    | user_count	| min_id	            | max_id
 9	            | 360054	    | 1012042227844075522	| 1154556355883089920
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
 
-## Increasing Performance Capacity
+## Targets, Benchmarks, and Constraints
 
-With 3.6M users, with 10 servers over 10 days, we'd need to process an average of 360K users per server per day. This is a **goal of at least 25 users per minute**.
+### Clock Time
 
-Currently Twitter API restricts to 15 requests per 15 minutes, which is like 1 user per minute. In the rate limit guide, it suggests there might be a way to make 180 requests per 15 minutes, which is like 12 users per minute. This would get us half-way to the goal. Would need to figure out how to get approved for the increased capacity. Update: this table shows the [break-down of limits for each kind of API call](https://developer.twitter.com/en/docs/basics/rate-limits), for each kind of API auth strategy.
+With 3.6M users, processing 360K users per day would take ten days. Ten days would be ideal, but even up to a month would be fine.
 
-Based on the performance logging so far, the Twint package takes 1-2 minutes to collect friends for each user.
+Users per Day (Target) | Duration Days (Projected)
+-- | --
+360,000 | 10
+324,000 | 11
+288,000 | 13
+252,000 | 14
+216,000 | 17
+180,000 | 20
+144,000 | 25
+115,200 | 31
+108,000 | 33
+86,400 | 42
 
-Neither of these approaches is currently going to get us the desired performance at scale.
+### Twitter API
 
-Resources and Research into multiple threads:
+Currently Twitter API restricts to [15 requests per 15 minutes](https://developer.twitter.com/en/docs/basics/rate-limits), which is like 1 user per minute. So we need to use a custom scraper approach.
 
-  + https://docs.python.org/3/library/threading.html
-  + https://realpython.com/intro-to-python-threading/
-  + https://pymotw.com/2/threading/
+Using the custom scraper takes around 40 seconds for a user who has 2000 friends (our current max). So we need to leverage concurrent (i.e. a multi-threaded) processing approach.
 
-### Threading on Heroku
+### Servers and Costs
 
-Heroku says it can support up to 256 threads on the free tier. So let's try to take advantage of that capability.
+Target budget for this process is around $100, but can go up to around $200.
 
-  + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
-  + https://devcenter.heroku.com/articles/limits#processes-threads
-  + https://devcenter.heroku.com/articles/dynos#process-thread-limits
+Heroku Server Tier | Memory | Max Threads | Cost per Month
+-- | -- | -- | --
+free | 512 MB | 256 | $0
+hobby | 512 MB | 256 | $7
+standard-1x | 512 MB | 256 | $25
+standard-2x | 1 GB | 512 | $50
+performance-m | 2.5 GB | 16,384 | $250
+performance-l | 14 GB | 32,768 | $500
 
-When running the multi-threaded approach on Heroku however, we are seeing "RuntimeError: can't start new thread" errors when the number of threads is set to anything more than 10.
+Running timed trials on different kinds of Heroku servers, with different concurrency configurations (i.e. max threads), to determine the optimal cost and time results. Example configuration:
 
 ```sh
-USERS_LIMIT=40 MAX_THREADS=10 BATCH_SIZE=5 python -m app.friend_collector #> OK ON HEROKU
-USERS_LIMIT=40 MAX_THREADS=15 BATCH_SIZE=5 python -m app.friend_collector #> FAIL ON HEROKU
+USERS_LIMIT=5000 BATCH_SIZE=20 MAX_THREADS=50 python -m app.workers.batch_per_thread
 ```
 
-Interestingly enough, the example executor script is able to run on Heroku and my local machine with 100 threads. But the friend collector won't run on either machine with that number of threads.
-
-```sh
-USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.executor #> OK ON HEROKU AND LOCAL
-
-USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.friend_collector #> FAIL ON HEROKU
-#> RuntimeError: can't start new thread
-
-USERS_LIMIT=500 MAX_THREADS=100 BATCH_SIZE=50 python -m app.friend_collector #> FAIL ON LOCAL
-#> AttributeError: '_UnixSelectorEventLoop' object has no attribute '_ssock'
-```
-
-Maybe we are hitting memory capacity on Heroku. Checking the performance metrics might help...
-
-Memory load was high. Dyno load was high as well. Scaling up the dyno seems to alleviate the situation. Maybe it was a memory capacity thing.
-
-
-
-Monitoring results...
+Monitoring results for each trial via this query (adjusting the `start_at` and `end_at` as applicable):
 
 ```sql
-/*
-select
-  count(distinct screen_name) as user_count
-FROM impeachment_production.user_friends
-*/
-
-/*
-select
-  -- count(distinct screen_name) as user_count
-  screen_name
-  ,end_at
-FROM impeachment_production.user_friends
-WHERE end_at BETWEEN "2020-04-03 02:30:00" AND "2020-04-03 03:50:00"
-order by end_at
-*/
-
 
 SELECT
-   count(distinct user_id) as user_count
-   ,DATETIME_DIFF(max(CAST(end_at as DATETIME)), min(cast(end_at as DATETIME)), MINUTE) as runtime_mins
-   -- ,count(distinct screen_name) as name_count
-   --,sum(if(friend_count > 0, 1, 0)) as users_with_friends
-   -- ,count(distinct if(friend_count > 0, user_id, NULL)) as users_with_friends
-   -- ,min(runtime_seconds) as shortest_run_seconds
-   -- ,max(runtime_seconds) as longest_run_seconds
-   ,round(avg(runtime_seconds),2) as avg_run_seconds
-   --,min(friend_count) as min_friends
-   --,max(friend_count) as max_friends
+   min(start_at) as min_start
+   ,max(end_at) as max_end
+   ,count(user_id) as row_count
+   ,count(distinct user_id) as user_count
+   ,DATETIME_DIFF(max(CAST(end_at as DATETIME)), min(cast(start_at as DATETIME)), MINUTE) as runtime_mins
+   ,round(avg(runtime_seconds),4) as avg_run_seconds
    ,round(avg(friend_count),2) as avg_friends
-   -- ,round(avg(friend_count/runtime_seconds),2) as avg_friends_per_second
 FROM (
   SELECT
     user_id
@@ -234,27 +174,40 @@ FROM (
     ,end_at
     ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
   FROM impeachment_production.user_friends
-  WHERE end_at BETWEEN "2020-04-03 04:15:00" AND "2022-04-03 05:15:00"
+  WHERE start_at > "2020-04-10 15:55:00"
+  -- WHERE start_at BETWEEN "2020-04-08 00:50:00" AND "2020-04-08 04:25:00"
 ) subq
 
+
+/*
+select user_id,	screen_name,	friend_count,	start_at,	end_at
+from impeachment_production.user_friends
+where start_at > "2020-04-10 15:55:00"
+order by end_at DESC
+*/
+
+/*
+select count(user_id) as row_count, count(distinct user_id) as user_count
+from impeachment_production.user_friends
+where start_at > "2020-04-10 15:55:00"
+*/
+
 ```
 
-Current best working results on Heroku "performance-m" ($250/mo) server are something like:
+Selected Results (where "Thread Coordination" refers to `friend_collector.py`, and "Batch per Thread" refers to `batch_per_thread.py`):
 
-```sh
-USERS_LIMIT=1000 BATCH_SIZE=20	MAX_THREADS=200
-```
 
-### Avoiding Race Conditions
+Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start | End | Users Collected | Runtime Mins | Seconds per User | Friends Per User | Users Per Min | Users Per Hr | Users Per Day
+-- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
+1 | standard-2x | 100 | 20 | 3 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 00:50:00" | "2020-04-08 04:25:00" | 1,688 | 214 | 17.2 | 972.5 | 7.9 | 473 | 11,359
+1 | standard-2x | 500 | 100 | 15 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 04:55:00" | "2020-04-08 13:35:00" | 5,586 | 519 | 56.4 | 925.4 | 10.8 | 646 | 15,499
+1 | standard-2x | 5,000 | 100 | 30 | Thread Coordination | FAILED TO SAVE AFTER A WHILE | "2020-04-08 19:40:00" |   | 1,000 |   |   |   | #DIV/0! | #DIV/0! | #DIV/0!
+1 | standard-2x | 5,000 | 20 | 50 | Batch per Thread | SUCCESSFUL | "2020-04-09 04:45:00" | "2020-04-09 15:21:09" | 13,447 | 631 | 129.1 | 470.8 | 21.3 | 1,279 | 30,687
+1 | standard-2x | 10,000 | 20 | 100 | Batch per Thread | SUCCESSFUL | "2020-04-09 15:30:00" | "2020-04-09 21:18:00" | 8,016 | 347 | 221.8 | 464.0 | 23.1 | 1,386 | 33,265
+1 | standard-2x | 5,000 | 20 | 250 | Batch per Thread | FAILED TO SAVE AFTER A WHILE | "2020-04-09 21:25:00" | "2020-04-10 00:30:00" | 12,880 | 512.0 | 286.9 | 467.5 | 25.2 | 1,509 | 36,225
+1 | performance-m | 50,000 | 20 | 2500 | Batch per Thread | FAILED TO SAVE BARELY ANYTHING | "2020-04-10 01:10:00" | "2020-04-10 04:25:00" | 40 | 191.0 | 442.4 | 214.0 | 0.2 | 13 | 302
+1 | performance-m | 5,000 | 20 | 250 | Batch per Thread | SUCCESSFUL | "2020-04-10 04:35:00" | "2020-04-10 13:15:00" | 18,604 | 722.0 | 331.7 | 466.0 | 25.8 | 1,546 | 37,105
+1 | standard-1x | 5,000 | 20 | 50 | Batch per Thread | IN PROGRESS | "2020-04-10 15:55:00" |   | 2,107 | 93.0 | 104.2 | 425.0 | 22.7 | 1,359 | 32,625
 
-So, the threads were all doing their jobs, but the results weren't reliably getting stored in the database. Perhaps due to race-conditions around clearing of the batch of users that are to be stored. Perhaps the batches were being cleared so the condition was never getting reached. Looking into locking and semaphores, which are supposed to be desired to help this situation.
 
-Resources:
-
-  + https://docs.python.org/3.7/library/threading.html#threading.Lock
-  + https://docs.python.org/3.7/library/threading.html#threading.Semaphore
-  + https://docs.python.org/3.7/library/threading.html#threading.BoundedSemaphore
-  + https://stackoverflow.com/questions/48971121/what-is-the-difference-between-semaphore-and-boundedsemaphore
-  + https://www.pythonstudio.us/reference-2/semaphore-and-bounded-semaphore.html
-
-Seems to be helping the situation.
+Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.

@@ -70,9 +70,21 @@ python -m app.storage_service
 If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery:
 
 ```sh
+# all threads contribute to filling the batch, then storage done via main thread (broken, stops storing after a while):
 python -m app.workers.friend_collector
-# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=20 python -m app.workers.friend_collector
-# USERS_LIMIT=200 MAX_THREADS=10 BATCH_SIZE=20 python -m app.workers.friend_collector
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.friend_collector
+
+# each thread fills and stores its own batch, then goes back for more:
+python -m app.workers.batch_per_thread
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.batch_per_thread
+```
+
+## Testing
+
+Run tests:
+
+```sh
+pytest
 ```
 
 ## [Deploying](/DEPLOYING.md)
