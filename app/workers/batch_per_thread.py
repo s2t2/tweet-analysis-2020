@@ -2,7 +2,7 @@
 
 from concurrent.futures import ThreadPoolExecutor #, as_completed
 
-from app.workers.friend_collector import (MAX_THREADS, BATCH_SIZE, LIMIT,
+from app.workers.friend_collector import (MAX_THREADS, BATCH_SIZE, LIMIT, MIN_ID, MAX_ID,
     user_with_friends, cautiously_initialized_storage_service, generate_timestamp,
     current_thread, BoundedSemaphore
 )
@@ -26,7 +26,8 @@ def process_and_save_batch(user_rows, bq, lock=None):
 if __name__ == "__main__":
     service = cautiously_initialized_storage_service()
 
-    users = service.fetch_remaining_users(limit=LIMIT)
+    users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
+
     print("FETCHED UNIVERSE OF", len(users), "USERS")
 
     batches = list(split_into_batches(users))

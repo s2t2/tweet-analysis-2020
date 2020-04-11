@@ -211,3 +211,56 @@ Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start 
 
 
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
+
+
+## Collecting Friends
+
+Verifying users have been bucketed properly:
+
+```sql
+SELECT assigned_server, count(distinct user_id) as user_count
+FROM (
+  SELECT
+    user_id
+    ,CASE
+        WHEN CAST(user_id as int64) BETWEEN 17                  and 49223966 THEN "server-1"
+        WHEN CAST(user_id as int64) BETWEEN 49224083            and 218645473 THEN "server-2"
+        WHEN CAST(user_id as int64) BETWEEN 218645600           and 446518003 THEN "server-3"
+        WHEN CAST(user_id as int64) BETWEEN 446520525           and 1126843322 THEN "server-4"
+        WHEN CAST(user_id as int64) BETWEEN 1126843458          and 2557922900 THEN "server-5"
+        WHEN CAST(user_id as int64) BETWEEN 2557923828          and 4277913148 THEN "server-6"
+        WHEN CAST(user_id as int64) BETWEEN 4277927001          and 833566039577239552 THEN "server-7"
+        WHEN CAST(user_id as int64) BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-8"
+        WHEN CAST(user_id as int64) BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-9"
+        WHEN CAST(user_id as int64) BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
+     END as assigned_server
+  FROM impeachment_production.users
+)
+GROUP BY assigned_server
+ORDER BY assigned_server
+```
+
+Monitoring results as they come in:
+
+```sql
+SELECT assigned_server, count(distinct user_id) as user_count
+FROM (
+  SELECT
+    user_id
+    ,CASE
+        WHEN CAST(user_id as int64) BETWEEN 17                  and 49223966 THEN "server-1"
+        WHEN CAST(user_id as int64) BETWEEN 49224083            and 218645473 THEN "server-2"
+        WHEN CAST(user_id as int64) BETWEEN 218645600           and 446518003 THEN "server-3"
+        WHEN CAST(user_id as int64) BETWEEN 446520525           and 1126843322 THEN "server-4"
+        WHEN CAST(user_id as int64) BETWEEN 1126843458          and 2557922900 THEN "server-5"
+        WHEN CAST(user_id as int64) BETWEEN 2557923828          and 4277913148 THEN "server-6"
+        WHEN CAST(user_id as int64) BETWEEN 4277927001          and 833566039577239552 THEN "server-7"
+        WHEN CAST(user_id as int64) BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-8"
+        WHEN CAST(user_id as int64) BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-9"
+        WHEN CAST(user_id as int64) BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
+     END as assigned_server
+  FROM impeachment_production.user_friends
+)
+GROUP BY assigned_server
+ORDER BY assigned_server
+```
