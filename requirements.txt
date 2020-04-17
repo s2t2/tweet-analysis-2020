@@ -4,3 +4,5 @@ google-cloud-bigquery # for interfacing with the BigQuery API
 beautifulsoup4
 
 pytest
+
+sendgrid==6.0.5
