@@ -19,6 +19,7 @@ Configure the rest of the environment variables (see [Partitioning Users](/NOTES
 
 ```sh
 heroku config:set APP_ENV="production"
+heroku config:set SERVER_NAME="impeachment-tweet-analysis-10" # or whatever yours is called
 
 
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
