@@ -29,8 +29,8 @@ heroku config:set USERS_LIMIT="10000"
 heroku config:set BATCH_SIZE="20"
 heroku config:set MAX_THREADS="20"
 
-SENDGRID_API_KEY="_____________"
-MY_EMAIL_ADDRESS="me@example.com"
+heroku config:set SENDGRID_API_KEY="_____________"
+heroku config:set MY_EMAIL_ADDRESS="me@example.com"
 ```
 
 Deploy:
