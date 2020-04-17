@@ -1,7 +1,9 @@
 
-
+import time
 from concurrent.futures import ThreadPoolExecutor #, as_completed
 
+from app import SERVER_NAME, SERVER_DASHBOARD_URL
+from app.email_service import send_email
 from app.workers.friend_collector import (MAX_THREADS, BATCH_SIZE, LIMIT, MIN_ID, MAX_ID,
     user_with_friends, cautiously_initialized_storage_service, generate_timestamp,
     current_thread, BoundedSemaphore
@@ -23,24 +25,38 @@ def process_and_save_batch(user_rows, bq, lock=None):
     #lock.release()
     return True
 
+def send_completion_email():
+    subject = "[Impeachment Tweet Analysis] Friend Collection Complete!"
+    html = f"""
+    <h3>Nice!</h3>
+    <p>Server '{SERVER_NAME}' has completed its work.</p>
+    <p>So please shut it off so it can get some rest.</p>
+    <p>
+        <a href='{SERVER_DASHBOARD_URL}'>{SERVER_DASHBOARD_URL}</a>
+    </p>
+    <p>Thanks!</p>
+    """
+    response = send_email(subject, html)
+    return response
+
 if __name__ == "__main__":
     service = cautiously_initialized_storage_service()
 
     users = service.fetch_remaining_users(min_id=MIN_ID, max_id=MAX_ID, limit=LIMIT)
-
     print("FETCHED UNIVERSE OF", len(users), "USERS")
 
-    batches = list(split_into_batches(users))
-    print(f"ASSEMBLED {len(batches)} BATCHES OF {BATCH_SIZE}")
+    if any(users):
+        batches = list(split_into_batches(users))
+        print(f"ASSEMBLED {len(batches)} BATCHES OF {BATCH_SIZE}")
 
-    #lock = BoundedSemaphore()
-
-    with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-
-        #results = executor.map(process_batch, batches)
-        #for index, result in enumerate(results):
-        #    print("RESULTS... INDEX:", index, "SIZE:", len(result))
-
-        for batch in batches:
-            executor.submit(process_and_save_batch, batch, service)
-            #executor.submit(process_and_save_batch, batch, service, lock)
+        with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
+            for batch in batches:
+                executor.submit(process_and_save_batch, batch, service)
+    else:
+        send_completion_email()
+        print("yeah")
+        time.sleep(1)
+        print("yeah")
+        time.sleep(1)
+        print("yeah")
+        time.sleep(12 * 60 * 60) # twelve hours
