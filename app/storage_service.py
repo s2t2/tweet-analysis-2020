@@ -17,6 +17,8 @@ def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
+
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
@@ -32,6 +34,22 @@ class BigQueryService():
         self.dataset_ref = self.client.dataset(self.dataset_name)
         if init_tables == True:
             self.init_tables()
+
+    @classmethod
+    def cautiously_initialized(cls):
+        service = BigQueryService()
+        print("-------------------------")
+        print("DB CONFIG...")
+        print("  BIGQUERY DATASET:", service.dataset_address.upper())
+        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+        print("  VERBOSE QUERIES:", service.verbose)
+        print("-------------------------")
+        if APP_ENV == "development":
+            if input("CONTINUE? (Y/N): ").upper() != "Y":
+                print("EXITING...")
+                exit()
+        service.init_tables()
+        return service
 
     def init_tables(self):
         """ Creates new tables for storing follower graphs """
@@ -112,6 +130,15 @@ class BigQueryService():
         #if any(rows_to_insert):
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
+
+    def fetch_user_friends(self, limit=100):
+        sql = f"""
+            SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
+            FROM `{self.dataset_address}.user_friends`
+            LIMIT {int(limit)};
+        """
+        results = self.execute_query(sql)
+        return list(results)
 
 if __name__ == "__main__":
 

@@ -79,6 +79,13 @@ python -m app.workers.batch_per_thread
 # USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.batch_per_thread
 ```
 
+Assembling network graphs:
+
+```sh
+python -m app.workers.network_grapher
+```
+
+
 ## Testing
 
 Run tests:
