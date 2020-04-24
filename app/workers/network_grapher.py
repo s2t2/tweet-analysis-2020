@@ -9,7 +9,7 @@ GPICKLE_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "
 CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "example_network.csv")
 # columns: screen_name, friend_1, friend_2, friend_3, friend_4, etc...
 
-def compile_nodes_and_edges(screen_names, csv_filepath=CSV_FILEPATH, gpickle_filepath=GPICKLE_FILEPATH):
+def compile_nodes_and_edges(screen_names, csv_filepath=CSV_FILEPATH):
     """
     Given the following network:
 
@@ -33,42 +33,36 @@ def compile_nodes_and_edges(screen_names, csv_filepath=CSV_FILEPATH, gpickle_fil
     edges = []
     with open(csv_filepath) as csv_file:
         for index, line in enumerate(csv_file):
-            print("-------------")
+            #print("-------------")
             user_friends = line.strip("\n").split(",")
             user_name = user_friends[0] # follower
             friend_names = user_friends[1:] # friends
-            print("USER:", user_name, "FRIENDS:", friend_names)
+            #print("USER:", user_name, "FRIENDS:", friend_names)
 
             for friend_name in friend_names:
                 if friend_name in nodes.keys():
-                    edges.append((friend_name, user_name))
+                    edges.append((friend_name, user_name)) # 0 is followed by 1
 
     return nodes, edges
 
-def write_networkx(nodes, edges):
+def generate_graph(edges):
     """
-    Adapted from code in the "start" directory. Converts friends graph into a networkx object.
-    """
+    Converts edges into a networkx digraph object.
 
+    Param edges (list of tuples)
+        ... like [('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')]
+        ... where 'B' follows 'A', 'C' follows 'B', etc.
+
+    Returns graph (networkx.classes.digraph.DiGraph)
+    """
     graph = nx.DiGraph()
     for edge in edges:
-        source = edge[0]
-        recipient = edge[1]
+        source = edge[0] # source, a.k.a friend, a.k.a followed
+        recipient = edge[1] # recipient, a.k.a user, a.k.a follower
         graph.add_node(source)
         graph.add_node(recipient)
-        graph.add_edge(source,recipient)
-
-    #undirected = graph.to_undirected()
-    ##print(sorted(undirected.nodes()))
-    ##undirected.remove_node(target)
-    #node_count = undirected.number_of_nodes()
-    #edge_count = undirected.number_of_edges()
-
-    nx.write_gpickle(graph, gpickle_filepath)
-    print("WROTE NETWORKX GRAPH TO:", gpickle_filepath)
+        graph.add_edge(source, recipient)
     return graph
-
-    return edges, nodes
 
 if __name__ == "__main__":
 
@@ -77,7 +71,17 @@ if __name__ == "__main__":
 
     df = pandas.read_csv(CSV_FILEPATH, header=None)
     screen_names = df[0].tolist()
-
     nodes, edges = compile_nodes_and_edges(screen_names)
     print("NODE COUNT:", len(nodes))
     print("EDGE COUNT:", len(edges))
+
+    graph = generate_graph(edges)
+    print(type(graph)) #> <class 'networkx.classes.digraph.DiGraph'>
+    #undirected = graph.to_undirected()
+    ##print(sorted(undirected.nodes()))
+    ##undirected.remove_node(target)
+    #node_count = undirected.number_of_nodes()
+    #edge_count = undirected.number_of_edges()
+
+    print("WRITING NETWORK GRAPH TO:", GPICKLE_FILEPATH)
+    nx.write_gpickle(graph, GPICKLE_FILEPATH)

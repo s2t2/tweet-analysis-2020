@@ -54,3 +54,5 @@ Locks and Semaphores:
 
   + https://networkx.github.io/
   + https://github.com/networkx/networkx
+  + https://networkx.github.io/documentation/latest/
+  + https://networkx.github.io/documentation/latest/reference/classes/digraph.html
