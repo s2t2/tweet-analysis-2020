@@ -6,14 +6,25 @@ from app.storage_service import BigQueryService
 
 GPICKLE_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "network.gpickle")
 
-CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "mock_network.csv")
+CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "example_network.csv")
 # columns: screen_name, friend_1, friend_2, friend_3, friend_4, etc...
 
 def compile_nodes_and_edges(screen_names, csv_filepath=CSV_FILEPATH, gpickle_filepath=GPICKLE_FILEPATH):
     """
-    Returns nodes and edges.
-        Example nodes: {"userA": 1, "userB": 1, "userC": 1}
-        Example edges: [...]
+    Given the following network:
+
+        A doesn't follow anyone
+        B follows A
+        C follows B and A
+        D and E follow eachother
+
+    Returns nodes and edges...
+
+        Nodes: {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
+
+        Edges: [('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')]
+
+    Can read each edge tuple like: "0 is followed by 1"
     """
     nodes = {}
     for screen_name in screen_names:
@@ -22,12 +33,14 @@ def compile_nodes_and_edges(screen_names, csv_filepath=CSV_FILEPATH, gpickle_fil
     edges = []
     with open(csv_filepath) as csv_file:
         for index, line in enumerate(csv_file):
-            names = line.strip("\n").split(",")
-            user_name = names[0]
-            friend_names = names[1:]
+            print("-------------")
+            user_friends = line.strip("\n").split(",")
+            user_name = user_friends[0] # follower
+            friend_names = user_friends[1:] # friends
+            print("USER:", user_name, "FRIENDS:", friend_names)
 
             for friend_name in friend_names:
-                if friend_name in screen_names:
+                if friend_name in nodes.keys():
                     edges.append((friend_name, user_name))
 
     return nodes, edges
