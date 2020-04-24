@@ -6,3 +6,6 @@
 __pycache__
 
 credentials.json
+
+data/*.csv
+data/*.gpickle

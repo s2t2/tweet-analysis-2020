@@ -137,8 +137,9 @@ class BigQueryService():
             FROM `{self.dataset_address}.user_friends`
             LIMIT {int(limit)};
         """
-        results = self.execute_query(sql)
+        results = self.execute_query(sql) # consider returning the generator instead here
         return list(results)
+
 
 if __name__ == "__main__":
 

@@ -6,3 +6,6 @@ beautifulsoup4
 pytest
 
 sendgrid==6.0.5
+
+pandas
+networkx
