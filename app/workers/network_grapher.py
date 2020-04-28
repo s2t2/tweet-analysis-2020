@@ -66,22 +66,26 @@ def generate_graph(edges):
 
 if __name__ == "__main__":
 
-    #service = BigQueryService.cautiously_initialized()
-    #user_friends = service.fetch_user_friends(limit=20)
-
-    df = pandas.read_csv(CSV_FILEPATH, header=None)
-    screen_names = df[0].tolist()
-    nodes, edges = compile_nodes_and_edges(screen_names)
-    print("NODE COUNT:", len(nodes))
-    print("EDGE COUNT:", len(edges))
+    #df = pandas.read_csv(CSV_FILEPATH, header=None)
+    #screen_names = df[0].tolist()
+    #nodes, edges = compile_nodes_and_edges(screen_names)
+    #print("NODE COUNT:", len(nodes))
+    #print("EDGE COUNT:", len(edges))
 
     graph = generate_graph(edges)
     print(type(graph)) #> <class 'networkx.classes.digraph.DiGraph'>
-    #undirected = graph.to_undirected()
-    ##print(sorted(undirected.nodes()))
-    ##undirected.remove_node(target)
-    #node_count = undirected.number_of_nodes()
-    #edge_count = undirected.number_of_edges()
+
+    service = BigQueryService.cautiously_initialized()
+    user_friends = service.fetch_user_friends(limit=20)
+
+    breakpoint()
+    graph = nx.DiGraph()
+    for edge in edges:
+        source = edge[0] # source, a.k.a friend, a.k.a followed
+        recipient = edge[1] # recipient, a.k.a user, a.k.a follower
+        graph.add_node(source)
+        graph.add_node(recipient)
+        graph.add_edge(source, recipient)
 
     print("WRITING NETWORK GRAPH TO:", GPICKLE_FILEPATH)
     nx.write_gpickle(graph, GPICKLE_FILEPATH)

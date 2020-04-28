@@ -1,6 +1,6 @@
 import os
 import pandas
-from networkx import DiGraph
+from networkx import DiGraph, Graph
 
 from app.workers.network_grapher import compile_nodes_and_edges, generate_graph
 
@@ -24,3 +24,13 @@ def test_nodes_and_edges():
 def test_graph_generation():
     graph = generate_graph([('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')])
     assert isinstance(graph, DiGraph)
+    assert len(graph.edges) == 5
+    assert len(graph.nodes) == 5
+
+def test_undirected():
+    # https://networkx.github.io/documentation/latest/reference/classes/generated/networkx.DiGraph.to_undirected.html#networkx.DiGraph.to_undirected
+    graph = generate_graph([('A', 'B'), ('B', 'A')])
+    undirected = graph.to_undirected()
+    assert isinstance(graph, DiGraph) and isinstance(undirected, Graph)
+    assert len(graph.nodes) == 2 and len(undirected.nodes) == 2
+    assert len(graph.edges) == 2 and len(undirected.edges) == 1
