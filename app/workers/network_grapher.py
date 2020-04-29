@@ -42,10 +42,12 @@ if __name__ == "__main__":
     sql = f"""
         SELECT user_id, screen_name, friend_count, friend_names
         FROM `{service.dataset_address}.user_friends`
-        ORDER BY screen_name;
+        -- ORDER BY screen_name;
     """
     client = service.client
-    job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH)
+    #job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH)
+    #job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True)
+    job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=f"{service.dataset_address}.user_friends_temp")
     job = client.query(sql, job_config=job_config)
     #job = client.get_job(job.job_id, location=job.location)  # Make an API request.
     print(job.job_id, job.state)
@@ -53,8 +55,12 @@ if __name__ == "__main__":
     for row in job:
         counter+=1
 
+    #> google.api_core.exceptions.Forbidden: 403 GET https://bigquery.googleapis.com/bigquery/v2/projects/tweet-collector-py/queries/abc123?maxResults=0&location=US:
+    #> Response too large to return. Consider setting allowLargeResults to true in your job configuration.
+    #> For more information, see https://cloud.google.com/bigquery/troubleshooting-errors
 
-
+    #> google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/tweet-collector-py/jobs:
+    #> allow_large_results requires destination_table.
 
 
 
