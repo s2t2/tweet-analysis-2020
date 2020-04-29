@@ -13,6 +13,8 @@ Working with BigQuery:
   + https://cloud.google.com/dataprep/docs/html/DATEDIF-Function_57344707
   + https://towardsdatascience.com/google-bigquery-sql-dates-and-times-cheat-sheet-805b5502c7f0
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
+  + https://cloud.google.com/bigquery/docs/running-queries#batch
+  + https://cloud.google.com/bigquery/docs/paging-results
 
 ## Twitter Resources
 
@@ -55,4 +57,5 @@ Locks and Semaphores:
   + https://networkx.github.io/
   + https://github.com/networkx/networkx
   + https://networkx.github.io/documentation/latest/
+  + https://networkx.github.io/documentation/latest/tutorial.html
   + https://networkx.github.io/documentation/latest/reference/classes/digraph.html
