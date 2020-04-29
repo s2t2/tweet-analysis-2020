@@ -3,9 +3,9 @@ import time
 from datetime import datetime
 import os
 from networkx import DiGraph, write_gpickle
-from google.cloud import bigquery
 
-from app.storage_service import BigQueryService
+from app.storage_service import BigQueryService, generate_timestamp, bigquery
+from app.email_service import send_email
 
 GPICKLE_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "follower_network.gpickle")
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     for row in job:
         counter+=1
         if counter % 1000 == 0:
-            print(counter)
+            print(generate_timestamp(), counter)
 
     #> google.api_core.exceptions.Forbidden: 403 GET https://bigquery.googleapis.com/bigquery/v2/projects/tweet-collector-py/queries/abc123?maxResults=0&location=US:
     #> Response too large to return. Consider setting allowLargeResults to true in your job configuration.
@@ -72,7 +72,9 @@ if __name__ == "__main__":
 
     end_at = time.perf_counter()
     duration_seconds = round(end_at - start_at, 2)
-    print(f"PROCESSED {counter} USERS IN {duration_seconds} SECONDS")
+    message = f"PROCESSED {counter} USERS IN {duration_seconds} SECONDS"
+    print(message)
+    send_email("[Tweet Analyzer] Trial Complete", message)
 
     exit()
 
