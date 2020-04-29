@@ -1,5 +1,6 @@
 
 import time
+from datetime import datetime
 import os
 from networkx import DiGraph, write_gpickle
 from google.cloud import bigquery
@@ -47,13 +48,17 @@ if __name__ == "__main__":
     client = service.client
     #job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH)
     #job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True)
-    job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=f"{service.dataset_address}.user_friends_temp")
+    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S") # unique table for each job
+    table_destination = f"{service.dataset_address}.user_friends_temp_{timestamp}"
+    job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=table_destination)
     job = client.query(sql, job_config=job_config)
     #job = client.get_job(job.job_id, location=job.location)  # Make an API request.
     print(job.job_id, job.state)
 
     for row in job:
         counter+=1
+        if counter % 1000 == 0:
+            print(counter)
 
     #> google.api_core.exceptions.Forbidden: 403 GET https://bigquery.googleapis.com/bigquery/v2/projects/tweet-collector-py/queries/abc123?maxResults=0&location=US:
     #> Response too large to return. Consider setting allowLargeResults to true in your job configuration.
