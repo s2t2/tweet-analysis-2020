@@ -84,6 +84,8 @@ Assembling network graphs:
 
 # so run this instead:
 python -m app.workers.batch_grapher
+# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.batch_grapher
+# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.batch_grapher
 ```
 
 

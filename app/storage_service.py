@@ -141,8 +141,8 @@ class BigQueryService():
         sql += f"ORDER BY user_id "
         if limit:
             sql += f"LIMIT {int(limit)};"
-        results = self.execute_query(sql) # consider returning the generator instead here
-        return list(results)
+        #return list(self.execute_query(sql))
+        return self.execute_query(sql) # return the generator so we can avoid storing the results in memory
 
     def fetch_user_friends_in_batches(self):
         sql = f"""
