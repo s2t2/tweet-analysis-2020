@@ -26,11 +26,16 @@ if __name__ == "__main__":
     #    {"name": "server-10", "min_id": 1154556513031266304, "max_id": 1242523027058769920}
     #]
 
-    partitions = service.partition_users(n=180) # 180 batches of 20,000 users
+    partitions = service.partition_user_friends(n=180) # 180 batches of 20,000 users
     for partition in partitions:
-        #breakpoint()
         print("PROCESSING PARTITION:", partition.partition_id, partition.user_count, partition.min_id, partition.max_id)
-        #user_friends = service.fetch_user_friends(min_id=0, max_id=100)
+        user_friends = service.fetch_user_friends(min_id=partition.min_id, max_id=partition.max_id)
+
+        for row in user_friends:
+            user = row["screen_name"]
+            print(user)
+
+        #breakpoint()
         #for row in user_friends:
 
 

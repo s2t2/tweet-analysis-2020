@@ -131,12 +131,16 @@ class BigQueryService():
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
 
-    def fetch_user_friends(self, limit=100):
+    def fetch_user_friends(self, min_id=None, max_id=None, limit=None):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
             FROM `{self.dataset_address}.user_friends`
-            LIMIT {int(limit)};
         """
+        if min_id and max_id:
+            sql += f" WHERE CAST(user_id as int64) BETWEEN {int(min_id)} AND {int(max_id)} "
+        sql += f"ORDER BY user_id "
+        if limit:
+            sql += f"LIMIT {int(limit)};"
         results = self.execute_query(sql) # consider returning the generator instead here
         return list(results)
 
@@ -157,7 +161,7 @@ class BigQueryService():
         print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
         return job
 
-    def partition_users(self, n=10):
+    def partition_user_friends(self, n=10):
         """Params n (int) the number of partitions, each will be of equal size"""
         sql = f"""
             SELECT
@@ -169,7 +173,7 @@ class BigQueryService():
             SELECT
                 NTILE({int(n)}) OVER (ORDER BY CAST(user_id as int64)) as partition_id
                 ,CAST(user_id as int64) as user_id
-            FROM (SELECT DISTINCT user_id FROM `{self.dataset_address}.tweets`)
+            FROM (SELECT DISTINCT user_id FROM `{self.dataset_address}.user_friends`)
             ) user_partitions
             GROUP BY partition_id
         """
