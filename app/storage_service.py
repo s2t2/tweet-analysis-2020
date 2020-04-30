@@ -157,6 +157,27 @@ class BigQueryService():
         print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
         return job
 
+    def partition_users(self, n=10):
+        """Params n (int) the number of partitions, each will be of equal size"""
+        sql = f"""
+            SELECT
+                partition_id
+                ,count(DISTINCT user_id) as user_count
+                ,min(user_id) as min_id
+                ,max(user_id) as max_id
+            FROM (
+            SELECT
+                NTILE({int(n)}) OVER (ORDER BY CAST(user_id as int64)) as partition_id
+                ,CAST(user_id as int64) as user_id
+            FROM (SELECT DISTINCT user_id FROM `{self.dataset_address}.tweets`)
+            ) user_partitions
+            GROUP BY partition_id
+        """
+        results = self.execute_query(sql)
+        return list(results)
+
+
+
 if __name__ == "__main__":
 
     service = BigQueryService()
