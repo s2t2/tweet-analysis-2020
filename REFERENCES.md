@@ -59,3 +59,7 @@ Locks and Semaphores:
   + https://networkx.github.io/documentation/latest/
   + https://networkx.github.io/documentation/latest/tutorial.html
   + https://networkx.github.io/documentation/latest/reference/classes/digraph.html
+
+## Google Cloud Storage
+
+  + https://dev.to/sethmlarson/python-data-streaming-to-google-cloud-storage-with-resumable-uploads-458h

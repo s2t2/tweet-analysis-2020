@@ -30,6 +30,7 @@ if __name__ == "__main__":
     pprint(partitions)
 
     print("-------------------------")
+    counter = 0
     for partition in partitions:
         print(generate_timestamp(),
             f"PROCESSING PARTITION {partition.partition_id} OF {N_PARTITIONS}",
@@ -37,11 +38,14 @@ if __name__ == "__main__":
         )
 
         for row in service.fetch_user_friends(min_id=partition.min_id, max_id=partition.max_id):
-            user = row["screen_name"]
-            graph.add_node(user)
-            for friend in row["friend_names"]:
-                graph.add_node(friend)
-                graph.add_edge(user, friend)
+            counter+=1
+            #print("...", row["screen_name"])
+            #user = row["screen_name"]
+            #graph.add_node(user)
+            #for friend in row["friend_names"]:
+            #    graph.add_node(friend)
+            #    graph.add_edge(user, friend)
+    print(counter)
 
     print("-------------------------")
     print("NETWORK GRAPH COMPLETE!")
