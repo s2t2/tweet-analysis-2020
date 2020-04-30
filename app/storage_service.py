@@ -143,17 +143,17 @@ class BigQueryService():
     def fetch_user_friends_in_batches(self):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names
-            FROM `{service.dataset_address}.user_friends`;
+            FROM `{self.dataset_address}.user_friends`;
         """
 
         job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
         job_config = bigquery.QueryJobConfig(
             priority=bigquery.QueryPriority.BATCH,
             allow_large_results=True,
-            destination=f"{service.dataset_address}.user_friends_temp_{job_name}"
+            destination=f"{self.dataset_address}.user_friends_temp_{job_name}"
         )
 
-        job = service.client.query(sql, job_config=job_config)
+        job = self.client.query(sql, job_config=job_config)
         print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
         return job
 
