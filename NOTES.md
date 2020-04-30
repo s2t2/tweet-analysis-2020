@@ -304,3 +304,5 @@ The network generation script generates a ".gpickle" file representing the graph
 Except running it immediately puts my laptop into disarray - high memory and CPU usage. So need to figure a way to run on server instead. Maybe run on an AWS server, or trick Heroku into saving / updating a file. Or maybe run on my Windows loaner laptop that I don't care as much if it breaks.
 
 To be continued...
+
+We could either run on a larger server where memory isn't as constrained, or could save the graph object in parts (assuming it is possible to re-assemble them later).
