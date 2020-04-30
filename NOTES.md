@@ -213,7 +213,9 @@ Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start 
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
 
 
-## Collecting Friends
+## Tweet Analysis
+
+### Collecting Friends
 
 Verifying users have been bucketed properly:
 
@@ -243,24 +245,62 @@ ORDER BY assigned_server
 Monitoring results as they come in:
 
 ```sql
-SELECT assigned_server, count(distinct user_id) as user_count
+
+SELECT
+  assigned_server
+  ,count(distinct user_id) as users_processed
+  ,round(avg(friend_count),2) as avg_friends
+  ,round(avg(runtime_seconds),4) as avg_run_seconds
+  -- ,max(end_at) as latest_at
+  -- ,360054 - count(distinct user_id) as users_remaining
 FROM (
   SELECT
-    user_id
+    user_id, friend_count, start_at, end_at
+    ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
     ,CASE
-        WHEN CAST(user_id as int64) BETWEEN 17                  and 49223966 THEN "server-1"
-        WHEN CAST(user_id as int64) BETWEEN 49224083            and 218645473 THEN "server-2"
-        WHEN CAST(user_id as int64) BETWEEN 218645600           and 446518003 THEN "server-3"
-        WHEN CAST(user_id as int64) BETWEEN 446520525           and 1126843322 THEN "server-4"
-        WHEN CAST(user_id as int64) BETWEEN 1126843458          and 2557922900 THEN "server-5"
-        WHEN CAST(user_id as int64) BETWEEN 2557923828          and 4277913148 THEN "server-6"
-        WHEN CAST(user_id as int64) BETWEEN 4277927001          and 833566039577239552 THEN "server-7"
-        WHEN CAST(user_id as int64) BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-8"
-        WHEN CAST(user_id as int64) BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-9"
-        WHEN CAST(user_id as int64) BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
+        WHEN user_id BETWEEN 17                  and 49223966            THEN "server-01"
+        WHEN user_id BETWEEN 49224083            and 218645473           THEN "server-02"
+        WHEN user_id BETWEEN 218645600           and 446518003           THEN "server-03"
+        WHEN user_id BETWEEN 446520525           and 1126843322          THEN "server-04"
+        WHEN user_id BETWEEN 1126843458          and 2557922900          THEN "server-05"
+        WHEN user_id BETWEEN 2557923828          and 4277913148          THEN "server-06"
+        WHEN user_id BETWEEN 4277927001          and 833566039577239552  THEN "server-07"
+        WHEN user_id BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-08"
+        WHEN user_id BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-09"
+        WHEN user_id BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
      END as assigned_server
-  FROM impeachment_production.user_friends
-)
+  FROM (
+    SELECT CAST(user_id as int64) as user_id, friend_count, start_at, end_at
+    FROM impeachment_production.user_friends
+  ) zz
+) yy
 GROUP BY assigned_server
 ORDER BY assigned_server
 ```
+
+Final results:
+
+assigned_server | users_processed | avg_friends | avg_run_seconds
+-- | -- | -- | --
+server-01 | 360,055 | 820 | 131
+server-02 | 360,055 | 723 | 107
+server-03 | 360,055 | 666 | 99
+server-04 | 360,055 | 610 | 95
+server-05 | 360,055 | 567 | 91
+server-06 | 360,054 | 522 | 55
+server-07 | 360,054 | 508 | 56
+server-08 | 360,054 | 460 | 62
+server-09 | 360,054 | 353 | 51
+server-10 | 360,054 | 217 | 25
+
+
+Interesting to see that newer users (the ones with greater / later ids) have less friends on average, and therefore took less time to parse. Again note we have capped max friends at 2000, which skews the avg friend count.
+
+
+### Assembling Network Graphs
+
+The network generation script generates a ".gpickle" file representing the graph object. Because it generates a file, we need to run locally as opposed to on the server. It takes around 7.8 hours to use BigQuery's default batching mechanism to loop through all 3.6M users. So we need to [keep the computer awake](https://www.howtogeek.com/245683/how-to-prevent-your-mac-from-sleeping-with-no-additional-software/) while this script runs overnight.
+
+Except running it immediately puts my laptop into disarray - high memory and CPU usage. So need to figure a way to run on server instead. Maybe run on an AWS server, or trick Heroku into saving / updating a file. Or maybe run on my Windows loaner laptop that I don't care as much if it breaks.
+
+To be continued...
