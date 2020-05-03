@@ -83,9 +83,9 @@ Assembling network graphs:
 # python -m app.workers.network_grapher #> runs into memory issues locally
 
 # so run this instead:
-python -m app.workers.batch_grapher
-# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.batch_grapher
-# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.batch_grapher
+python -m app.workers.network_grapher_2
+# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher_2
+# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher_2
 ```
 
 
