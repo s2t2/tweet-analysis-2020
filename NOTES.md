@@ -300,12 +300,12 @@ Interesting to see that newer users (the ones with greater / later ids) have les
 ### Assembling Network Graphs
 
 
-Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues. We could run it on a larger server where memory isn't as constrained, or we could save the graph object in parts (assuming it is possible to re-assemble them later), or save graph in chunks to remote storage like a Google Cloud Storage bucket.
-
-Running network grapher on various servers, results:
+Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues. Results:
 
   + Macbook Air: crash due to memory issue
   + Windows Laptop: crash due to memory issue
   + Standard-1x: crash due to memory issue
-  + Standard-2x: crash after a few minutes
-  + Performance-M: [IN PROGRESS]
+  + Standard-2x: crash after a few minutes due to memory issue
+  + Performance-M: crash after a few minutes due to memory issue
+
+Throwing more memory at the problem doesn't make it better :smiley_cat:. So let's try to save the graph to remote storage instead, using a chunked / streaming approach which saves part of the file at a time. Results: TBA.
