@@ -51,6 +51,6 @@ if __name__ == "__main__":
 
     grapher.report()
 
-    timestamp = dt.now().strftime("%Y-%m-%d-%H-%M")
+    timestamp = dt.now().strftime("%Y_%m_%d_%H_%M")
     graph_filepath = os.path.join(DATA_DIR, f"follower_network_{timestamp}.gpickle")
     grapher.write_to_file(graph_filepath)
