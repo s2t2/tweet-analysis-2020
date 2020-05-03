@@ -12,9 +12,7 @@ def test_network_grapher(example_graph):
     if os.path.isfile(graph_filepath): os.remove(graph_filepath)
     assert os.path.isfile(graph_filepath) == False
 
-    bq_service = BigQueryService()
-    grapher = NetworkGrapher(graph=example_graph, bq=bq_service)
-    # initializing with the completed graph allows us to the skip / mock the performance
+    grapher = NetworkGrapher(graph=example_graph, bq=BigQueryService()) # TODO: mock grapher.perform() method to return the graph, instead of initializing with it
     assert list(grapher.graph.nodes) == expected_nodes
     assert list(grapher.graph.edges) == expected_edges
 
