@@ -31,7 +31,7 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
-        self.dataset_ref = self.client.dataset(self.dataset_name)
+        self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
         if init_tables == True:
             self.init_tables()
 

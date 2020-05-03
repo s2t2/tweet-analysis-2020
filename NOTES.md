@@ -299,10 +299,13 @@ Interesting to see that newer users (the ones with greater / later ids) have les
 
 ### Assembling Network Graphs
 
-The network generation script generates a ".gpickle" file representing the graph object. Because it generates a file, we need to run locally as opposed to on the server. It takes around 7.8 hours to use BigQuery's default batching mechanism to loop through all 3.6M users. So we need to [keep the computer awake](https://www.howtogeek.com/245683/how-to-prevent-your-mac-from-sleeping-with-no-additional-software/) while this script runs overnight.
 
-Except running it immediately puts my laptop into disarray - high memory and CPU usage. So need to figure a way to run on server instead. Maybe run on an AWS server, or trick Heroku into saving / updating a file. Or maybe run on my Windows loaner laptop that I don't care as much if it breaks.
+Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues. We could run it on a larger server where memory isn't as constrained, or we could save the graph object in parts (assuming it is possible to re-assemble them later), or save graph in chunks to remote storage like a Google Cloud Storage bucket.
 
-To be continued...
+Running network grapher on various servers, results:
 
-We could either run on a larger server where memory isn't as constrained, or could save the graph object in parts (assuming it is possible to re-assemble them later).
+  + Macbook Air: crash due to memory issue
+  + Windows Laptop: crash due to memory issue
+  + Standard-1x: crash due to memory issue
+  + Standard-2x: crash after a few minutes
+  + Performance-M: [IN PROGRESS]

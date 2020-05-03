@@ -59,6 +59,7 @@ Locks and Semaphores:
   + https://networkx.github.io/documentation/latest/
   + https://networkx.github.io/documentation/latest/tutorial.html
   + https://networkx.github.io/documentation/latest/reference/classes/digraph.html
+  + https://networkx.github.io/documentation/latest/reference/readwrite/generated/networkx.readwrite.gpickle.read_gpickle.html
 
 ## Google Cloud Storage
 

@@ -10,8 +10,8 @@ from app.email_service import send_email
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
 class NetworkGrapher():
-    def __init__(self, bq=None):
-        self.graph = DiGraph()
+    def __init__(self, graph=None, bq=None):
+        self.graph = (graph or DiGraph())
         self.bq = (bq or BigQueryService.cautiously_initialized())
 
     def perform(self):
