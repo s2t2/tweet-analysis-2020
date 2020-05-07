@@ -4,10 +4,9 @@ from datetime import datetime as dt
 import os
 from networkx import DiGraph, write_gpickle
 
+from app import DATA_DIR
 from app.storage_service import BigQueryService, generate_timestamp, bigquery
 from app.email_service import send_email
-
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
 class NetworkGrapher():
     def __init__(self, graph=None, bq=None):
