@@ -66,3 +66,9 @@ Locks and Semaphores:
 ## Google Cloud Storage
 
   + https://dev.to/sethmlarson/python-data-streaming-to-google-cloud-storage-with-resumable-uploads-458h
+
+## SQLAlchemy
+
+  + https://docs.sqlalchemy.org/en/13/
+  + https://docs.sqlalchemy.org/en/13/intro.html
+  + https://docs.sqlalchemy.org/en/13/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2

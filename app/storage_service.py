@@ -17,8 +17,6 @@ def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-
-
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,

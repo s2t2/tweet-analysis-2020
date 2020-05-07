@@ -9,3 +9,5 @@ sendgrid==6.0.5
 
 pandas
 networkx
+psycopg2
+sqlalchemy
