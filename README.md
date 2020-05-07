@@ -89,6 +89,20 @@ python -m app.workers.network_grapher_2
 ```
 
 
+## Local Analysis
+
+If you want to download tables from BigQuery to a PostgreSQL database, create a database, for example a local database called "impeachment_analysis". Then set the `DATABASE_URL` environment variable. Then run the database migration script:
+
+```sh
+python -m app.models
+```
+
+After migrating the tables, you can ETL data from BigQuery:
+
+```sh
+python -m app.workers.pipeline
+```
+
 ## Testing
 
 Run tests:

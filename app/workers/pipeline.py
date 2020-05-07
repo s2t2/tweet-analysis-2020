@@ -15,11 +15,14 @@ class Pipeline():
 if __name__ == "__main__":
 
     pipeline = Pipeline()
+    print(pipeline.database_url)
 
     # get user_friends from BQ
 
     # store into PG in batches
 
-    print(pipeline.database_url)
+
+    #pipeline.db.execute("CREATE TABLE IF NOT EXISTS films (title text, director text, year text)")
+
 
     breakpoint()
