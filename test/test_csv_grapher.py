@@ -4,24 +4,11 @@ from networkx import DiGraph, Graph
 
 # columns: screen_name, friend_1, friend_2, friend_3, friend_4, etc...
 #CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "example_network.csv")
-MOCK_CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "data", "mock_network.csv")
+MOCK_CSV_FILEPATH = os.path.join(os.path.dirname(__file__), "data", "mock_network.csv")
 
 def compile_nodes_and_edges(screen_names, csv_filepath=MOCK_CSV_FILEPATH):
     """
-    Given the following network:
-
-        A doesn't follow anyone
-        B follows A
-        C follows B and A
-        D and E follow eachother
-
-    Returns nodes and edges...
-
-        Nodes: {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
-
-        Edges: [('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')]
-
-    Can read each edge tuple like: "0 is followed by 1"
+    Each edge tuple like... "0 follows 1"
     """
     nodes = {}
     for screen_name in screen_names:
@@ -38,7 +25,8 @@ def compile_nodes_and_edges(screen_names, csv_filepath=MOCK_CSV_FILEPATH):
 
             for friend_name in friend_names:
                 if friend_name in nodes.keys():
-                    edges.append((friend_name, user_name)) # 0 is followed by 1
+                    #edges.append((friend_name, user_name)) # 0 is followed by 1
+                    edges.append((user_name, friend_name)) # 0 follows 1
 
     return nodes, edges
 
@@ -73,8 +61,14 @@ def test_nodes_and_edges():
     screen_names = df[0].tolist()
 
     nodes, edges = compile_nodes_and_edges(screen_names, csv_filepath=MOCK_CSV_FILEPATH)
-    assert nodes == {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
-    assert edges == [('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')]
+    assert nodes == {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1, 'F': 1}
+    assert edges == [
+        ('A', 'B'), ('A', 'C'), ('A', 'D'), # "A" follows "B", "C", and "D"
+        ('B', 'C'), ('B', 'D'), # "B" follows "C" and "D"
+        ('C', 'D'), # "C" follows "D"
+        ('D', 'C'), # "D" follows "C"
+        ('E', 'F') # "E" follows "F" and "F" follows no-one
+    ]
 
 def test_graph_generation():
     graph = generate_graph([('A', 'B'), ('B', 'C'), ('A', 'C'), ('E', 'D'), ('D', 'E')])

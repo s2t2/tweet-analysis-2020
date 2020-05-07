@@ -308,4 +308,4 @@ Initial attempts to assemble graph object for production dataset (3.6M users) en
   + Standard-2x: crash after a few minutes due to memory issue
   + Performance-M: crash after a few minutes due to memory issue
 
-Throwing more memory at the problem doesn't make it better :smiley_cat:. So let's try to save the graph to remote storage instead, using a chunked / streaming approach which saves part of the file at a time. Results: TBA.
+Throwing more memory at the problem doesn't make it better :smiley_cat:. So let's try ... adding the data more efficiently, if possible...
