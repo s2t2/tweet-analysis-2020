@@ -297,6 +297,62 @@ server-10 | 360,054 | 217 | 25
 Interesting to see that newer users (the ones with greater / later ids) have less friends on average, and therefore took less time to parse. Again note we have capped max friends at 2000, which skews the avg friend count.
 
 
+### Data Pipeline
+
+Transferring 10K users from BigQuery development database to a local PostgreSQL database, to make subsequent analysis easier (prevent unnecessary future network requests):
+
+```sh
+DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.workers.pg_pipeline
+```
+
+Benchmarking different batch sizes:
+
+Users | Batch Size | Duration (seconds)
+--- | --- | ---
+10000 | Individual| 214
+10000 | 50 | 182
+10000 | 100 (first run) | 159
+10000 | 100 (second run) | 171
+10000 | 200 | 162
+10000 | 500 | 208
+10000 | 1000 | 227
+
+Choosing optimal batch size of around 100.
+
+Transferring all 3.6M users from the BigQuery production database:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.workers.pg_pipeline
+```
+
+Users | Batch Size | Duration (seconds)
+3636616 | 100 | 20151
+
+Making a smaller version of the user friends table, for development purposes:
+
+```sql
+CREATE TABLE user_friends_dev as (
+    SELECT * FROM user_friends LIMIT 100000
+);
+```
+
+Copying / backing-up the user friends table as "user_friends_clone".
+
+Identifying screen names that have multiple user ids (may need to be excluded / cleaned from the dataset):
+
+```sql
+SELECT
+    screen_name
+    ,count(distinct id) as row_count
+FROM user_friends
+GROUP BY 1
+HAVING count(distinct id) > 1
+ORDER BY 2 desc;
+
+-- > 612 screen names
+```
+
+
 ### Assembling Network Graphs
 
 

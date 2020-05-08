@@ -8,7 +8,7 @@ from app.storage_service import BigQueryService, generate_timestamp, bigquery
 
 load_dotenv()
 
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100)) # use 1,000 or 10,000 in production
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
 DESTRUCTIVE_PG = (os.getenv("DESTRUCTIVE_PG", default="false") == "true")
 
 class Pipeline():

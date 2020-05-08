@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
+USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
 
 db = create_engine(DATABASE_URL)
 Base = declarative_base()
@@ -23,7 +24,7 @@ class Book(Base):
     readers = Column(ARRAY(String(128)))
 
 class UserFriend(Base):
-    __tablename__ = "user_friends"
+    __tablename__ = USER_FRIENDS_TABLE_NAME
     id = Column(Integer, primary_key=True)
     user_id = Column(BigInteger) # , primary_key=True
     screen_name = Column(String(128))
