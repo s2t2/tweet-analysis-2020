@@ -72,7 +72,7 @@ Locks and Semaphores:
   + https://docs.sqlalchemy.org/en/13/
   + https://docs.sqlalchemy.org/en/13/intro.html
   + https://docs.sqlalchemy.org/en/13/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2
-  + https://docs.sqlalchemy.org/en/13/core/type_basics.html#sqlalchemy.types.ARRAY
+  + https://docs.sqlalchemy.org/en/13/core/type_basics.html
   + https://docs.sqlalchemy.org/en/13/core/metadata.html#creating-and-dropping-database-tables
   + https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/api.html
   + https://stackoverflow.com/questions/45259764/how-to-create-a-single-table-using-sqlalchemy-declarative-base
