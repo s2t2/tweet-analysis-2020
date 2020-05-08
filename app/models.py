@@ -24,7 +24,8 @@ class Book(Base):
 
 class UserFriend(Base):
     __tablename__ = "user_friends"
-    user_id = Column(BigInteger, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(BigInteger) # , primary_key=True
     screen_name = Column(String(128))
     friend_count = Column(Integer)
     friend_names = Column(ARRAY(String(128)))
