@@ -100,7 +100,8 @@ python -m app.models
 After migrating the tables, you can ETL data from BigQuery:
 
 ```sh
-python -m app.workers.pipeline
+python -m app.workers.pg_pipeline
+BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
 ```
 
 ## Testing

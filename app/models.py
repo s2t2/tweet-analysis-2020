@@ -28,11 +28,12 @@ class UserFriend(Base):
     screen_name = Column(String(128))
     friend_count = Column(Integer)
     friend_names = Column(ARRAY(String(128)))
-    start_at = Column(TIMESTAMP)
-    end_at = Column(TIMESTAMP)
+    #start_at = Column(TIMESTAMP)
+    #end_at = Column(TIMESTAMP)
 
 if __name__ == "__main__":
 
+    #breakpoint()
     #Book.__table__.drop(db)
     #Book.__table__.create(db)
     #if not Book.__table__.exists(): Book.__table__.create(db)

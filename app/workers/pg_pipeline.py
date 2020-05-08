@@ -2,14 +2,16 @@
 import time
 import os
 from dotenv import load_dotenv
+
 from app.models import db, UserFriend, BoundSession
 from app.storage_service import BigQueryService, generate_timestamp, bigquery
 
 load_dotenv()
 
-BATCH_SIZE = os.getenv("BATCH_SIZE", default=100)
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=10)) # use 1,000 or 10,000 in production
+DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
 
-class AnalysisPipeline():
+class Pipeline():
     def __init__(self, batch_size=BATCH_SIZE, bq=None):
         self.bq = (bq or BigQueryService.cautiously_initialized())
         self.db = db
@@ -20,21 +22,20 @@ class AnalysisPipeline():
 
     def perform(self):
         self.start_at = time.perf_counter()
+
         for row in self.bq.fetch_user_friends_in_batches():
-            self.batch.append(row)
+            self.batch.append({
+                "user_id": row["user_id"],
+                "screen_name": row["screen_name"],
+                "friend_count": row["friend_count"],
+                "friend_names": row["friend_names"]
+            })
             self.counter+=1
+
             if self.counter % self.batch_size == 0:
-                print(generate_timestamp(), self.counter)
-
-                # todo: store users in database
-
-                breakpoint()
-                #user_friends.insert().values([
-                #    {"name": "some name"},
-                #    {"name": "some other name"},
-                #    {"name": "yet another name"},
-                #])
-                session.bulk_insert_mappings(UserFriend, self.batch)
+                print(generate_timestamp(), self.counter, "SAVING BATCH...")
+                self.session.bulk_insert_mappings(UserFriend, self.batch)
+                self.session.commit()
                 self.batch = []
 
         print("ETL COMPLETE!")
@@ -46,21 +47,15 @@ class AnalysisPipeline():
 
 if __name__ == "__main__":
 
+    if DESTRUCTIVE_MIGRATIONS:
+        print("DROPPING USER FRIENDS TABLE...")
+        UserFriend.__table__.drop(db)
+
     if not UserFriend.__table__.exists():
+        print("MIGRATING USER FRIENDS TABLE...")
         UserFriend.__table__.create(db)
 
-    pipeline = AnalysisPipeline()
+    pipeline = Pipeline()
     pipeline.perform()
     pipeline.report()
-
-
-
-
-
-
-
-
-
-
-
-    session.close()
+    pipeline.session.close()
