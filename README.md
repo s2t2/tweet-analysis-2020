@@ -52,6 +52,8 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 
 ## Usage
 
+### Friend Collection
+
 Fetch example data from Twitter:
 
 ```sh
@@ -67,42 +69,40 @@ python -m app.storage_service
 # DESTRUCTIVE_MIGRATIONS="true" python -m app.storage_service
 ```
 
-If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery:
+If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery called "user_friends":
 
 ```sh
-#python -m app.workers.friend_collector #> stops storing after a while
-
-# so run this instead:
-python -m app.workers.batch_per_thread
-# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.batch_per_thread
+python -m app.workers.friend_batch_collector
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.friend_batch_collector
 ```
 
-Assembling network graphs:
+### Local Analysis
 
-```sh
-# python -m app.workers.network_grapher #> runs into memory issues locally
-
-# so run this instead:
-python -m app.workers.network_grapher_2
-# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher_2
-# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher_2
-```
-
-
-## Local Analysis
-
-If you want to download tables from BigQuery to a PostgreSQL database, create a database, for example a local database called "impeachment_analysis". Then set the `DATABASE_URL` environment variable. Then run the database migration script:
+If you want to download / ETL the completed "user_friends" table from BigQuery to a PostgreSQL database: create a local database called "impeachment_analysis", then set the `DATABASE_URL` environment variable. Then run the database migration script:
 
 ```sh
 python -m app.models
 ```
 
-After migrating the tables, you can ETL data from BigQuery:
+After migrating the tables, you can ETL the data from BigQuery:
 
 ```sh
 python -m app.workers.pg_pipeline
 BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
 ```
+
+### Network Graphs
+
+Assembling network graphs:
+
+```sh
+python -m app.workers.network_grapher
+# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher
+# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher
+```
+
+
+
 
 ## Testing
 
