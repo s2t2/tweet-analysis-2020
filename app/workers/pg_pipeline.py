@@ -70,11 +70,13 @@ if __name__ == "__main__":
     print("  BATCH SIZE:", BATCH_SIZE)
     print("  DESTRUCTIVE MIGRATIONS:", DESTRUCTIVE_PG)
 
+    bq = BigQueryService.cautiously_initialized()
+
+    # PERFORM
     session = BoundSession()
     print("  SESSION:", type(session))
 
-    bq = BigQueryService.cautiously_initialized()
-
+    print(generate_timestamp())
     start_at = time.perf_counter()
     counter = 0
     batch = []
@@ -96,13 +98,15 @@ if __name__ == "__main__":
             "friend_names": row["friend_names"]
         })
         if len(batch) >= BATCH_SIZE:
-            print(generate_timestamp(), "SAVING BATCH...")
+            print(generate_timestamp(), "SAVING BATCH OF", len(batch)) # prints in real-time, just takes a while to get from script invocation to the first batch...
             session.bulk_insert_mappings(UserFriend, batch)
             session.commit()
             batch = []
 
     end_at = time.perf_counter()
+    print(generate_timestamp())
     session.close()
 
+    # REPORT
     duration_seconds = round(end_at - start_at, 2)
     print(f"PROCESSED {counter} USERS IN {duration_seconds} SECONDS")

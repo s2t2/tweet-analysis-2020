@@ -300,12 +300,6 @@ Interesting to see that newer users (the ones with greater / later ids) have les
 ### Assembling Network Graphs
 
 
-Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues. Results:
+Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
 
-  + Macbook Air: crash due to memory issue
-  + Windows Laptop: crash due to memory issue
-  + Standard-1x: crash due to memory issue
-  + Standard-2x: crash after a few minutes due to memory issue
-  + Performance-M: crash after a few minutes due to memory issue
-
-Throwing more memory at the problem doesn't make it better :smiley_cat:. So let's try ... adding the data more efficiently, if possible...
+TODO: fix memory issues
