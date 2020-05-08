@@ -96,9 +96,12 @@ BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_p
 Assembling network graphs:
 
 ```sh
-python -m app.workers.network_grapher
-# BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher
-# BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher
+# (Memory issues)
+#python -m app.workers.network_grapher
+## BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher
+## BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher
+
+python -m app.workers.pg_grapher
 ```
 
 

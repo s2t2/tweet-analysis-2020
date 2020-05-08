@@ -7,11 +7,11 @@ from networkx import DiGraph, write_gpickle
 from app import DATA_DIR
 from app.models import UserFriend, BoundSession
 from app.storage_service import generate_timestamp
-#from app.email_service import send_email
 
 #load_dotenv()
 
 #BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
+#DRY_RUN = (os.getenv("DRY_RUN") == "true")
 
 class NetworkGrapher():
 
@@ -26,12 +26,10 @@ class NetworkGrapher():
         print("GENERATING NETWORK GRAPH...")
         for row in self.session.query(UserFriend):
             user = row.screen_name
-            print(user)
             friends = row.friend_names
-
-            self.graph.add_node(user)
-            self.graph.add_nodes_from(friends)
-            self.graph.add_edges_from([(user, friend) for friend in friends])
+            #self.graph.add_node(user)
+            #self.graph.add_nodes_from(friends)
+            #self.graph.add_edges_from([(user, friend) for friend in friends])
 
             self.counter+=1
             if self.counter % 1000 == 0:
