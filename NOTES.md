@@ -353,6 +353,36 @@ ORDER BY 2 desc;
 ```
 
 
+Making an even smaller (and cleaner) version of the user friends table, for testing purposes:
+
+```sql
+CREATE TABLE user_friends_10k as (
+    SELECT
+      uf.id
+      ,uf.user_id
+      ,uf.screen_name
+      ,uf.friend_count
+      ,uf.friend_names
+    FROM user_friends_dev uf
+    LEFT JOIN (
+        -- screen names with multiple user ids
+        SELECT
+            screen_name
+            -- user_id
+            , count(distinct id) as row_count
+        FROM user_friends_dev
+        GROUP BY 1
+        HAVING count(distinct id) > 1
+        ORDER BY 2 desc
+    ) subq ON subq.screen_name = uf.screen_name
+    WHERE subq.screen_name IS NULL -- filters out dups
+    LIMIT 10000
+ );
+ALTER TABLE user_friends_10k ADD INDEX(id);
+ALTER TABLE user_friends_10k ADD INDEX(user_id);
+ALTER TABLE user_friends_10k ADD INDEX(screen_name);
+```
+
 ### Assembling Network Graphs
 
 
