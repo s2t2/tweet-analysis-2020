@@ -1,7 +1,7 @@
 import os
 from networkx import read_gpickle
 
-from app.workers.network_grapher import NetworkGrapher
+from app.workers.pg_grapher import NetworkGrapher
 from app.storage_service import BigQueryService
 
 def test_network_grapher(mock_graph, expected_nodes, expected_edges):

@@ -97,9 +97,9 @@ Assembling network graphs:
 
 ```sh
 # (Memory issues)
-#python -m app.workers.network_grapher
-## BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.network_grapher
-## BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.network_grapher
+#python -m app.workers.pg_grapher
+## BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.pg_grapher
+## BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.pg_grapher
 
 python -m app.workers.pg_grapher
 ```

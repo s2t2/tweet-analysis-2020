@@ -1,5 +1,5 @@
 
-#from app.workers.network_grapher import NetworkGrapher
+#from app.workers.pg_grapher import NetworkGrapher
 #
 #class DataFrameGrapher(NetworkGrapher):
 #    def perform(self):
