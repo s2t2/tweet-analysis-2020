@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     print("-------")
     print("USER FRIENDS:")
-    results = db.execute("SELECT count(DISTINCT screen_name) as row_count FROM user_friends;")
+    results = db.execute(f"SELECT count(DISTINCT screen_name) as row_count FROM {USER_FRIENDS_TABLE_NAME};")
     #print(results.keys()) #> ["row_count"]
     #print(results.rowcount) #> 1
     print("...", results.fetchone()[0]) #TODO: row factory ... results.fetchone()["row_count"]
