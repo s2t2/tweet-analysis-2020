@@ -14,11 +14,11 @@ DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
 
 class NetworkGrapher():
 
-    def __init__(self, dry_run=DRY_RUN, graph=None):
+    def __init__(self, dry_run=DRY_RUN, graph=None, table_name=None):
         self.session = BoundSession()
-        self.table_name = USER_FRIENDS_TABLE_NAME
+        self.table_name = (table_name or USER_FRIENDS_TABLE_NAME)
         self.dry_run = (dry_run == True)
-        self.graph = graph or DiGraph()
+        self.graph = (graph or DiGraph())
 
     @classmethod
     def cautiously_initialized(cls):
