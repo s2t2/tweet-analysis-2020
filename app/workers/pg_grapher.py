@@ -71,6 +71,14 @@ class NetworkGrapher():
 if __name__ == "__main__":
 
     grapher = NetworkGrapher.cautiously_initialized()
+
+
+
+
+    breakpoint()
+
+
+
     grapher.perform()
     grapher.report()
 

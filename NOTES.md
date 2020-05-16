@@ -353,7 +353,7 @@ ORDER BY 2 desc;
 ```
 
 
-Making an even smaller (and cleaner) version of the user friends table, for testing purposes:
+Making an even smaller (and cleaner) version of the user friends table, for testing purposes (with 10k, 100k, 500k):
 
 ```sql
 CREATE TABLE user_friends_10k as (
@@ -378,9 +378,17 @@ CREATE TABLE user_friends_10k as (
     WHERE subq.screen_name IS NULL -- filters out dups
     LIMIT 10000
  );
-ALTER TABLE user_friends_10k ADD INDEX(id);
-ALTER TABLE user_friends_10k ADD INDEX(user_id);
-ALTER TABLE user_friends_10k ADD INDEX(screen_name);
+CREATE INDEX tenkay_id ON user_friends_10k USING btree(id);
+CREATE INDEX tenkay_uid ON user_friends_10k USING btree(user_id);
+CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
+
+-- CREATE INDEX hunkay_id ON user_friends_100k USING btree(id);
+-- CREATE INDEX hunkay_uid ON user_friends_100k USING btree(user_id);
+-- CREATE INDEX hunkay_sn ON user_friends_100k USING btree(screen_name);
+
+-- CREATE INDEX funkay_id ON user_friends_500k USING btree(id);
+-- CREATE INDEX funkay_uid ON user_friends_500k USING btree(user_id);
+-- CREATE INDEX funkay_sn ON user_friends_500k USING btree(screen_name);
 ```
 
 ### Assembling Network Graphs

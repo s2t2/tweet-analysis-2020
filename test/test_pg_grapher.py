@@ -18,9 +18,9 @@ def test_performance():
     assert len(grapher.graph.nodes) == 2_559_553
     assert len(grapher.graph.edges) == 5_438_049
 
-    grapher.write_to_file(graph_filepath)
-    assert os.path.isfile(graph_filepath) == True
+    #grapher.write_to_file(graph_filepath)
+    #assert os.path.isfile(graph_filepath) == True
 
-    reconstituted_graph = read_gpickle(graph_filepath)
-    assert list(reconstituted_graph.nodes) == expected_nodes
-    assert list(reconstituted_graph.edges) == expected_edges
+    #reconstituted_graph = read_gpickle(graph_filepath)
+    #assert list(reconstituted_graph.nodes) == expected_nodes
+    #assert list(reconstituted_graph.edges) == expected_edges

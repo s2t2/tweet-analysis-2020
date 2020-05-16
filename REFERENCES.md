@@ -78,3 +78,10 @@ Locks and Semaphores:
   + https://stackoverflow.com/questions/45259764/how-to-create-a-single-table-using-sqlalchemy-declarative-base
   + https://www.compose.com/articles/using-postgresql-through-sqlalchemy/
   + https://www.learndatasci.com/tutorials/using-databases-python-postgres-sqlalchemy-and-alembic/
+
+## PostgreSQL
+
+Big PG Data:
+
+  + https://www.postgresqltutorial.com/postgresql-fetch/
+  + https://www.buggycoder.com/fetching-millions-of-rows-in-python-psycopg2/
