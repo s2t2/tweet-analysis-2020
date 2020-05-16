@@ -353,31 +353,31 @@ ORDER BY 2 desc;
 ```
 
 
-Making an even smaller (and cleaner) version of the user friends table, for testing purposes (with 10k, 100k, 500k):
+Making an even smaller (and cleaner) version of the user friends table, for testing purposes (with 10k, 100k):
 
 ```sql
 CREATE TABLE user_friends_10k as (
-    SELECT
-      uf.id
-      ,uf.user_id
-      ,uf.screen_name
-      ,uf.friend_count
-      ,uf.friend_names
-    FROM user_friends_dev uf
-    LEFT JOIN (
-        -- screen names with multiple user ids
-        SELECT
-            screen_name
-            -- user_id
-            , count(distinct id) as row_count
-        FROM user_friends_dev
-        GROUP BY 1
-        HAVING count(distinct id) > 1
-        ORDER BY 2 desc
-    ) subq ON subq.screen_name = uf.screen_name
-    WHERE subq.screen_name IS NULL -- filters out dups
-    LIMIT 10000
- );
+  SELECT
+    uf.id
+    ,uf.user_id
+    ,uf.screen_name
+    ,uf.friend_count
+    ,uf.friend_names
+  FROM user_friends_dev uf
+  LEFT JOIN (
+      -- screen names with multiple user ids
+      SELECT
+          screen_name
+          -- user_id
+          , count(distinct id) as row_count
+      FROM user_friends_dev
+      GROUP BY 1
+      HAVING count(distinct id) > 1
+      ORDER BY 2 desc
+  ) subq ON subq.screen_name = uf.screen_name
+  WHERE subq.screen_name IS NULL -- filters out dups
+  LIMIT 10000
+);
 CREATE INDEX tenkay_id ON user_friends_10k USING btree(id);
 CREATE INDEX tenkay_uid ON user_friends_10k USING btree(user_id);
 CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
@@ -385,10 +385,6 @@ CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
 -- CREATE INDEX hunkay_id ON user_friends_100k USING btree(id);
 -- CREATE INDEX hunkay_uid ON user_friends_100k USING btree(user_id);
 -- CREATE INDEX hunkay_sn ON user_friends_100k USING btree(screen_name);
-
--- CREATE INDEX funkay_id ON user_friends_500k USING btree(id);
--- CREATE INDEX funkay_uid ON user_friends_500k USING btree(user_id);
--- CREATE INDEX funkay_sn ON user_friends_500k USING btree(screen_name);
 ```
 
 ### Assembling Network Graphs

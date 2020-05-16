@@ -1,13 +1,16 @@
 
-import os
-from dotenv import load_dotenv
+#import os
+#from dotenv import load_dotenv
 import psycopg2
 
-load_dotenv()
+#load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
-USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=10_000))
+#DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
+#USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
+#BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=10_000))
+
+from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
+from app.workers import BATCH_SIZE
 
 if __name__ == "__main__":
 
