@@ -3,8 +3,6 @@ twint # for unoficially interfacing with twitter data
 google-cloud-bigquery # for interfacing with the BigQuery API
 beautifulsoup4
 
-pytest
-
 sendgrid==6.0.5
 
 pandas
