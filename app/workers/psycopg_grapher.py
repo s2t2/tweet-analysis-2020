@@ -1,37 +1,109 @@
 
-#import os
-#from dotenv import load_dotenv
+import time
 import psycopg2
+from networkx import DiGraph, write_gpickle
 
-#load_dotenv()
-
-#DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
-#USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
-#BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=10_000))
-
+from app import DATA_DIR, APP_ENV
 from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
-from app.workers import BATCH_SIZE
+from app.workers import BATCH_SIZE, DRY_RUN, generate_timestamp
+
+class NetworkGrapher():
+    def __init__(self, database_url=DATABASE_URL, table_name=USER_FRIENDS_TABLE_NAME, batch_size=BATCH_SIZE, dry_run=DRY_RUN):
+        self.connection = psycopg2.connect(database_url)
+        self.cursor = self.connection.cursor(name="network_grapher", cursor_factory=psycopg2.extras.DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
+        self.table_name = table_name
+
+        self.batch_size = (dry_run == True)
+        self.dry_run = (dry_run == True)
+
+        self.graph = DiGraph()
+
+    @classmethod
+    def cautiously_initialized(cls):
+        service = cls()
+        print("-------------------------")
+        print("NETWORK GRAPHER CONFIG...")
+        print("  PG TABLE NAME:", service.table_name.upper())
+        print("  DRY RUN:", str(service.dry_run).upper())
+        print("-------------------------")
+        if APP_ENV == "development":
+            if input("CONTINUE? (Y/N): ").upper() != "Y":
+                print("EXITING...")
+                exit()
+        return service
+
+    def perform(self):
+        self.counter = 0
+        self.start_at = time.perf_counter()
+
+        if not self.dry_run:
+            print("GENERATING NETWORK GRAPH...")
+
+        sql = f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {USER_FRIENDS_TABLE_NAME}"
+        self.cursor.execute(sql)
+
+        while True:
+            results = self.cursor.fetchmany(size=BATCH_SIZE)
+            if not results: break
+
+            #for row in results:
+            #    user = row.screen_name
+            #    friends = row.friend_names
+            #    if not self.dry_run:
+            #        self.graph.add_node(user)
+            #        self.graph.add_nodes_from(friends)
+            #        self.graph.add_edges_from([(user, friend) for friend in friends])
+
+            self.counter += len(results)
+            print(generate_timestamp(), self.counter)
+
+        print("JOB COMPLETE!")
+        self.end_at = time.perf_counter()
+        self.cursor.close()
+        self.connection.close()
+
+    def report(self):
+        self.duration_seconds = round(self.end_at - self.start_at, 2)
+        print(f"PROCESSED {self.counter} USERS IN {self.duration_seconds} SECONDS")
+        if self.graph:
+            print("NODES:", len(self.graph.nodes))
+            print("EDGES:", len(self.graph.edges))
+            print("SIZE:", self.graph.size())
+
+    def write_to_file(self, graph_filepath):
+        print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
+        write_gpickle(self.graph, graph_filepath)
 
 if __name__ == "__main__":
 
     print(USER_FRIENDS_TABLE_NAME, BATCH_SIZE)
 
+    #grapher = NetworkGrapher.cautiously_initialized()
+    grapher = NetworkGrapher()
+    grapher.perform()
+    grapher.report()
+
+    exit()
+
+
+
+
+
+
     connection = psycopg2.connect(DATABASE_URL)
     print("CONNECTION:", connection)
 
-    cursor = connection.cursor()
-    #cursor = connection.cursor(name="MAGIC_CURSOR")
+    #cursor = connection.cursor()
+    cursor = connection.cursor(name="MAGIC_CURSOR") # MUST USE A NAME TO PREVENT MEMORY ISSUES!!!!
     print("CURSOR:", cursor)
 
-    sql = f"""
-        SELECT id, user_id, screen_name, friend_count, friend_names
-        FROM {USER_FRIENDS_TABLE_NAME}
-    """
+    sql = f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {USER_FRIENDS_TABLE_NAME}"
     cursor.execute(sql)
 
     # h/t: https://www.buggycoder.com/fetching-millions-of-rows-in-python-psycopg2/
     while True:
         results = cursor.fetchmany(size=BATCH_SIZE)
+        breakpoint()
         if results:
             print(len(results))
         else:
