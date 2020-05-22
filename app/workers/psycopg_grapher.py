@@ -1,5 +1,7 @@
+import os
 
 from networkx import DiGraph
+from pandas import DataFrame
 from memory_profiler import profile
 
 from app.workers.psycopg_base_grapher import BaseGrapher
@@ -10,25 +12,35 @@ class Grapher(BaseGrapher):
     def perform(self):
         self.nodes = set() # prevents duplicates
         self.edges = set() # prevents duplicates
+        self.running_results = []
         self.cursor.execute(self.sql)
         while True:
-            results = self.cursor.fetchmany(size=self.batch_size)
-            if not results: break
+            batch = self.cursor.fetchmany(size=self.batch_size)
+            if not batch: break
             if not self.dry_run:
-                for row in results:
+                for row in batch:
                     user = row["screen_name"]
-                    self.nodes.add(user)
                     friends = row["friend_names"]
+                    self.nodes.add(user)
                     self.nodes.update(friends)
-                    #self.edges.update([(user, friend) for friend in friends])
-                    for friend in friends:
-                        self.edges.add((user, friend))
+                    self.edges.update([(user, friend) for friend in friends])
 
-            self.counter += len(results)
-            print(self.generate_timestamp(), "|", self.fmt(self.counter), "|", self.fmt(len(self.nodes)), "|", self.fmt(len(self.edges)))
+            self.counter += len(batch)
+            batch_stamp = self.generate_timestamp()
+            rr = {"ts": batch_stamp, "counter": self.counter, "nodes": len(self.nodes), "edges": len(self.edges)}
+            self.running_results.append(rr)
+            print(batch_stamp, "|", self.fmt(rr["counter"]), "|", self.fmt(rr["nodes"]), "|", self.fmt(rr["edges"]))
 
+        # assemble graph object
         #self.nodes = sorted(self.nodes) # takes a long time!
         #self.graph = DiGraph() # todo: construct from self.nodes
+
+    def write_results_csv(self, csv_filepath=None):
+        csv_filepath = csv_filepath or os.path.join(self.data_dir, f"results_{self.ts_id}.csv")
+        print("WRITING RUNNING RESULTS TO:", os.path.abspath(csv_filepath))
+        df = DataFrame(self.running_results)
+        df.to_csv(csv_filepath)
+
 
 if __name__ == "__main__":
 
@@ -36,5 +48,6 @@ if __name__ == "__main__":
     grapher.start()
     grapher.perform()
     grapher.end()
+    grapher.write_results_csv()
     #grapher.report()
     #grapher.write_to_file()

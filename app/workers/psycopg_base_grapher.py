@@ -10,12 +10,15 @@ from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
 from app.workers import BATCH_SIZE, DRY_RUN, generate_timestamp
 
 class BaseGrapher():
-    def __init__(self, database_url=DATABASE_URL, table_name=USER_FRIENDS_TABLE_NAME, batch_size=BATCH_SIZE, dry_run=DRY_RUN):
+    def __init__(self, database_url=DATABASE_URL, table_name=USER_FRIENDS_TABLE_NAME,
+                        batch_size=BATCH_SIZE, dry_run=DRY_RUN, data_dir=DATA_DIR):
         self.database_url = database_url
         self.table_name = table_name
         self.batch_size = batch_size
         self.dry_run = (dry_run == True)
         self.generate_timestamp = generate_timestamp
+        self.ts_id = dt.now().strftime("%Y%m%d_%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
+        self.data_dir = data_dir
 
     @classmethod
     def cautiously_initialized(cls):
@@ -78,10 +81,7 @@ class BaseGrapher():
         print("SIZE:", self.fmt(self.graph.size()))
 
     def write_to_file(self, graph_filepath=None):
-        if not graph_filepath:
-            timestamp = dt.now().strftime("%Y_%m_%d_%H_%M")
-            graph_filepath = os.path.join(DATA_DIR, f"follower_network_{timestamp}.gpickle")
-
+        graph_filepath = graph_filepath or os.path.join(self.data_dir, f"follower_network{self.ts_id}.gpickle")
         print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
         write_gpickle(self.graph, graph_filepath)
 
