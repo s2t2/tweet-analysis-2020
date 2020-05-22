@@ -8,8 +8,8 @@ class Grapher(BaseGrapher):
 
     @profile
     def perform(self):
-        self.nodes = set() # using a set to prevent duplicate values from being added
-        self.edges = set()
+        self.nodes = set() # prevents duplicates
+        self.edges = set() # prevents duplicates
         self.cursor.execute(self.sql)
         while True:
             results = self.cursor.fetchmany(size=self.batch_size)
@@ -20,17 +20,15 @@ class Grapher(BaseGrapher):
                     self.nodes.add(user)
                     friends = row["friend_names"]
                     self.nodes.update(friends)
-                    self.edges.update([(user, friend) for friend in friends])
+                    #self.edges.update([(user, friend) for friend in friends])
+                    for friend in friends:
+                        self.edges.add((user, friend))
+
             self.counter += len(results)
-            print(self.generate_timestamp(), self.counter, len(self.nodes), len(self.edges))
+            print(self.generate_timestamp(), "|", self.fmt(self.counter), "|", self.fmt(len(self.nodes)), "|", self.fmt(len(self.edges)))
 
         #self.nodes = sorted(self.nodes) # takes a long time!
         #self.graph = DiGraph() # todo: construct from self.nodes
-
-    def report(self):
-        """Override parent until we get a graph object"""
-        print("NODES:", len(self.nodes))
-        print("EDGES:", len(self.edges))
 
 if __name__ == "__main__":
 
@@ -38,4 +36,5 @@ if __name__ == "__main__":
     grapher.start()
     grapher.perform()
     grapher.end()
+    #grapher.report()
     #grapher.write_to_file()

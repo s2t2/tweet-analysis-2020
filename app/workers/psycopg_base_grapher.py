@@ -36,6 +36,14 @@ class BaseGrapher():
     def sql(self):
         return f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {self.table_name};"
 
+    @staticmethod
+    def fmt(large_number):
+        """Formats a large number for printing.
+        Param large_number (int) like 1000000000
+        Returns (str) like '1,000,000,000'
+        """
+        return f"{large_number:,}"
+
     def perform(self):
         """ TODO: have any child perform method automatically wrapped with start() and end() invocations
         Override this method in the child class. Make sure to:
@@ -62,13 +70,12 @@ class BaseGrapher():
         self.connection.close()
         self.end_at = time.perf_counter()
         self.duration_seconds = round(self.end_at - self.start_at, 2)
-        print(f"PROCESSED {self.counter} USERS IN {self.duration_seconds} SECONDS")
-        self.report()
+        print(f"PROCESSED {self.fmt(self.counter)} USERS IN {self.fmt(self.duration_seconds)} SECONDS")
 
     def report(self):
-        print("NODES:", len(self.graph.nodes))
-        print("EDGES:", len(self.graph.edges))
-        print("SIZE:", self.graph.size())
+        print("NODES:", self.fmt(len(self.graph.nodes)))
+        print("EDGES:", self.fmt(len(self.graph.edges)))
+        print("SIZE:", self.fmt(self.graph.size()))
 
     def write_to_file(self, graph_filepath=None):
         if not graph_filepath:
@@ -82,3 +89,4 @@ if __name__ == "__main__":
 
     grapher = BaseGrapher.cautiously_initialized()
     grapher.perform()
+    grapher.report()
