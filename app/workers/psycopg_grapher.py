@@ -10,7 +10,7 @@ class Grapher(BaseGrapher):
 
     @profile
     def perform(self):
-        self.nodes = set() # prevents duplicates
+        #self.nodes = set() # prevents duplicates
         self.edges = set() # prevents duplicates
         self.running_results = []
         self.cursor.execute(self.sql)
@@ -21,19 +21,16 @@ class Grapher(BaseGrapher):
                 for row in batch:
                     user = row["screen_name"]
                     friends = row["friend_names"]
-                    self.nodes.add(user)
-                    self.nodes.update(friends)
+                    #self.nodes.add(user)
+                    #self.nodes.update(friends)
                     self.edges.update([(user, friend) for friend in friends])
-
             self.counter += len(batch)
             batch_stamp = self.generate_timestamp()
             rr = {"ts": batch_stamp, "counter": self.counter, "nodes": len(self.nodes), "edges": len(self.edges)}
             self.running_results.append(rr)
             print(batch_stamp, "|", self.fmt(rr["counter"]), "|", self.fmt(rr["nodes"]), "|", self.fmt(rr["edges"]))
 
-        # assemble graph object
-        #self.nodes = sorted(self.nodes) # takes a long time!
-        #self.graph = DiGraph() # todo: construct from self.nodes
+        self.graph = DiGraph(list(self.edges))
 
     def write_results_csv(self, csv_filepath=None):
         csv_filepath = csv_filepath or os.path.join(self.data_dir, f"results_{self.ts_id}.csv")
