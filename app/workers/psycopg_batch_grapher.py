@@ -9,13 +9,15 @@ from app import DATA_DIR, APP_ENV
 from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
 from app.workers import BATCH_SIZE, DRY_RUN, generate_timestamp
 
+from memory_profiler import profile
+
 class NetworkGrapher():
     def __init__(self, database_url=DATABASE_URL, table_name=USER_FRIENDS_TABLE_NAME, batch_size=BATCH_SIZE, dry_run=DRY_RUN):
         self.connection = psycopg2.connect(database_url)
         self.cursor = self.connection.cursor(name="network_grapher", cursor_factory=psycopg2.extras.DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
         self.table_name = table_name
 
-        self.batch_size = (dry_run == True)
+        self.batch_size = batch_size
         self.dry_run = (dry_run == True)
 
         self.graph = DiGraph()
@@ -26,6 +28,7 @@ class NetworkGrapher():
         print("-------------------------")
         print("NETWORK GRAPHER CONFIG...")
         print("  PG TABLE NAME:", service.table_name.upper())
+        print("  BATCH SIZE:", service.batch_size)
         print("  DRY RUN:", str(service.dry_run).upper())
         print("-------------------------")
         if APP_ENV == "development":
@@ -34,33 +37,17 @@ class NetworkGrapher():
                 exit()
         return service
 
-    #@profile
+    @profile
     def perform(self):
         self.counter = 0
         self.start_at = time.perf_counter()
 
-        sql = f"""
-            SELECT id, user_id, screen_name, friend_count, friend_names
-            FROM {USER_FRIENDS_TABLE_NAME}
-        """
+        sql = f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {USER_FRIENDS_TABLE_NAME};"
         self.cursor.execute(sql)
 
-        #while True:
-        #    results = self.cursor.fetchmany(size=BATCH_SIZE)
-        #    if not results: break
-        #    if not self.dry_run:
-        #        for row in results:
-        #            user = row["screen_name"]
-        #            friends = row["friend_names"]
-        #            self.graph.add_node(user)
-        #            self.graph.add_nodes_from(friends)
-        #            self.graph.add_edges_from([(user, friend) for friend in friends])
-#
-        #    self.counter += len(results)
-        #    print(generate_timestamp(), self.counter)
-
-        results = self.cursor.fetchmany(size=BATCH_SIZE)
-        while results:
+        while True:
+            results = self.cursor.fetchmany(size=BATCH_SIZE)
+            if not results: break
             if not self.dry_run:
                 for row in results:
                     user = row["screen_name"]
@@ -71,7 +58,6 @@ class NetworkGrapher():
 
             self.counter += len(results)
             print(generate_timestamp(), self.counter)
-            results = self.cursor.fetchmany(size=BATCH_SIZE)
 
         print("-----------------")
         print("JOB COMPLETE!")
@@ -97,39 +83,7 @@ class NetworkGrapher():
 
 if __name__ == "__main__":
 
-    print(USER_FRIENDS_TABLE_NAME, BATCH_SIZE)
-
-    #grapher = NetworkGrapher.cautiously_initialized()
-    grapher = NetworkGrapher()
+    grapher = NetworkGrapher.cautiously_initialized()
     grapher.perform()
     grapher.report()
     grapher.write_to_file()
-
-    exit()
-
-
-
-
-
-
-    connection = psycopg2.connect(DATABASE_URL)
-    print("CONNECTION:", connection)
-
-    #cursor = connection.cursor()
-    cursor = connection.cursor(name="MAGIC_CURSOR") # MUST USE A NAME TO PREVENT MEMORY ISSUES!!!!
-    print("CURSOR:", cursor)
-
-    sql = f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {USER_FRIENDS_TABLE_NAME}"
-    cursor.execute(sql)
-
-    # h/t: https://www.buggycoder.com/fetching-millions-of-rows-in-python-psycopg2/
-    while True:
-        results = cursor.fetchmany(size=BATCH_SIZE)
-        breakpoint()
-        if results:
-            print(len(results))
-        else:
-            break
-
-    cursor.close()
-    connection.close()
