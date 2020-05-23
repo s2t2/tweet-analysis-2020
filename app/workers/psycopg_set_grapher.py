@@ -11,9 +11,7 @@ class Grapher(BaseGrapher):
     @profile
     def perform(self):
         #self.nodes = set() # prevents duplicates
-        #self.edges = set() # prevents duplicates
-        self.graph = DiGraph()
-
+        self.edges = set() # prevents duplicates
         self.running_results = []
         self.cursor.execute(self.sql)
         while True:
@@ -21,13 +19,18 @@ class Grapher(BaseGrapher):
             if not batch: break
             if not self.dry_run:
                 for row in batch:
-                    self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
+                    user = row["screen_name"]
+                    friends = row["friend_names"]
+                    #self.nodes.add(user)
+                    #self.nodes.update(friends)
+                    self.edges.update([(user, friend) for friend in friends])
             self.counter += len(batch)
-
             batch_stamp = self.generate_timestamp()
-            rr = {"ts": batch_stamp, "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
+            rr = {"ts": batch_stamp, "counter": self.counter, "nodes": len(self.nodes), "edges": len(self.edges)}
             self.running_results.append(rr)
             print(batch_stamp, "|", self.fmt(rr["counter"]), "|", self.fmt(rr["nodes"]), "|", self.fmt(rr["edges"]))
+
+        self.graph = DiGraph(list(self.edges))
 
     def write_results_csv(self, csv_filepath=None):
         csv_filepath = csv_filepath or os.path.join(self.data_dir, f"results_{self.ts_id}.csv")
@@ -43,5 +46,5 @@ if __name__ == "__main__":
     grapher.perform()
     grapher.end()
     grapher.write_results_csv()
-    grapher.report()
+    #grapher.report()
     #grapher.write_to_file()
