@@ -80,8 +80,14 @@ class BaseGrapher():
         print("EDGES:", self.fmt(len(self.graph.edges)))
         print("SIZE:", self.fmt(self.graph.size()))
 
+    def write_edges_to_file(self, edges_filepath=None):
+        edges_filepath = edges_filepath or os.path.join(self.data_dir, f"{self.ts_id}_edges.gpickle")
+        print("WRITING EDGES TO:", os.path.abspath(edges_filepath))
+        with open(edges_filepath, "wb") as pickle_file:
+            pickle.dump(self.edges, pickle_file)
+
     def write_to_file(self, graph_filepath=None):
-        graph_filepath = graph_filepath or os.path.join(self.data_dir, f"follower_network{self.ts_id}.gpickle")
+        graph_filepath = graph_filepath or os.path.join(self.data_dir, f"{self.ts_id}_graph.gpickle")
         print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
         write_gpickle(self.graph, graph_filepath)
 

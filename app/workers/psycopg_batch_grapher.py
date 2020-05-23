@@ -30,4 +30,4 @@ if __name__ == "__main__":
 
     grapher = Grapher.cautiously_initialized()
     grapher.perform()
-    grapher.write_to_file()
+    grapher.write_graph_to_file()

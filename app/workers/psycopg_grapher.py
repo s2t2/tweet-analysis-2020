@@ -44,4 +44,4 @@ if __name__ == "__main__":
     grapher.end()
     grapher.write_results_csv()
     grapher.report()
-    #grapher.write_to_file()
+    #grapher.write_graph_to_file()
