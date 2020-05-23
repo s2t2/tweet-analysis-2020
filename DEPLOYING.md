@@ -72,3 +72,25 @@ heroku logs --ps friend_collector
 ## Scaling
 
 Have had luck with "performance-m" tier ($250/mo) in terms of its ability to run lots of threads, but seeing if we can get this working on a "standard-2x" server ($50/mo)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Deploying to Google App Engine
+
+```sh
+gcloud init
+gcloud auth login
+gcloud app deploy # after the app.yaml exists
+```
