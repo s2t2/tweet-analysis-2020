@@ -10,7 +10,7 @@ class Grapher(BaseGrapher):
 
     @profile
     def perform(self):
-        #self.nodes = set() # prevents duplicates
+        self.nodes = set() # prevents duplicates
         self.edges = set() # prevents duplicates
         self.running_results = []
         self.cursor.execute(self.sql)
@@ -30,6 +30,7 @@ class Grapher(BaseGrapher):
             self.running_results.append(rr)
             print(batch_stamp, "|", self.fmt(rr["counter"]), "|", self.fmt(rr["nodes"]), "|", self.fmt(rr["edges"]))
 
+        # todo: pickle the grapher object
         self.graph = DiGraph(list(self.edges))
 
     def write_results_csv(self, csv_filepath=None):
