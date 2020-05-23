@@ -21,7 +21,7 @@ class BaseGrapher():
         self.dry_run = (dry_run == True)
         self.generate_timestamp = generate_timestamp
         self.data_dir = data_dir
-        self.job_id = dt.now().strftime("%Y%m%d_%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
+        self.job_id = dt.now().strftime("%Y_%m%d_%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
         self.job_dir = os.path.join(self.data_dir, self.job_id)
         if not os.path.exists(self.job_dir):
             os.mkdir(self.job_dir)
@@ -34,6 +34,8 @@ class BaseGrapher():
         print("  PG TABLE NAME:", service.table_name.upper())
         print("  BATCH SIZE:", service.batch_size)
         print("  DRY RUN:", str(service.dry_run).upper())
+        print("-------------------------")
+        print("  JOB ID:", service.job_id)
         print("-------------------------")
         if APP_ENV == "development":
             if input("CONTINUE? (Y/N): ").upper() != "Y":

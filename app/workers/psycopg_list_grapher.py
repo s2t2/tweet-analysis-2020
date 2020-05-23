@@ -27,6 +27,9 @@ class Grapher(BaseGrapher):
             print(rr["ts"], "|", self.fmt(rr["counter"]), "|", self.fmt(rr["edges"]))
             self.running_results.append(rr)
 
+        grapher.write_results_to_file()
+        grapher.write_edges_to_file()
+
         print(self.generate_timestamp(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
         print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
@@ -40,6 +43,6 @@ if __name__ == "__main__":
     grapher.end()
     grapher.report()
 
-    grapher.write_results_to_file()
-    grapher.write_edges_to_file()
+    #grapher.write_results_to_file()
+    #grapher.write_edges_to_file()
     grapher.write_graph_to_file()
