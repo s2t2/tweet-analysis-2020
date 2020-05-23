@@ -90,19 +90,18 @@ class BaseGrapher():
 
     def write_results_to_file(self, csv_filepath=None):
         csv_filepath = csv_filepath or os.path.join(self.job_dir, "results.csv")
-        print("WRITING RUNNING RESULTS TO:", os.path.abspath(csv_filepath))
-        df = DataFrame(self.running_results)
-        df.to_csv(csv_filepath)
+        print(self.generate_timestamp(), "WRITING RESULTS...)
+        DataFrame(self.running_results).to_csv(csv_filepath)
 
     def write_edges_to_file(self, edges_filepath=None):
         edges_filepath = edges_filepath or os.path.join(self.job_dir, "edges.gpickle")
-        print("WRITING EDGES TO:", os.path.abspath(edges_filepath))
+        print(self.generate_timestamp(), "WRITING EDGES...:")
         with open(edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file)
 
     def write_graph_to_file(self, graph_filepath=None):
         graph_filepath = graph_filepath or os.path.join(self.job_dir, "graph.gpickle")
-        print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
+        print(self.generate_timestamp(), "WRITING GRAPH...")
         write_gpickle(self.graph, graph_filepath)
 
 if __name__ == "__main__":
