@@ -94,3 +94,12 @@ gcloud init
 gcloud auth login
 gcloud app deploy # after the app.yaml exists
 ```
+
+
+
+Downloading files from the server:
+
+
+```sh
+gcloud compute scp example-instance:~/data/follower_network_example.gpickle ~/Desktop
+```
