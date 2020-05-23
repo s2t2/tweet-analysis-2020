@@ -6,6 +6,7 @@ import pickle
 
 import psycopg2
 from networkx import DiGraph, write_gpickle
+from pandas import DataFrame
 
 from app import DATA_DIR, APP_ENV
 from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
@@ -19,8 +20,11 @@ class BaseGrapher():
         self.batch_size = batch_size
         self.dry_run = (dry_run == True)
         self.generate_timestamp = generate_timestamp
-        self.ts_id = dt.now().strftime("%Y%m%d_%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
         self.data_dir = data_dir
+        self.job_id = dt.now().strftime("%Y%m%d_%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
+        self.job_dir = os.path.join(self.data_dir, self.job_id)
+        if not os.path.exists(self.job_dir):
+            os.mkdir(self.job_dir)
 
     @classmethod
     def cautiously_initialized(cls):
@@ -82,14 +86,20 @@ class BaseGrapher():
         print("EDGES:", self.fmt(len(self.graph.edges)))
         print("SIZE:", self.fmt(self.graph.size()))
 
+    def write_results_to_file(self, csv_filepath=None):
+        csv_filepath = csv_filepath or os.path.join(self.job_dir, "results.csv")
+        print("WRITING RUNNING RESULTS TO:", os.path.abspath(csv_filepath))
+        df = DataFrame(self.running_results)
+        df.to_csv(csv_filepath)
+
     def write_edges_to_file(self, edges_filepath=None):
-        edges_filepath = edges_filepath or os.path.join(self.data_dir, self.ts_id, "edges.gpickle")
+        edges_filepath = edges_filepath or os.path.join(self.job_dir, "edges.gpickle")
         print("WRITING EDGES TO:", os.path.abspath(edges_filepath))
         with open(edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file)
 
     def write_graph_to_file(self, graph_filepath=None):
-        graph_filepath = graph_filepath or os.path.join(self.data_dir, self.ts_id, "graph.gpickle")
+        graph_filepath = graph_filepath or os.path.join(self.job_dir, "graph.gpickle")
         print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
         write_gpickle(self.graph, graph_filepath)
 

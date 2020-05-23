@@ -1,7 +1,5 @@
-import os
 
 from networkx import DiGraph
-from pandas import DataFrame
 from memory_profiler import profile
 
 from app.workers.psycopg_base_grapher import BaseGrapher
@@ -34,12 +32,6 @@ class Grapher(BaseGrapher):
         self.graph = DiGraph(self.edges) # DiGraph(list(self.edges))
         print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
 
-    def write_results_csv(self, csv_filepath=None):
-        csv_filepath = csv_filepath or os.path.join(self.data_dir, self.ts_id, "results.csv")
-        print("WRITING RUNNING RESULTS TO:", os.path.abspath(csv_filepath))
-        df = DataFrame(self.running_results)
-        df.to_csv(csv_filepath)
-
 
 if __name__ == "__main__":
 
@@ -48,6 +40,7 @@ if __name__ == "__main__":
     grapher.perform()
     grapher.end()
     grapher.report()
-    grapher.write_results_csv()
+
+    grapher.write_results_to_file()
     grapher.write_edges_to_file()
     grapher.write_graph_to_file()
