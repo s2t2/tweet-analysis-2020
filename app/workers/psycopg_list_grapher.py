@@ -8,7 +8,7 @@ class Grapher(BaseGrapher):
 
     @profile
     def perform(self):
-        self.edges = set() # set prevents duplicates
+        self.edges = []
         self.running_results = []
 
         self.cursor.execute(self.sql)
@@ -21,14 +21,14 @@ class Grapher(BaseGrapher):
                 for row in batch:
                     user = row["screen_name"]
                     friends = row["friend_names"]
-                    self.edges.update([(user, friend) for friend in friends])
+                    self.edges += [(user, friend) for friend in friends]
 
             rr = {"ts": self.generate_timestamp(), "counter": self.counter, "edges": len(self.edges)}
             print(rr["ts"], "|", self.fmt(rr["counter"]), "|", self.fmt(rr["edges"]))
             self.running_results.append(rr)
 
         print(self.generate_timestamp(), "CONSTRUCTING GRAPH OBJECT...")
-        self.graph = DiGraph(list(self.edges))
+        self.graph = DiGraph(self.edges)
         print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
 
 
