@@ -2,6 +2,8 @@
 import time
 import os
 from datetime import datetime as dt
+import pickle
+
 import psycopg2
 from networkx import DiGraph, write_gpickle
 
@@ -81,13 +83,13 @@ class BaseGrapher():
         print("SIZE:", self.fmt(self.graph.size()))
 
     def write_edges_to_file(self, edges_filepath=None):
-        edges_filepath = edges_filepath or os.path.join(self.data_dir, f"{self.ts_id}_edges.gpickle")
+        edges_filepath = edges_filepath or os.path.join(self.data_dir, self.ts_id, "edges.gpickle")
         print("WRITING EDGES TO:", os.path.abspath(edges_filepath))
         with open(edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file)
 
-    def write_to_file(self, graph_filepath=None):
-        graph_filepath = graph_filepath or os.path.join(self.data_dir, f"{self.ts_id}_graph.gpickle")
+    def write_graph_to_file(self, graph_filepath=None):
+        graph_filepath = graph_filepath or os.path.join(self.data_dir, self.ts_id, "graph.gpickle")
         print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
         write_gpickle(self.graph, graph_filepath)
 

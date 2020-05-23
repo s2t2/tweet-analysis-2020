@@ -35,7 +35,7 @@ class Grapher(BaseGrapher):
         print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
 
     def write_results_csv(self, csv_filepath=None):
-        csv_filepath = csv_filepath or os.path.join(self.data_dir, f"{self.ts_id}_results.csv")
+        csv_filepath = csv_filepath or os.path.join(self.data_dir, self.ts_id, "results.csv")
         print("WRITING RUNNING RESULTS TO:", os.path.abspath(csv_filepath))
         df = DataFrame(self.running_results)
         df.to_csv(csv_filepath)
