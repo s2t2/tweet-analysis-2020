@@ -12,3 +12,5 @@ pandas
 networkx
 psycopg2
 sqlalchemy
+
+memory_profiler

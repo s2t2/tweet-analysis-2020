@@ -21,7 +21,6 @@ Configure the rest of the environment variables (see [Partitioning Users](/NOTES
 heroku config:set APP_ENV="production"
 heroku config:set SERVER_NAME="impeachment-tweet-analysis-10" # or whatever yours is called
 
-
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
 heroku config:set MIN_USER_ID="17"
 heroku config:set MAX_USER_ID="49223966"
@@ -31,6 +30,9 @@ heroku config:set MAX_THREADS="20"
 
 heroku config:set SENDGRID_API_KEY="_____________"
 heroku config:set MY_EMAIL_ADDRESS="me@example.com"
+
+heroku config:set GCS_BUCKET_NAME="impeachment-analysis-2020" -r heroku-4
+
 ```
 
 Deploy:
