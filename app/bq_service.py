@@ -33,6 +33,10 @@ class BigQueryService():
         if init_tables == True:
             self.init_tables()
 
+    @property
+    def metadata(self):
+        return {"dataset_address": self.dataset_address, "destructive": self.destructive, "verbose": self.verbose}
+
     @classmethod
     def cautiously_initialized(cls):
         service = BigQueryService()

@@ -10,5 +10,6 @@ credentials.json
 data/*.csv
 data/*.gpickle
 
+data/*/*.json
 data/*/*.csv
 data/*/*.gpickle
