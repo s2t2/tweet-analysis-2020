@@ -13,7 +13,7 @@ GCS_BUCKET_NAME=os.getenv("GCS_BUCKET_NAME", default="my-bucket") # "gs://my-buc
 
 if __name__ == "__main__":
 
-    client = storage.Client()
+    client = storage.Client() # implicit check for GOOGLE_APPLICATION_CREDENTIALS
 
     print("------------")
     print("BUCKETS:")

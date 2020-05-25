@@ -108,16 +108,13 @@ Test the connection to the storage bucket, saving some mock files there:
 python -m app.gcs_service
 ```
 
-
-
 ### Network Graphs
 
 Assembling network graphs:
 
 ```sh
-#python -m app.workers.bq_grapher
-## BIGQUERY_DATASET_NAME="impeachment_development" N_PARTITIONS=5 python -m app.workers.bq_grapher
-## BIGQUERY_DATASET_NAME="impeachment_production" N_PARTITIONS=720 python -m app.workers.bq_grapher
+python -m app.workers.bq_grapher
+BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="true" BATCH_SIZE=400 python app.workers.bq_grapher
 
 #python -m app.workers.pg_grapher
 #USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.pg_grapher

@@ -1,55 +1,61 @@
 
-import time
-from datetime import datetime as dt
 import os
-from networkx import DiGraph, write_gpickle
 
-from app import DATA_DIR
-from app.bq_service import BigQueryService, generate_timestamp, bigquery
-from app.email_service import send_email
+from networkx import DiGraph
+from memory_profiler import profile
 
-class NetworkGrapher():
-    def __init__(self, graph=None, bq=None):
-        self.graph = (graph or DiGraph())
-        self.bq = (bq or BigQueryService.cautiously_initialized())
+from app.bq_service import BigQueryService
+#from app.gcs_service import GoogleCloudStorageService
+from app.workers import fmt_ts, fmt_n
+from app.workers.base_grapher import BaseGrapher
 
+class Grapher(BaseGrapher):
+
+    def __init__(self, bq_service=None):
+        super().__init__()
+        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
+
+        self.gcs_dirpath = os.path.join("storage", "data", self.job_id)
+        self.results_filepath  = os.path.join(self.gcs_dirpath, "results.csv")
+        self.edges_filepath = os.path.join(self.gcs_dirpath, "edges.gpickle")
+        self.graph_filepath = os.path.join(self.gcs_dirpath, "graph.gpickle")
+
+    @profile
     def perform(self):
-        self.counter = 1
-        self.start_at = time.perf_counter()
-        for row in self.bq.fetch_user_friends_in_batches():
-            user = row["screen_name"]
-            friends = row["friend_names"]
+        self.graph = DiGraph()
+        self.running_results = []
 
-            self.graph.add_node(user)
-            self.graph.add_nodes_from(friends)
-            self.graph.add_edges_from([(user, friend) for friend in friends])
+        for row in self.bq_service.fetch_user_friends_in_batches():
+            self.counter += 1
 
-            self.counter+=1
-            if self.counter % 1000 == 0: print(generate_timestamp(), self.counter)
+            if not self.dry_run:
+                self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
 
-        print("NETWORK GRAPH COMPLETE!")
-        self.end_at = time.perf_counter()
+            if self.counter % self.batch_size == 0:
+                rr = {"ts": fmt_ts(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
+                print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
+                self.running_results.append(rr)
 
-    def report(self):
-        self.duration_seconds = round(self.end_at - self.start_at, 2)
-        print(f"PROCESSED {self.counter} USERS IN {self.duration_seconds} SECONDS")
+    def upload_results(self):
+        print(fmt_ts(), "WRITING RESULTS...")
+        #DataFrame(self.running_results).to_csv(csv_filepath)
 
-        print("NODES:", len(self.graph.nodes))
-        print("EDGES:", len(self.graph.edges))
-        print("SIZE:", self.graph.size())
+    def upload_edges(self):
+        print(fmt_ts(), "WRITING EDGES...:")
+        #with open(edges_filepath, "wb") as pickle_file:
+        #    pickle.dump(self.edges, pickle_file)
 
-    def write_to_file(self, graph_filepath):
-        print("WRITING NETWORK GRAPH TO:", os.path.abspath(graph_filepath))
-        write_gpickle(self.graph, graph_filepath)
+    def upload_graph(self):
+        print(fmt_ts(), "WRITING GRAPH...")
+        #write_gpickle(self.graph, self.graph_filepath)
 
 if __name__ == "__main__":
 
-    grapher = NetworkGrapher()
-
+    grapher = Grapher.cautiously_initialized()
+    grapher.start()
     grapher.perform()
-
+    grapher.end()
     grapher.report()
-
-    timestamp = dt.now().strftime("%Y_%m_%d_%H_%M")
-    graph_filepath = os.path.join(DATA_DIR, f"follower_network_{timestamp}.gpickle")
-    grapher.write_to_file(graph_filepath)
+    grapher.upload_results()
+    grapher.upload_edges()
+    grapher.upload_graph()
