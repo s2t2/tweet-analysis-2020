@@ -1,7 +1,10 @@
 python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
+
 twint # for unoficially interfacing with twitter data
+beautifulsoup4 # for scraping mobile Twitter site
+
 google-cloud-bigquery # for interfacing with the BigQuery API
-beautifulsoup4
+google-cloud-storage # for interfacing with Google Cloud Storage
 
 sendgrid==6.0.5
 

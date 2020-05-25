@@ -84,12 +84,31 @@ If you want to download / ETL the completed "user_friends" table from BigQuery t
 python -m app.models
 ```
 
-After migrating the tables, you can ETL the data from BigQuery:
+After migrating the tables, you can load the data from BigQuery:
 
 ```sh
 python -m app.workers.pg_pipeline
 BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
 ```
+
+### Remote File Storage
+
+The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run the graph construction script on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Configure the bucket name as an environment variable:
+
+```sh
+# .env
+GCS_BUCKET_NAME="impeachment-analysis-2020"
+```
+
+In our bucket, you'll find the results of running some queries in BigQuery, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
+
+Test the connection to the storage bucket, saving some mock files there:
+
+```sh
+python -m app.gcs_service
+```
+
+
 
 ### Network Graphs
 

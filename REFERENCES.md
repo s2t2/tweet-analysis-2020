@@ -66,6 +66,9 @@ Locks and Semaphores:
 ## Google Cloud Storage
 
   + https://dev.to/sethmlarson/python-data-streaming-to-google-cloud-storage-with-resumable-uploads-458h
+  + https://github.com/zaman-lab/brexitmeter-py
+  + https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-code-sample
+  + https://cloud.google.com/storage/docs/naming-objects
 
 ## SQLAlchemy
 
