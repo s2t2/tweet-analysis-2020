@@ -41,8 +41,8 @@ class BigQueryService():
     def cautiously_initialized(cls):
         service = BigQueryService()
         print("-------------------------")
-        print("DB CONFIG...")
-        print("  BIGQUERY DATASET:", service.dataset_address.upper())
+        print("BIGQUERY CONFIG...")
+        print("  DATASET ADDRESS:", service.dataset_address.upper())
         print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
         print("  VERBOSE QUERIES:", service.verbose)
         print("-------------------------")
