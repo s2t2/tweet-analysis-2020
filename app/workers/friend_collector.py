@@ -6,7 +6,7 @@ from threading import current_thread, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
 
 from app import APP_ENV
-from app.storage_service import BigQueryService, generate_timestamp
+from app.bq_service import BigQueryService, generate_timestamp
 from app.twitter_scraper import get_friends, VERBOSE_SCRAPER, MAX_FRIENDS
 
 load_dotenv()

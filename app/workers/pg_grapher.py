@@ -6,7 +6,7 @@ from networkx import DiGraph, write_gpickle
 
 from app import DATA_DIR, APP_ENV
 from app.models import UserFriend, BoundSession, USER_FRIENDS_TABLE_NAME
-from app.storage_service import generate_timestamp
+from app.bq_service import generate_timestamp
 
 load_dotenv()
 

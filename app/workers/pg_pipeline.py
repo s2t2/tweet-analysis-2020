@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from app.models import UserFriend, BoundSession, db
-from app.storage_service import BigQueryService, generate_timestamp, bigquery
+from app.bq_service import BigQueryService, generate_timestamp, bigquery
 
 load_dotenv()
 

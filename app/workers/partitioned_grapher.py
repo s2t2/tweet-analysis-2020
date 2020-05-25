@@ -6,7 +6,7 @@ import os
 from networkx import DiGraph, write_gpickle
 from dotenv import load_dotenv
 
-from app.storage_service import BigQueryService, generate_timestamp, bigquery
+from app.bq_service import BigQueryService, generate_timestamp, bigquery
 from app.email_service import send_email
 
 load_dotenv()

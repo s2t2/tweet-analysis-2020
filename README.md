@@ -65,8 +65,8 @@ MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
 Manage and query the existing BigQuery database:
 
 ```sh
-python -m app.storage_service
-# DESTRUCTIVE_MIGRATIONS="true" python -m app.storage_service
+python -m app.bq_service
+# DESTRUCTIVE_MIGRATIONS="true" python -m app.bq_service
 ```
 
 If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery called "user_friends":

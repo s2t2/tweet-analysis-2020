@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 from networkx import DiGraph, write_gpickle
 
-from app.storage_service import BigQueryService, generate_timestamp, bigquery
+from app.bq_service import BigQueryService, generate_timestamp, bigquery
 from app.email_service import send_email
 
 GPICKLE_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "follower_network.gpickle")

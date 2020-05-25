@@ -48,7 +48,7 @@ git push heroku mybranch:master
 Test everything is working in production:
 
 ```sh
-heroku run "python -m app.storage_service"
+heroku run "python -m app.bq_service"
 ```
 
 Run the collection script in production, manually:
