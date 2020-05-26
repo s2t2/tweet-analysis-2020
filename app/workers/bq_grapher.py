@@ -35,7 +35,6 @@ class Grapher(BaseGrapher):
 
     @profile
     def perform(self):
-        self.edges = None #[]
         self.graph = DiGraph()
         self.running_results = []
 
@@ -54,7 +53,7 @@ class Grapher(BaseGrapher):
         print(fmt_ts(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
         blob = self.bucket.blob(self.gcs_metadata_filepath)
         blob.upload_from_filename(self.local_metadata_filepath)
-        print(blob)
+        print(blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
         return blob
 
     def upload_results(self):
@@ -95,4 +94,5 @@ if __name__ == "__main__":
     grapher.upload_graph()
 
     if APP_ENV == "production":
+        print("SLEEPING...")
         time.sleep(12 * 60 * 60) # twelve hours
