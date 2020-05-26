@@ -35,7 +35,7 @@ class BigQueryListGrapher(BigQueryGrapher):
         self.upload_results()
 
         self.write_edges_to_file()
-        self.upload_edges()
+        #self.upload_edges() # currently times out
 
         print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
@@ -43,7 +43,7 @@ class BigQueryListGrapher(BigQueryGrapher):
         self.report()
 
         self.write_graph_to_file()
-        self.upload_graph()
+        #self.upload_graph()
 
         self.end()
 

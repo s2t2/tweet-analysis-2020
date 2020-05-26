@@ -28,7 +28,8 @@ class Grapher(BaseGrapher):
 
     @property
     def metadata(self):
-        return {"job_id": self.job_id,
+        return {"app_env": APP_ENV,
+                "job_id": self.job_id,
                 "dry_run": self.dry_run,
                 "batch_size": self.batch_size,
                 "bq_service": self.bq_service.metadata}
@@ -53,28 +54,28 @@ class Grapher(BaseGrapher):
         print(fmt_ts(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
         blob = self.bucket.blob(self.gcs_metadata_filepath)
         blob.upload_from_filename(self.local_metadata_filepath)
-        print(blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        print(fmt_ts(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
         return blob
 
     def upload_results(self):
         print(fmt_ts(), "UPLOADING JOB RESULTS...", self.gcs_results_filepath)
         blob = self.bucket.blob(self.gcs_results_filepath)
         blob.upload_from_filename(self.local_results_filepath)
-        print(blob)
+        print(fmt_ts(), blob)
         return blob
 
     def upload_edges(self):
         print(fmt_ts(), "UPLOADING NETWORK EDGES...", self.gcs_edges_filepath)
         blob = self.bucket.blob(self.gcs_edges_filepath)
         blob.upload_from_filename(self.local_edges_filepath)
-        print(blob)
+        print(fmt_ts(), blob)
         return blob
 
     def upload_graph(self):
         print(fmt_ts(), "WRITING GRAPH...", self.gcs_graph_filepath)
         blob = self.bucket.blob(self.gcs_graph_filepath)
         blob.upload_from_filename(self.local_graph_filepath)
-        print(blob)
+        print(fmt_ts(), blob)
         return blob
 
 if __name__ == "__main__":
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     grapher.write_metadata_to_file()
     grapher.upload_metadata()
     grapher.start()
-    grapher.perform()
+    grapher.perform() # stuck here at the moment due to memory constraints
     grapher.end()
     grapher.report()
     grapher.write_results_to_file()
