@@ -1,5 +1,6 @@
 
 import os
+import time
 
 from networkx import DiGraph
 from memory_profiler import profile
