@@ -71,6 +71,12 @@ Checking logs:
 heroku logs --ps friend_collector
 ```
 
-## Scaling
 
-Have had luck with "performance-m" tier ($250/mo) in terms of its ability to run lots of threads, but seeing if we can get this working on a "standard-2x" server ($50/mo)...
+Running network grapher:
+
+```sh
+heroku config:set BATCH_SIZE=1000
+heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
+heroku config:set DRY_RUN="false"
+heroku run:detached "python -m app.workers.bq_grapher" -r heroku-4
+```
