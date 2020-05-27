@@ -70,6 +70,7 @@ Locks and Semaphores:
   + https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-code-sample
   + https://cloud.google.com/storage/docs/naming-objects
   + https://googleapis.dev/python/storage/latest/blobs.html
+  + https://github.com/googleapis/python-storage/issues/74#issuecomment-603296568
 
 ## SQLAlchemy
 
