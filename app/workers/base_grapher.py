@@ -10,6 +10,7 @@ from pandas import DataFrame
 
 from app import APP_ENV, DATA_DIR
 from app.workers import BATCH_SIZE, DRY_RUN, fmt_ts, fmt_n
+from app.gcs_service import GoogleCloudStorageService
 
 class BaseGrapher():
     """
@@ -21,7 +22,7 @@ class BaseGrapher():
         grapher.report()
     """
 
-    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE):
+    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE, gcs_service=None):
         self.job_id = dt.now().strftime("%Y-%m-%d-%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
         self.dry_run = (dry_run == True)
         self.batch_size = batch_size
@@ -34,6 +35,13 @@ class BaseGrapher():
         self.local_edges_filepath = os.path.join(self.local_dirpath, "edges.gpickle")
         self.local_graph_filepath = os.path.join(self.local_dirpath, "graph.gpickle")
 
+        self.gcs_service = (gcs_service or GoogleCloudStorageService())
+        self.bucket = self.gcs_service.get_bucket()
+        self.gcs_dirpath = os.path.join("storage", "data", self.job_id)
+        self.gcs_metadata_filepath = os.path.join(self.gcs_dirpath, "metadata.json")
+        self.gcs_results_filepath = os.path.join(self.gcs_dirpath, "results.csv")
+        self.gcs_edges_filepath = os.path.join(self.gcs_dirpath, "edges.gpickle")
+        self.gcs_graph_filepath = os.path.join(self.gcs_dirpath, "graph.gpickle")
 
     @classmethod
     def cautiously_initialized(cls):
@@ -50,6 +58,10 @@ class BaseGrapher():
                 exit()
         return service
 
+    @property
+    def metadata(self):
+        return {"app_env": APP_ENV, "job_id": self.job_id, "dry_run": self.dry_run, "batch_size": self.batch_size}
+
     def start(self):
         print("-----------------")
         print("JOB STARTING!")
@@ -57,6 +69,7 @@ class BaseGrapher():
         self.counter = 0
 
     def perform(self):
+        """To be overridden by child class"""
         self.graph = DiGraph()
 
     def end(self):
@@ -89,6 +102,26 @@ class BaseGrapher():
     def write_graph_to_file(self):
         print(fmt_ts(), "WRITING GRAPH...")
         write_gpickle(self.graph, self.local_graph_filepath)
+
+    def upload_metadata(self):
+        print(fmt_ts(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
+        blob = self.gcs_service.upload(self.local_metadata_filepath, self.gcs_metadata_filepath)
+        print(fmt_ts(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+
+    def upload_results(self):
+        print(fmt_ts(), "UPLOADING JOB RESULTS...", self.gcs_results_filepath)
+        blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
+        print(fmt_ts(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+
+    def upload_edges(self):
+        print(fmt_ts(), "UPLOADING NETWORK EDGES...", self.gcs_edges_filepath)
+        blob = self.gcs_service.upload(self.local_edges_filepath, self.gcs_edges_filepath)
+        print(fmt_ts(), blob)
+
+    def upload_graph(self):
+        print(fmt_ts(), "WRITING GRAPH...", self.gcs_graph_filepath)
+        blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
+        print(fmt_ts(), blob)
 
 if __name__ == "__main__":
 

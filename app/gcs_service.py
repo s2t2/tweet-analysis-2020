@@ -15,9 +15,15 @@ class GoogleCloudStorageService:
     def __init__(self, bucket_name=GCS_BUCKET_NAME):
         self.client = storage.Client() # implicit check for GOOGLE_APPLICATION_CREDENTIALS
         self.bucket_name = bucket_name
+        self.bucket = self.get_bucket()
 
     def get_bucket(self):
         return self.client.bucket(self.bucket_name)
+
+    def upload(self, local_filepath, remote_filepath):
+        blob = self.bucket.blob(remote_filepath)
+        blob.upload_from_filename(local_filepath)
+        return blob
 
 if __name__ == "__main__":
 
