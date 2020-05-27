@@ -22,8 +22,8 @@ class BaseGrapher():
         grapher.report()
     """
 
-    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE, users_limit=USERS_LIMIT, gcs_service=None):
-        self.job_id = dt.now().strftime("%Y-%m-%d-%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
+    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE, users_limit=USERS_LIMIT, gcs_service=None, job_id=None):
+        self.job_id = (job_id or dt.now().strftime("%Y-%m-%d-%H%M")) # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
         self.dry_run = (dry_run == True)
         self.batch_size = batch_size
         if users_limit:
@@ -128,6 +128,13 @@ class BaseGrapher():
         print(fmt_ts(), blob)
 
 if __name__ == "__main__":
+
+
+    grapher = BaseGrapher(job_id="2020-05-27-1537")
+    #breakpoint()
+    grapher.upload_edges()
+
+    exit()
 
     grapher = BaseGrapher.cautiously_initialized()
     grapher.start()
