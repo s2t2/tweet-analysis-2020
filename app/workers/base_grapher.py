@@ -9,7 +9,7 @@ from networkx import DiGraph, write_gpickle
 from pandas import DataFrame
 
 from app import APP_ENV, DATA_DIR
-from app.workers import BATCH_SIZE, DRY_RUN, fmt_ts, fmt_n
+from app.workers import BATCH_SIZE, DRY_RUN, USERS_LIMIT, fmt_ts, fmt_n
 from app.gcs_service import GoogleCloudStorageService
 
 class BaseGrapher():
@@ -22,10 +22,14 @@ class BaseGrapher():
         grapher.report()
     """
 
-    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE, gcs_service=None):
+    def __init__(self, dry_run=DRY_RUN, batch_size=BATCH_SIZE, users_limit=USERS_LIMIT, gcs_service=None):
         self.job_id = dt.now().strftime("%Y-%m-%d-%H%M") # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
         self.dry_run = (dry_run == True)
         self.batch_size = batch_size
+        if users_limit:
+            self.users_limit = int(users_limit)
+        else:
+            self.users_limit = None
 
         self.local_dirpath = os.path.join(DATA_DIR, self.job_id)
         if not os.path.exists(self.local_dirpath):
@@ -36,7 +40,6 @@ class BaseGrapher():
         self.local_graph_filepath = os.path.join(self.local_dirpath, "graph.gpickle")
 
         self.gcs_service = (gcs_service or GoogleCloudStorageService())
-        self.bucket = self.gcs_service.get_bucket()
         self.gcs_dirpath = os.path.join("storage", "data", self.job_id)
         self.gcs_metadata_filepath = os.path.join(self.gcs_dirpath, "metadata.json")
         self.gcs_results_filepath = os.path.join(self.gcs_dirpath, "results.csv")
@@ -51,6 +54,7 @@ class BaseGrapher():
         print("  JOB ID:", service.job_id)
         print("  DRY RUN:", str(service.dry_run).upper())
         print("  BATCH SIZE:", str(service.batch_size).upper())
+        print("  USERS LIMIT:", service.users_limit)
         print("-------------------------")
         if APP_ENV == "development":
             if input("CONTINUE? (Y/N): ").upper() != "Y":

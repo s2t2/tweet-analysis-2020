@@ -31,6 +31,9 @@ class BigQueryListGrapher(BigQueryGrapher):
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
                 self.running_results.append(rr)
 
+            if self.users_limit and (self.counter >= self.users_limit):
+                break
+
         self.write_results_to_file()
         self.upload_results()
 

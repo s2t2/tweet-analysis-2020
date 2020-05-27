@@ -46,7 +46,7 @@ if __name__ == "__main__":
     grapher.upload_metadata()
 
     grapher.start()
-    grapher.perform() # stuck here at the moment due to memory constraints
+    grapher.perform()
     grapher.end()
     grapher.report()
 
