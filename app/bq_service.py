@@ -146,11 +146,13 @@ class BigQueryService():
         #return list(self.execute_query(sql))
         return self.execute_query(sql) # return the generator so we can avoid storing the results in memory
 
-    def fetch_user_friends_in_batches(self):
+    def fetch_user_friends_in_batches(self, limit=None):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names
-            FROM `{self.dataset_address}.user_friends`;
+            FROM `{self.dataset_address}.user_friends`
         """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
 
         job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
         job_config = bigquery.QueryJobConfig(

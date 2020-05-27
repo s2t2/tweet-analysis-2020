@@ -19,7 +19,7 @@ class BigQueryListGrapher(BigQueryGrapher):
 
         self.edges = []
         self.running_results = []
-        for row in self.bq_service.fetch_user_friends_in_batches():
+        for row in self.bq_service.fetch_user_friends_in_batches(limit=self.users_limit):
             self.counter += 1
 
             if not self.dry_run:
@@ -31,8 +31,8 @@ class BigQueryListGrapher(BigQueryGrapher):
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
                 self.running_results.append(rr)
 
-            if self.users_limit and (self.counter >= self.users_limit):
-                break
+            #if self.users_limit and (self.counter >= self.users_limit):
+            #    break
 
         self.write_results_to_file()
         self.upload_results()
