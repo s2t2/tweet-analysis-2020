@@ -7,7 +7,7 @@ from memory_profiler import profile
 
 from app import APP_ENV
 from app.workers import fmt_ts, fmt_n
-from app.workers.bq_grapher import Grapher as BigQueryGrapher
+from app.workers.bq_grapher import BigQueryGrapher
 
 class BigQueryListGrapher(BigQueryGrapher):
 
@@ -38,12 +38,15 @@ class BigQueryListGrapher(BigQueryGrapher):
         self.upload_results()
 
         self.write_edges_to_file()
-        self.upload_edges() # currently times out
+        self.upload_edges()
 
         print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
         print(fmt_ts(), "GRAPH CONSTRUCTED!")
         self.report()
+
+        del self.running_results # remove in hopes of freeing up some memory
+        del self.edges # remove in hopes of freeing up some memory
 
         self.write_graph_to_file()
         self.upload_graph()

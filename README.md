@@ -116,6 +116,14 @@ Assembling network graphs:
 python -m app.workers.bq_grapher
 BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="true" BATCH_SIZE=1000 python app.workers.bq_grapher
 
+python -m app.workers.bq_list_grapher
+BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.workers.bq_list_grapher
+
+
+
+
+
+
 #python -m app.workers.pg_grapher
 #USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.pg_grapher
 #USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="false" python -m app.workers.pg_grapher

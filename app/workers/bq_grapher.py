@@ -10,7 +10,7 @@ from app.bq_service import BigQueryService
 from app.workers import fmt_ts, fmt_n
 from app.workers.base_grapher import BaseGrapher
 
-class Grapher(BaseGrapher):
+class BigQueryGrapher(BaseGrapher):
 
     def __init__(self, bq_service=None, gcs_service=None):
         super().__init__(gcs_service=gcs_service)
@@ -41,7 +41,7 @@ class Grapher(BaseGrapher):
 
 if __name__ == "__main__":
 
-    grapher = Grapher.cautiously_initialized()
+    grapher = BigQueryGrapher.cautiously_initialized()
     grapher.write_metadata_to_file()
     grapher.upload_metadata()
 
