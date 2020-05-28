@@ -130,11 +130,8 @@ class BaseGrapher():
 if __name__ == "__main__":
 
 
-    grapher = BaseGrapher(job_id="2020-05-27-1537")
-    #breakpoint()
-    grapher.upload_edges()
-
-    exit()
+    #grapher = BaseGrapher(job_id="2020-05-27-1537")
+    #grapher.upload_edges()
 
     grapher = BaseGrapher.cautiously_initialized()
     grapher.start()

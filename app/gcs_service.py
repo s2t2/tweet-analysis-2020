@@ -22,8 +22,14 @@ class GoogleCloudStorageService:
 
     def upload(self, local_filepath, remote_filepath):
         blob = self.bucket.blob(remote_filepath)
+
         # avoid timeout errors when uploading a large file
         # h/t: https://github.com/googleapis/python-storage/issues/74
+        #
+        # https://googleapis.dev/python/storage/latest/blobs.html
+        # chunk_size (int) – (Optional) The size of a chunk of data whenever iterating (in bytes).
+        # This must be a multiple of 256 KB per the API specification.
+        #
         max_chunk_size = 5 * 1024 * 1024  # 5 MB
         blob.chunk_size = max_chunk_size
         blob._MAX_MULTIPART_SIZE = max_chunk_size
