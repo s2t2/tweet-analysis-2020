@@ -23,16 +23,12 @@ class BigQueryListGrapher(BigQueryGrapher):
             self.counter += 1
 
             if not self.dry_run:
-                #self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
                 self.edges += [(row["screen_name"], friend) for friend in row["friend_names"]]
 
             if self.counter % self.batch_size == 0:
                 rr = {"ts": fmt_ts(), "counter": self.counter, "edges": len(self.edges)}
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
                 self.running_results.append(rr)
-
-            #if self.users_limit and (self.counter >= self.users_limit):
-            #    break
 
         self.write_results_to_file()
         self.upload_results()
@@ -49,6 +45,7 @@ class BigQueryListGrapher(BigQueryGrapher):
         del self.edges # remove in hopes of freeing up some memory
 
         self.write_graph_to_file()
+        #del self.graph
         self.upload_graph()
 
         self.end()
