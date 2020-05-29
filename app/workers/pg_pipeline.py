@@ -4,29 +4,38 @@ import os
 from dotenv import load_dotenv
 
 from app.models import UserFriend, BoundSession, db
-from app.bq_service import BigQueryService, generate_timestamp, bigquery
+from app.bq_service import BigQueryService
+from app.workers import APP_ENV, USERS_LIMIT, fmt_ts
 
 load_dotenv()
 
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
-DESTRUCTIVE_PG = (os.getenv("DESTRUCTIVE_PG", default="false") == "true")
 
 class Pipeline():
-    def __init__(self, batch_size=BATCH_SIZE, bq=None):
+    def __init__(self, batch_size=BATCH_SIZE, users_limit=USERS_LIMIT, bq_service=None):
+        self.batch_size = batch_size
+        if users_limit:
+            self.users_limit = int(users_limit)
+        else:
+            self.users_limit = None
+
+        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
+        self.pg_session = BoundSession()
+
         print("-------------------------")
         print("PG PIPELINE...")
-        self.batch_size = batch_size
         print("  BATCH SIZE:", self.batch_size)
-        self.bq = (bq or BigQueryService.cautiously_initialized())
-        #self.db = db
-        self.session = BoundSession()
+        print("  USERS LIMIT:", self.users_limit)
+        print("  BQ SERVICE:", type(self.bq_service))
+        print("  PG SESSION:", type(self.pg_session))
 
     def perform(self):
         self.start_at = time.perf_counter()
         self.batch = []
         self.counter = 0
 
-        for row in self.bq.fetch_user_friends_in_batches():
+        print(fmt_ts(), "DATA FLOWING...")
+        for row in self.bq_service.fetch_user_friends_in_batches(limit=self.users_limit):
             self.batch.append({
                 "user_id": row["user_id"],
                 "screen_name": row["screen_name"],
@@ -35,15 +44,15 @@ class Pipeline():
             })
             self.counter+=1
 
-            if self.counter % self.batch_size == 0:
-                print(generate_timestamp(), self.counter, "SAVING BATCH...")
-                self.session.bulk_insert_mappings(UserFriend, self.batch)
-                self.session.commit()
+            if len(self.batch) >= self.batch_size:
+                print(fmt_ts(), "SAVING BATCH OF", len(self.batch))
+                self.pg_session.bulk_insert_mappings(UserFriend, self.batch)
+                self.pg_session.commit()
                 self.batch = []
 
         print("ETL COMPLETE!")
         self.end_at = time.perf_counter()
-        self.session.close()
+        self.pg_session.close()
 
     def report(self):
         self.duration_seconds = round(self.end_at - self.start_at, 2)
@@ -51,62 +60,10 @@ class Pipeline():
 
 if __name__ == "__main__":
 
-    print("-------------------------")
-    if DESTRUCTIVE_PG:
-        print("DROPPING USER FRIENDS TABLE...")
-        UserFriend.__table__.drop(db)
+    pipeline = Pipeline()
+    pipeline.perform()
+    pipeline.report()
 
-    if not UserFriend.__table__.exists():
-        print("MIGRATING USER FRIENDS TABLE...")
-        UserFriend.__table__.create(db)
-
-    #pipeline = Pipeline()
-    #pipeline.perform()
-    #pipeline.report()
-    #exit()
-
-    print("-------------------------")
-    print("PG PIPELINE...")
-    print("  BATCH SIZE:", BATCH_SIZE)
-    print("  DESTRUCTIVE MIGRATIONS:", DESTRUCTIVE_PG)
-
-    bq = BigQueryService.cautiously_initialized()
-
-    # PERFORM
-    session = BoundSession()
-    print("  SESSION:", type(session))
-
-    print(generate_timestamp())
-    start_at = time.perf_counter()
-    counter = 0
-    batch = []
-    for row in bq.fetch_user_friends_in_batches():
-        counter+=1
-        #print(counter, row["user_id"], row["screen_name"]) # doesn't print until the very end?
-        #session.add(UserFriend(
-        #    user_id=row["user_id"],
-        #    screen_name=row["screen_name"],
-        #    friend_count=row["friend_count"],
-        #    friend_names=row["friend_names"]
-        #))
-        #session.commit()
-
-        batch.append({
-            "user_id": row["user_id"],
-            "screen_name": row["screen_name"],
-            "friend_count": row["friend_count"],
-            "friend_names": row["friend_names"]
-        })
-        if len(batch) >= BATCH_SIZE:
-            print(generate_timestamp(), "SAVING BATCH OF", len(batch)) # prints in real-time, just takes a while to get from script invocation to the first batch...
-            session.bulk_insert_mappings(UserFriend, batch)
-            session.commit()
-            batch = []
-
-    end_at = time.perf_counter()
-    print(generate_timestamp())
-    session.close()
-
-    # REPORT
-    duration_seconds = round(end_at - start_at, 2)
-    print(f"PROCESSED {counter} USERS IN {duration_seconds} SECONDS")
+    if APP_ENV == "production":
+        print("SLEEPING...")
+        time.sleep(12 * 60 * 60) # twelve hours
