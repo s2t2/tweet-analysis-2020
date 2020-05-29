@@ -34,9 +34,9 @@ class Grapher(PsycopgGrapher):
         self.write_edges_to_file()
         self.upload_edges()
 
-        print(self.generate_timestamp(), "CONSTRUCTING GRAPH OBJECT...")
+        print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
-        print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
+        print(fmt_ts(), "GRAPH CONSTRUCTED!")
         del self.edges # try to free up some memory maybe, before writing to file
         self.report()
 
