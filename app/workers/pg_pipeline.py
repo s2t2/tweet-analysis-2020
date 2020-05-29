@@ -19,10 +19,10 @@ class Pipeline():
         print("  BATCH SIZE:", self.batch_size)
         self.bq = (bq or BigQueryService.cautiously_initialized())
         #self.db = db
+        self.session = BoundSession()
 
     def perform(self):
         self.start_at = time.perf_counter()
-        self.session = BoundSession()
         self.batch = []
         self.counter = 0
 
