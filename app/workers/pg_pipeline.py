@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from app import APP_ENV
-from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts
+from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts, fmt_n
 from app.bq_service import BigQueryService
 from app.models import UserFriend, BoundSession, db
 
@@ -23,10 +23,10 @@ class Pipeline():
 
         print("-------------------------")
         print("PG PIPELINE...")
-        print("  BATCH SIZE:", self.batch_size)
         print("  USERS LIMIT:", self.users_limit)
-        print("  BQ SERVICE:", type(self.bq_service))
-        print("  PG SESSION:", type(self.pg_session))
+        print("  BATCH SIZE:", self.batch_size)
+        #print("  BQ SERVICE:", type(self.bq_service))
+        #print("  PG SESSION:", type(self.pg_session))
 
     def perform(self):
         self.start_at = time.perf_counter()
@@ -44,7 +44,7 @@ class Pipeline():
             self.counter+=1
 
             if len(self.batch) >= self.batch_size:
-                print(fmt_ts(), "SAVING BATCH OF", len(self.batch))
+                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(UserFriend, self.batch)
                 self.pg_session.commit()
                 self.batch = []
