@@ -29,7 +29,7 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
-        self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
+        #self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
         if init_tables == True:
             self.init_tables()
 
@@ -57,8 +57,10 @@ class BigQueryService():
         """ Creates new tables for storing follower graphs """
         self.migrate_populate_users()
         self.migrate_user_friends()
-        user_friends_table_ref = self.dataset_ref.table("user_friends")
-        self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
+
+        #user_friends_table_ref = self.dataset_ref.table("user_friends")
+        #self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
+        self.user_friends_table = self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
 
     def execute_query(self, sql):
         """Param: sql (str)"""
