@@ -10,15 +10,20 @@ from app.models import UserFriend, BoundSession, db
 
 load_dotenv()
 
+PG_DESTRUCTIVE = (os.getenv("PG_DESTRUCTIVE", default="false") == "true")
+
 class Pipeline():
-    def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
-        self.batch_size = batch_size
+    def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE,
+                        pg_destructive=PG_DESTRUCTIVE, bq_service=None):
+        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
         if users_limit:
             self.users_limit = int(users_limit)
         else:
             self.users_limit = None
+        self.batch_size = batch_size
 
-        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
+        self.pg_destructive = pg_destructive
+        self.pg_engine = db
         self.pg_session = BoundSession()
 
         print("-------------------------")
@@ -27,11 +32,19 @@ class Pipeline():
         print("  BATCH SIZE:", self.batch_size)
         #print("  BQ SERVICE:", type(self.bq_service))
         #print("  PG SESSION:", type(self.pg_session))
+        print("  PG DESTRUCTIVE:", type(self.pg_destructive))
 
     def perform(self):
         self.start_at = time.perf_counter()
         self.batch = []
         self.counter = 0
+
+        if self.pg_destructive:
+            UserFriend.__table__.drop(self.pg_engine)
+
+        if not UserFriend.__table__.exists():
+            print("CREATING THE USER FRIENDS TABLE!")
+            UserFriend.__table__.create(pg_engine)
 
         print(fmt_ts(), "DATA FLOWING...")
         for row in self.bq_service.fetch_user_friends_in_batches(limit=self.users_limit):
