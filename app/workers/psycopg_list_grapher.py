@@ -24,7 +24,7 @@ class Grapher(PsycopgGrapher):
                 for row in batch:
                     self.edges += [(row["screen_name"], friend) for friend in row["friend_names"]]
 
-            rr = {"ts": fmt_ts(), "counter": self.counter, "edges": len(self.graph.edges)}
+            rr = {"ts": fmt_ts(), "counter": self.counter, "edges": len(self.edges)}
             print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
             self.running_results.append(rr)
 
