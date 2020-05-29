@@ -45,7 +45,7 @@ class BigQueryListGrapher(BigQueryGrapher):
         del self.edges # remove in hopes of freeing up some memory
 
         self.write_graph_to_file()
-        #del self.graph
+        #del self.graph # remove in hopes of freeing up some memory
         self.upload_graph()
 
         self.end()
