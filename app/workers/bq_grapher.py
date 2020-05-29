@@ -53,9 +53,6 @@ if __name__ == "__main__":
     grapher.write_results_to_file()
     grapher.upload_results()
 
-    grapher.write_edges_to_file()
-    grapher.upload_edges()
-
     grapher.write_graph_to_file()
     grapher.upload_graph()
 

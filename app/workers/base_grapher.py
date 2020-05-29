@@ -103,7 +103,7 @@ class BaseGrapher():
     def write_edges_to_file(self):
         print(fmt_ts(), "WRITING EDGES...:")
         with open(self.local_edges_filepath, "wb") as pickle_file:
-            pickle.dump(self.graph.edges, pickle_file)
+            pickle.dump(self.edges, pickle_file)
 
     def write_graph_to_file(self):
         print(fmt_ts(), "WRITING GRAPH...")
