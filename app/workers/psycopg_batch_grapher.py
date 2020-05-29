@@ -1,12 +1,12 @@
 
 from networkx import DiGraph
-#from memory_profiler import profile
+from memory_profiler import profile
 
-from app.workers.psycopg_base_grapher import BaseGrapher
+from app.workers.psycopg_grapher import PsycopgGrapher
 
-class Grapher(BaseGrapher):
+class Grapher(PsycopgGrapher):
 
-    #@profile
+    @profile
     def perform(self):
         self.start()
         self.graph = DiGraph()

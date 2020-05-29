@@ -3,14 +3,13 @@ import pickle
 
 from networkx import DiGraph, write_gpickle
 from pandas import DataFrame
-#from memory_profiler import profile
+from memory_profiler import profile
 
 from app import DATA_DIR
-from app.workers.psycopg_base_grapher import BaseGrapher
 
 class TestGrapher():
 
-    #@profile
+    @profile
     def perform(self):
         self.edges = set() # prevents duplicates
 

@@ -53,8 +53,8 @@ class BaseGrapher():
         print("NETWORK GRAPHER CONFIG...")
         print("  JOB ID:", service.job_id)
         print("  DRY RUN:", str(service.dry_run).upper())
-        print("  BATCH SIZE:", str(service.batch_size).upper())
         print("  USERS LIMIT:", service.users_limit)
+        print("  BATCH SIZE:", str(service.batch_size).upper())
         print("-------------------------")
         if APP_ENV == "development":
             if input("CONTINUE? (Y/N): ").upper() != "Y":

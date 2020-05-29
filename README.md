@@ -110,33 +110,32 @@ python -m app.gcs_service
 
 ### Network Graphs
 
-Assembling network graphs:
+Assembling network graphs directly from BigQuery data:
 
 ```sh
+# incremental graph construction (uses more incremental memory):
 python -m app.workers.bq_grapher
 BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="true" BATCH_SIZE=1000 python app.workers.bq_grapher
 
+# graph construction from complete edges list (uses less incremental memory):
 python -m app.workers.bq_list_grapher
 BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.workers.bq_list_grapher
-
-
-
-
-
-
-#python -m app.workers.pg_grapher
-#USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.pg_grapher
-#USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="false" python -m app.workers.pg_grapher
-#USER_FRIENDS_TABLE_NAME="user_friends" DRY_RUN="false" python -m app.workers.pg_grapher
-
-# python -m memory_profiler app.workers.psycopg_batch_grapher
-# USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.psycopg_batch_grapher
-# USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="false" python -m app.workers.psycopg_batch_grapher
-# USER_FRIENDS_TABLE_NAME="user_friends" DRY_RUN="true" python -m app.workers.psycopg_batch_grapher
-# USER_FRIENDS_TABLE_NAME="user_friends" DRY_RUN="false" python -m app.workers.psycopg_batch_grapher
 ```
 
+If those run into memory issues, run the PG Pipeline, then try assembling network graphs from PostgresSQL data:
 
+```sh
+# incremental graph construction (uses more incremental memory):
+python -m app.workers.pg_grapher
+USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.pg_grapher
+USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="false" python -m app.workers.pg_grapher
+USER_FRIENDS_TABLE_NAME="user_friends" DRY_RUN="false" python -m app.workers.pg_grapher
+USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_grapher
+
+# graph construction from complete edges list (uses less incremental memory):
+python -m app.workers.pg_list_grapher
+USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list_grapher
+```
 
 
 ## Testing
