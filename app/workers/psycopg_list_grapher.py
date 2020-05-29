@@ -20,9 +20,7 @@ class Grapher(BaseGrapher):
 
             if not self.dry_run:
                 for row in batch:
-                    user = row["screen_name"]
-                    friends = row["friend_names"]
-                    self.edges += [(user, friend) for friend in friends]
+                    self.edges += [(row["screen_name"], friend) for friend in row["friend_names"]]
 
             rr = {"ts": self.generate_timestamp(), "counter": self.counter, "edges": len(self.edges)}
             print(rr["ts"], "|", self.fmt(rr["counter"]), "|", self.fmt(rr["edges"]))
@@ -34,6 +32,8 @@ class Grapher(BaseGrapher):
         print(self.generate_timestamp(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
         print(self.generate_timestamp(), "GRAPH CONSTRUCTED!")
+
+        del self.edges
         self.write_graph_to_file()
 
         self.end()
