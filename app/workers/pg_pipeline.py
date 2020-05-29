@@ -3,9 +3,10 @@ import time
 import os
 from dotenv import load_dotenv
 
-from app.models import UserFriend, BoundSession, db
+from app import APP_ENV
+from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts
 from app.bq_service import BigQueryService
-from app.workers import APP_ENV, USERS_LIMIT, BATCH_SIZE, fmt_ts
+from app.models import UserFriend, BoundSession, db
 
 load_dotenv()
 
