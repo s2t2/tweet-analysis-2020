@@ -45,6 +45,14 @@ class Grapher(PsycopgGrapher):
 
         self.end()
 
+    def write_edges_to_file(self):
+        """
+        overwrite the parent method because we need self.edges vs self.graph.edges
+        todo: inherit / mix-in
+        """
+        print(fmt_ts(), "WRITING EDGES...:")
+        with open(self.local_edges_filepath, "wb") as pickle_file:
+            pickle.dump(self.edges, pickle_file) # write edges before graph is constructed
 
 if __name__ == "__main__":
 

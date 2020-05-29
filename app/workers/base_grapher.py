@@ -14,6 +14,8 @@ from app.gcs_service import GoogleCloudStorageService
 
 class BaseGrapher():
     """
+    Assembles the graph object incrementally.
+
     Example:
         grapher = BaseGrapher.cautiously_initialized()
         grapher.start()
@@ -126,6 +128,15 @@ class BaseGrapher():
         print(fmt_ts(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
         blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
         print(fmt_ts(), blob)
+
+#class ListGrapher():
+#    """assembles the graph object at the end"""
+#
+#    def write_edges_to_file(self):
+#        """overwrite the parent method because we need self.edges vs self.graph.edges """
+#        print(fmt_ts(), "WRITING EDGES...:")
+#        with open(self.local_edges_filepath, "wb") as pickle_file:
+#            pickle.dump(self.edges, pickle_file) # write edges before graph is constructed
 
 if __name__ == "__main__":
 
