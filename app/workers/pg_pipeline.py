@@ -5,14 +5,12 @@ from dotenv import load_dotenv
 
 from app.models import UserFriend, BoundSession, db
 from app.bq_service import BigQueryService
-from app.workers import APP_ENV, USERS_LIMIT, fmt_ts
+from app.workers import APP_ENV, USERS_LIMIT, BATCH_SIZE, fmt_ts
 
 load_dotenv()
 
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
-
 class Pipeline():
-    def __init__(self, batch_size=BATCH_SIZE, users_limit=USERS_LIMIT, bq_service=None):
+    def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
         self.batch_size = batch_size
         if users_limit:
             self.users_limit = int(users_limit)
