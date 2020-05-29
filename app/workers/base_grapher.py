@@ -123,7 +123,7 @@ class BaseGrapher():
         print(fmt_ts(), blob)
 
     def upload_graph(self):
-        print(fmt_ts(), "WRITING GRAPH...", self.gcs_graph_filepath)
+        print(fmt_ts(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
         blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
         print(fmt_ts(), blob)
 
