@@ -135,7 +135,7 @@ USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_graph
 # graph construction from complete edges list (uses less incremental memory):
 python -m app.workers.pg_list_grapher
 USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="true" python -m app.workers.pg_list_grapher
-BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list_grapher
+USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list_grapher
 ```
 
 
