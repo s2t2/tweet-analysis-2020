@@ -129,6 +129,11 @@ class BaseGrapher():
         blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
         print(fmt_ts(), blob)
 
+    def sleep(self):
+        if APP_ENV == "production":
+            print("SLEEPING...")
+            time.sleep(12 * 60 * 60) # twelve hours, more than enough time to stop the server
+
 #class ListGrapher():
 #    """assembles the graph object at the end"""
 #

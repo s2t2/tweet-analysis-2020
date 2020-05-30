@@ -2,7 +2,6 @@
 from networkx import DiGraph
 from memory_profiler import profile
 
-from app import APP_ENV
 from app.workers import fmt_ts, fmt_n
 from app.workers.psycopg_grapher import PsycopgGrapher
 
@@ -51,6 +50,4 @@ if __name__ == "__main__":
 
     grapher.perform()
 
-    if APP_ENV == "production":
-        print("SLEEPING...")
-        time.sleep(12 * 60 * 60) # twelve hours
+    grapher.sleep()
