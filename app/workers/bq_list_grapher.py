@@ -1,5 +1,4 @@
 
-import time
 import pickle
 
 from networkx import DiGraph
