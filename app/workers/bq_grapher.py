@@ -1,11 +1,7 @@
 
-import os
-import time
-
 from networkx import DiGraph
 from memory_profiler import profile
 
-from app import APP_ENV
 from app.bq_service import BigQueryService
 from app.workers import fmt_ts, fmt_n
 from app.workers.base_grapher import BaseGrapher
@@ -56,6 +52,4 @@ if __name__ == "__main__":
     grapher.write_graph_to_file()
     grapher.upload_graph()
 
-    if APP_ENV == "production":
-        print("SLEEPING...")
-        time.sleep(12 * 60 * 60) # twelve hours
+    grapher.sleep()
