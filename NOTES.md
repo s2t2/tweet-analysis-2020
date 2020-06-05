@@ -326,9 +326,10 @@ BIGQUERY_DATASET_NAME="impeachment_production" DESTRUCTIVE_PG=true BATCH_SIZE=10
 ```
 
 Users | Batch Size | Duration (seconds)
+--- | --- | ---
 3636616 | 100 | 20151
 
-Making a smaller version of the user friends table, for development purposes:
+Making various smaller versions of the user friends table, for development purposes:
 
 ```sql
 CREATE TABLE user_friends_dev as (
@@ -392,4 +393,7 @@ CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
 
 Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
 
-TODO: fix memory issues
+The largest friend graph we've been able to construct so far is from only 50K users of the 3.6M users in our dataset. That friend graph has 8.7M nodes and 27.3M edges, and requires 19GB of memory to complete. These memory requirements pushed the largest Heroku server to its limits.
+
+
+TODO: further optimize memory usage, or get access to much larger servers.
