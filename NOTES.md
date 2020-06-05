@@ -393,7 +393,7 @@ CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
 
 Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
 
-The largest friend graph we've been able to construct so far is from only 50K users of the 3.6M users in our dataset. That friend graph has 8.7M nodes and 27.3M edges, and requires 19GB of memory to complete. These memory requirements pushed the largest Heroku server to its limits.
+The largest friend graph we've been able to construct so far is from only 50K users of the 3.6M users in our dataset (job id: "2020-05-30-0338"). That friend graph has 8.7M nodes and 27.3M edges, and requires 19GB of memory to complete. These memory requirements pushed the largest Heroku server to its limits.
 
 
 TODO: further optimize memory usage, or get access to much larger servers.
