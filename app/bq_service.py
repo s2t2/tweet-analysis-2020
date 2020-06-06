@@ -29,16 +29,38 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
-        self.dataset_ref = self.client.dataset(self.dataset_name)
+        #self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
         if init_tables == True:
             self.init_tables()
+
+    @property
+    def metadata(self):
+        return {"dataset_address": self.dataset_address, "destructive": self.destructive, "verbose": self.verbose}
+
+    @classmethod
+    def cautiously_initialized(cls):
+        service = BigQueryService()
+        print("-------------------------")
+        print("BIGQUERY CONFIG...")
+        print("  DATASET ADDRESS:", service.dataset_address.upper())
+        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+        print("  VERBOSE QUERIES:", service.verbose)
+        print("-------------------------")
+        if APP_ENV == "development":
+            if input("CONTINUE? (Y/N): ").upper() != "Y":
+                print("EXITING...")
+                exit()
+        service.init_tables()
+        return service
 
     def init_tables(self):
         """ Creates new tables for storing follower graphs """
         self.migrate_populate_users()
         self.migrate_user_friends()
-        user_friends_table_ref = self.dataset_ref.table("user_friends")
-        self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
+
+        #user_friends_table_ref = self.dataset_ref.table("user_friends")
+        #self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
+        self.user_friends_table = self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -112,6 +134,59 @@ class BigQueryService():
         #if any(rows_to_insert):
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
+
+    def fetch_user_friends(self, min_id=None, max_id=None, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
+            FROM `{self.dataset_address}.user_friends`
+        """
+        if min_id and max_id:
+            sql += f" WHERE CAST(user_id as int64) BETWEEN {int(min_id)} AND {int(max_id)} "
+        sql += f"ORDER BY user_id "
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+        #return list(self.execute_query(sql))
+        return self.execute_query(sql) # return the generator so we can avoid storing the results in memory
+
+    def fetch_user_friends_in_batches(self, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, friend_count, friend_names
+            FROM `{self.dataset_address}.user_friends`
+        """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+
+        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
+        job_config = bigquery.QueryJobConfig(
+            priority=bigquery.QueryPriority.BATCH,
+            allow_large_results=True,
+            destination=f"{self.dataset_address}.user_friends_temp_{job_name}"
+        )
+
+        job = self.client.query(sql, job_config=job_config)
+        print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
+        return job
+
+    def partition_user_friends(self, n=10):
+        """Params n (int) the number of partitions, each will be of equal size"""
+        sql = f"""
+            SELECT
+                partition_id
+                ,count(DISTINCT user_id) as user_count
+                ,min(user_id) as min_id
+                ,max(user_id) as max_id
+            FROM (
+            SELECT
+                NTILE({int(n)}) OVER (ORDER BY CAST(user_id as int64)) as partition_id
+                ,CAST(user_id as int64) as user_id
+            FROM (SELECT DISTINCT user_id FROM `{self.dataset_address}.user_friends`)
+            ) user_partitions
+            GROUP BY partition_id
+        """
+        results = self.execute_query(sql)
+        return list(results)
+
+
 
 if __name__ == "__main__":
 

@@ -1,6 +1,6 @@
 # Notes
 
-## Database Queries
+## Dataset Exploration
 
 ### Tweets
 
@@ -77,7 +77,13 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 #MoscowMitch	        | 2020-02-06 01:37:30 UTC
 #CountryOverParty	    | 2020-02-06 01:37:13 UTC
 
-## Partitioning Users
+
+
+<hr>
+
+## Friend Collection - Preparation
+
+### Partitioning Users
 
 Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
 
@@ -109,9 +115,10 @@ partition_id    | user_count	| min_id	            | max_id
 9	            | 360054	    | 1012042227844075522	| 1154556355883089920
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
 
-## Targets, Benchmarks, and Constraints
 
-### Clock Time
+### Benchmarks, Targets, and Constraints
+
+#### Clock Time
 
 With 3.6M users, processing 360K users per day would take ten days. Ten days would be ideal, but even up to a month would be fine.
 
@@ -128,13 +135,13 @@ Users per Day (Target) | Duration Days (Projected)
 108,000 | 33
 86,400 | 42
 
-### Twitter API
+#### Twitter API
 
 Currently Twitter API restricts to [15 requests per 15 minutes](https://developer.twitter.com/en/docs/basics/rate-limits), which is like 1 user per minute. So we need to use a custom scraper approach.
 
 Using the custom scraper takes around 40 seconds for a user who has 2000 friends (our current max). So we need to leverage concurrent (i.e. a multi-threaded) processing approach.
 
-### Servers and Costs
+#### Servers and Costs
 
 Target budget for this process is around $100, but can go up to around $200.
 
@@ -213,7 +220,7 @@ Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start 
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
 
 
-## Collecting Friends
+## Friend Collection - Results
 
 Verifying users have been bucketed properly:
 
@@ -243,24 +250,155 @@ ORDER BY assigned_server
 Monitoring results as they come in:
 
 ```sql
-SELECT assigned_server, count(distinct user_id) as user_count
+
+SELECT
+  assigned_server
+  ,count(distinct user_id) as users_processed
+  ,round(avg(friend_count),2) as avg_friends
+  ,round(avg(runtime_seconds),4) as avg_run_seconds
+  -- ,max(end_at) as latest_at
+  -- ,360054 - count(distinct user_id) as users_remaining
 FROM (
   SELECT
-    user_id
+    user_id, friend_count, start_at, end_at
+    ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
     ,CASE
-        WHEN CAST(user_id as int64) BETWEEN 17                  and 49223966 THEN "server-1"
-        WHEN CAST(user_id as int64) BETWEEN 49224083            and 218645473 THEN "server-2"
-        WHEN CAST(user_id as int64) BETWEEN 218645600           and 446518003 THEN "server-3"
-        WHEN CAST(user_id as int64) BETWEEN 446520525           and 1126843322 THEN "server-4"
-        WHEN CAST(user_id as int64) BETWEEN 1126843458          and 2557922900 THEN "server-5"
-        WHEN CAST(user_id as int64) BETWEEN 2557923828          and 4277913148 THEN "server-6"
-        WHEN CAST(user_id as int64) BETWEEN 4277927001          and 833566039577239552 THEN "server-7"
-        WHEN CAST(user_id as int64) BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-8"
-        WHEN CAST(user_id as int64) BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-9"
-        WHEN CAST(user_id as int64) BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
+        WHEN user_id BETWEEN 17                  and 49223966            THEN "server-01"
+        WHEN user_id BETWEEN 49224083            and 218645473           THEN "server-02"
+        WHEN user_id BETWEEN 218645600           and 446518003           THEN "server-03"
+        WHEN user_id BETWEEN 446520525           and 1126843322          THEN "server-04"
+        WHEN user_id BETWEEN 1126843458          and 2557922900          THEN "server-05"
+        WHEN user_id BETWEEN 2557923828          and 4277913148          THEN "server-06"
+        WHEN user_id BETWEEN 4277927001          and 833566039577239552  THEN "server-07"
+        WHEN user_id BETWEEN 833567097506533376  and 1012042187482202113 THEN "server-08"
+        WHEN user_id BETWEEN 1012042227844075522 and 1154556355883089920 THEN "server-09"
+        WHEN user_id BETWEEN 1154556513031266304 and 1242523027058769920 THEN "server-10"
      END as assigned_server
-  FROM impeachment_production.user_friends
-)
+  FROM (
+    SELECT CAST(user_id as int64) as user_id, friend_count, start_at, end_at
+    FROM impeachment_production.user_friends
+  ) zz
+) yy
 GROUP BY assigned_server
 ORDER BY assigned_server
 ```
+
+Final results:
+
+assigned_server | users_processed | avg_friends | avg_run_seconds
+-- | -- | -- | --
+server-01 | 360,055 | 820 | 131
+server-02 | 360,055 | 723 | 107
+server-03 | 360,055 | 666 | 99
+server-04 | 360,055 | 610 | 95
+server-05 | 360,055 | 567 | 91
+server-06 | 360,054 | 522 | 55
+server-07 | 360,054 | 508 | 56
+server-08 | 360,054 | 460 | 62
+server-09 | 360,054 | 353 | 51
+server-10 | 360,054 | 217 | 25
+
+
+Interesting to see that newer users (the ones with greater / later ids) have less friends on average, and therefore took less time to parse. Again note we have capped max friends at 2000, which skews the avg friend count.
+
+
+## Network Graph Construction - Preparation
+
+Transferring 10K users from BigQuery development database to a local PostgreSQL database, to make subsequent analysis easier (prevent unnecessary future network requests):
+
+```sh
+DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.workers.pg_pipeline
+```
+
+Benchmarking different batch sizes:
+
+Users | Batch Size | Duration (seconds)
+--- | --- | ---
+10000 | Individual| 214
+10000 | 50 | 182
+10000 | 100 (first run) | 159
+10000 | 100 (second run) | 171
+10000 | 200 | 162
+10000 | 500 | 208
+10000 | 1000 | 227
+
+Choosing optimal batch size of around 100.
+
+Transferring all 3.6M users from the BigQuery production database:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.workers.pg_pipeline
+```
+
+Users | Batch Size | Duration (seconds)
+--- | --- | ---
+3636616 | 100 | 20151
+
+Making various smaller versions of the user friends table, for development purposes:
+
+```sql
+CREATE TABLE user_friends_dev as (
+    SELECT * FROM user_friends LIMIT 100000
+);
+```
+
+Copying / backing-up the user friends table as "user_friends_clone".
+
+Identifying screen names that have multiple user ids (may need to be excluded / cleaned from the dataset):
+
+```sql
+SELECT
+    screen_name
+    ,count(distinct id) as row_count
+FROM user_friends
+GROUP BY 1
+HAVING count(distinct id) > 1
+ORDER BY 2 desc;
+
+-- > 612 screen names
+```
+
+
+Making an even smaller (and cleaner) version of the user friends table, for testing purposes (with 10k, 100k):
+
+```sql
+CREATE TABLE user_friends_10k as (
+  SELECT
+    uf.id
+    ,uf.user_id
+    ,uf.screen_name
+    ,uf.friend_count
+    ,uf.friend_names
+  FROM user_friends_dev uf
+  LEFT JOIN (
+      -- screen names with multiple user ids
+      SELECT
+          screen_name
+          -- user_id
+          , count(distinct id) as row_count
+      FROM user_friends_dev
+      GROUP BY 1
+      HAVING count(distinct id) > 1
+      ORDER BY 2 desc
+  ) subq ON subq.screen_name = uf.screen_name
+  WHERE subq.screen_name IS NULL -- filters out dups
+  LIMIT 10000
+);
+CREATE INDEX tenkay_id ON user_friends_10k USING btree(id);
+CREATE INDEX tenkay_uid ON user_friends_10k USING btree(user_id);
+CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
+
+-- CREATE INDEX hunkay_id ON user_friends_100k USING btree(id);
+-- CREATE INDEX hunkay_uid ON user_friends_100k USING btree(user_id);
+-- CREATE INDEX hunkay_sn ON user_friends_100k USING btree(screen_name);
+```
+
+## Network Graph Construction - Results
+
+Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
+
+The largest friend graph we've been able to construct so far is from only 50K users of the 3.6M users in our dataset (job id: "2020-05-30-0338"). That friend graph has 8.7M nodes and 27.3M edges, and requires 19GB of memory to complete. These memory requirements pushed the largest Heroku server to its limits.
+
+These memory constraints require us to either further optimize memory usage, get access to much larger servers, or deem acceptable the graph size we do have.
+
+In the future, we'll probably construct separate graph objects for different topics of conversation across different periods of time (e.g. the graph for discussion of the topic ABC during the week of XYZ), and perform the same analyses on each.

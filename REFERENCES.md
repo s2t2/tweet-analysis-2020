@@ -13,6 +13,8 @@ Working with BigQuery:
   + https://cloud.google.com/dataprep/docs/html/DATEDIF-Function_57344707
   + https://towardsdatascience.com/google-bigquery-sql-dates-and-times-cheat-sheet-805b5502c7f0
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
+  + https://cloud.google.com/bigquery/docs/running-queries#batch
+  + https://cloud.google.com/bigquery/docs/paging-results
 
 ## Twitter Resources
 
@@ -49,3 +51,42 @@ Locks and Semaphores:
   + https://stackoverflow.com/questions/38632621/can-i-run-multiple-threads-in-a-single-heroku-python-dyno
   + https://devcenter.heroku.com/articles/limits#processes-threads
   + https://devcenter.heroku.com/articles/dynos#process-thread-limits
+
+## Network Graphs
+
+  + https://networkx.github.io/
+  + https://github.com/networkx/networkx
+  + https://networkx.github.io/documentation/latest/
+  + https://networkx.github.io/documentation/latest/tutorial.html
+  + https://networkx.github.io/documentation/latest/reference/classes/digraph.html
+  + https://networkx.github.io/documentation/latest/reference/readwrite/generated/networkx.readwrite.gpickle.read_gpickle.html
+  + https://networkx.github.io/documentation/latest/reference/convert.html
+  + https://networkx.github.io/documentation/latest/reference/generated/networkx.convert_matrix.from_pandas_edgelist.html
+
+## Google Cloud Storage
+
+  + https://dev.to/sethmlarson/python-data-streaming-to-google-cloud-storage-with-resumable-uploads-458h
+  + https://github.com/zaman-lab/brexitmeter-py
+  + https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-code-sample
+  + https://cloud.google.com/storage/docs/naming-objects
+  + https://googleapis.dev/python/storage/latest/blobs.html
+  + https://github.com/googleapis/python-storage/issues/74#issuecomment-603296568
+
+## SQLAlchemy
+
+  + https://docs.sqlalchemy.org/en/13/
+  + https://docs.sqlalchemy.org/en/13/intro.html
+  + https://docs.sqlalchemy.org/en/13/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2
+  + https://docs.sqlalchemy.org/en/13/core/type_basics.html
+  + https://docs.sqlalchemy.org/en/13/core/metadata.html#creating-and-dropping-database-tables
+  + https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/api.html
+  + https://stackoverflow.com/questions/45259764/how-to-create-a-single-table-using-sqlalchemy-declarative-base
+  + https://www.compose.com/articles/using-postgresql-through-sqlalchemy/
+  + https://www.learndatasci.com/tutorials/using-databases-python-postgres-sqlalchemy-and-alembic/
+
+## PostgreSQL
+
+Big PG Data:
+
+  + https://www.postgresqltutorial.com/postgresql-fetch/
+  + https://www.buggycoder.com/fetching-millions-of-rows-in-python-psycopg2/
