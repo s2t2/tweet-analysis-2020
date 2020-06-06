@@ -100,7 +100,7 @@ python -m app.workers.pg_pipeline
 BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
 ```
 
-### Remote File Storage
+#### Remote File Storage
 
 The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run the graph construction script on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Configure the bucket name as an environment variable:
 
@@ -109,7 +109,7 @@ The network graph objects are so large that trying to construct them on a laptop
 GCS_BUCKET_NAME="impeachment-analysis-2020"
 ```
 
-In our bucket, you'll find the results of running some queries in BigQuery, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
+In this bucket, there also exists some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
 
 Test the connection to the storage bucket, saving some mock files there:
 
@@ -117,7 +117,7 @@ Test the connection to the storage bucket, saving some mock files there:
 python -m app.gcs_service
 ```
 
-### Graph Object Construction
+#### Graph Object Construction
 
 In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
 
