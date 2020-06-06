@@ -54,7 +54,9 @@ From the Google Cloud console, enable the BigQuery API, then generate and downlo
 
 ### Friend Collection
 
-Fetch example data from Twitter:
+Since we already have a list of Twitter users who have tweeted about a given topic, we'll start by fetching the names of other Twitter users each user follows (i.e. the user's "friends").
+
+First test out the Twitter scraper:
 
 ```sh
 python -m app.twitter_scraper
@@ -62,29 +64,36 @@ SCREEN_NAME="s2t2" python -m app.twitter_scraper
 MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
 ```
 
-Manage and query the existing BigQuery database:
+Then test the connection to the BigQuery database where the users are stored:
 
 ```sh
 python -m app.bq_service
 # DESTRUCTIVE_MIGRATIONS="true" python -m app.bq_service
 ```
 
-If both of those commands work, you can collect the friend graphs, which will be stored in a new table on BigQuery called "user_friends":
+If both of those scripts work, you can collect the friend graphs, which will be stored in a new table on BigQuery called "user_friends":
 
 ```sh
 python -m app.workers.friend_batch_collector
 # USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.friend_batch_collector
 ```
 
-### Local Analysis
+### Network Graph Construction
 
-If you want to download / ETL the completed "user_friends" table from BigQuery to a PostgreSQL database: create a local database called "impeachment_analysis", then set the `DATABASE_URL` environment variable. Then run the database migration script:
+#### Local Database Setup
+
+To download / ETL the completed "user_friends" table from BigQuery to a local PostgreSQL database: first create a local database called "impeachment_analysis", then set the `DATABASE_URL` environment variable, then run the database migration script:
+
+```sh
+# .env file
+DATABASE_URL = "postgresql://USER:PASSWORD@localhost/impeachment_analysis"
+```
 
 ```sh
 python -m app.models
 ```
 
-After migrating the tables, you can load the data from BigQuery:
+After migrating the local database, you can load the data from BigQuery:
 
 ```sh
 python -m app.workers.pg_pipeline
@@ -108,9 +117,11 @@ Test the connection to the storage bucket, saving some mock files there:
 python -m app.gcs_service
 ```
 
-### Network Graphs
+### Graph Object Construction
 
-Assembling network graphs directly from BigQuery data:
+In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
+
+When assembling this network graph object, one option is to stream the user data directly from BigQuery:
 
 ```sh
 # incremental graph construction (uses more incremental memory):
@@ -122,7 +133,7 @@ python -m app.workers.bq_list_grapher
 BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.workers.bq_list_grapher
 ```
 
-If those run into memory issues, run the PG Pipeline, then try assembling network graphs from PostgresSQL data:
+However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" instructions above. After the database is ready, you can try to assemble the network graph object from the PostgreSQL data:
 
 ```sh
 # incremental graph construction (uses more incremental memory):
@@ -137,6 +148,8 @@ python -m app.workers.pg_list_grapher
 USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="true" python -m app.workers.pg_list_grapher
 USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list_grapher
 ```
+
+> NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
 
 ## Testing
