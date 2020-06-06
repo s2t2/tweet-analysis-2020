@@ -44,8 +44,13 @@ class BaseGrapher():
             batch_size (int)
                 When fetching from BigQuery, only determines the reporting interval.
                 When fetching from PostgreSQL database via psycopg, determines number of users fetched from the database at once, and also the reporting interval.
+
+            job_id (str / None)
+                A unique identifer to associate a given job's results files.
+                Is used as part of local filepaths and remote bucket paths, so should avoid including spaces or special characters.
+                Assigns a timestamp-based unique identifier by default.
         """
-        self.job_id = (job_id or dt.now().strftime("%Y-%m-%d-%H%M")) # a timestamp-based unique identifier, should be able to be included in a filepath, associates multiple files produced by the job with each other
+        self.job_id = (job_id or dt.now().strftime("%Y-%m-%d-%H%M"))
         self.dry_run = (dry_run == True)
         self.batch_size = batch_size
         if users_limit:
