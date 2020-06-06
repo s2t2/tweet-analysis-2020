@@ -6,7 +6,7 @@ from app.bq_service import BigQueryService
 
 def test_performance():
 
-    graph_filepath = os.path.join(os.path.dirname(__file__), "data", "pg_graph.gpickle")
+    graph_filepath = os.path.join(os.path.dirname(__file__), "..", "..", "data", "pg_graph.gpickle")
     if os.path.isfile(graph_filepath): os.remove(graph_filepath)
     assert os.path.isfile(graph_filepath) == False
 
@@ -24,3 +24,5 @@ def test_performance():
     #reconstituted_graph = read_gpickle(graph_filepath)
     #assert list(reconstituted_graph.nodes) == expected_nodes
     #assert list(reconstituted_graph.edges) == expected_edges
+
+test_performance()

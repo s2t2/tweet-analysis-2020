@@ -115,24 +115,28 @@ class BaseGrapher():
         print("EDGES:", fmt_n(len(self.graph.edges)))
         print("SIZE:", fmt_n(self.graph.size()))
 
-    def write_metadata_to_file(self):
+    def write_metadata_to_file(self, metadata_filepath=None):
+        metadata_filepath = metadata_filepath or self.local_metadata_filepath
         print(fmt_ts(), "WRITING METADATA...")
-        with open(self.local_metadata_filepath, "w") as metadata_file:
+        with open(metadata_filepath, "w") as metadata_file:
             json.dump(self.metadata, metadata_file)
 
-    def write_results_to_file(self):
+    def write_results_to_file(self, results_filepath=None):
+        results_filepath = results_filepath or self.local_results_filepath
         print(fmt_ts(), "WRITING RESULTS...")
         df = DataFrame(self.running_results)
-        df.to_csv(self.local_results_filepath)
+        df.to_csv(results_filepath)
 
-    def write_edges_to_file(self):
+    def write_edges_to_file(self, edges_filepath=None):
+        edges_filepath = edges_filepath or self.local_edges_filepath
         print(fmt_ts(), "WRITING EDGES...:")
-        with open(self.local_edges_filepath, "wb") as pickle_file:
+        with open(edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file)
 
-    def write_graph_to_file(self):
+    def write_graph_to_file(self, graph_filepath=None):
+        graph_filepath = graph_filepath or self.local_graph_filepath
         print(fmt_ts(), "WRITING GRAPH...")
-        write_gpickle(self.graph, self.local_graph_filepath)
+        write_gpickle(self.graph, graph_filepath)
 
     def upload_metadata(self):
         print(fmt_ts(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
