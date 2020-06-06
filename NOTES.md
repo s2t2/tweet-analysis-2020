@@ -1,6 +1,6 @@
 # Notes
 
-## Database Queries
+## Dataset Exploration
 
 ### Tweets
 
@@ -77,7 +77,13 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 #MoscowMitch	        | 2020-02-06 01:37:30 UTC
 #CountryOverParty	    | 2020-02-06 01:37:13 UTC
 
-## Partitioning Users
+
+
+<hr>
+
+## Friend Collection - Preparation
+
+### Partitioning Users
 
 Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
 
@@ -109,9 +115,10 @@ partition_id    | user_count	| min_id	            | max_id
 9	            | 360054	    | 1012042227844075522	| 1154556355883089920
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
 
-## Targets, Benchmarks, and Constraints
 
-### Clock Time
+### Benchmarks, Targets, and Constraints
+
+#### Clock Time
 
 With 3.6M users, processing 360K users per day would take ten days. Ten days would be ideal, but even up to a month would be fine.
 
@@ -128,13 +135,13 @@ Users per Day (Target) | Duration Days (Projected)
 108,000 | 33
 86,400 | 42
 
-### Twitter API
+#### Twitter API
 
 Currently Twitter API restricts to [15 requests per 15 minutes](https://developer.twitter.com/en/docs/basics/rate-limits), which is like 1 user per minute. So we need to use a custom scraper approach.
 
 Using the custom scraper takes around 40 seconds for a user who has 2000 friends (our current max). So we need to leverage concurrent (i.e. a multi-threaded) processing approach.
 
-### Servers and Costs
+#### Servers and Costs
 
 Target budget for this process is around $100, but can go up to around $200.
 
@@ -213,9 +220,7 @@ Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start 
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
 
 
-## Tweet Analysis
-
-### Collecting Friends
+## Friend Collection - Results
 
 Verifying users have been bucketed properly:
 
@@ -297,7 +302,7 @@ server-10 | 360,054 | 217 | 25
 Interesting to see that newer users (the ones with greater / later ids) have less friends on average, and therefore took less time to parse. Again note we have capped max friends at 2000, which skews the avg friend count.
 
 
-### Data Pipeline
+## Network Graph Construction - Preparation
 
 Transferring 10K users from BigQuery development database to a local PostgreSQL database, to make subsequent analysis easier (prevent unnecessary future network requests):
 
@@ -388,12 +393,12 @@ CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
 -- CREATE INDEX hunkay_sn ON user_friends_100k USING btree(screen_name);
 ```
 
-### Assembling Network Graphs
-
+## Network Graph Construction - Results
 
 Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
 
 The largest friend graph we've been able to construct so far is from only 50K users of the 3.6M users in our dataset (job id: "2020-05-30-0338"). That friend graph has 8.7M nodes and 27.3M edges, and requires 19GB of memory to complete. These memory requirements pushed the largest Heroku server to its limits.
 
+These memory constraints require us to either further optimize memory usage, get access to much larger servers, or deem acceptable the graph size we do have.
 
-TODO: further optimize memory usage, or get access to much larger servers.
+In the future, we'll probably construct separate graph objects for different topics of conversation across different periods of time (e.g. the graph for discussion of the topic ABC during the week of XYZ), and perform the same analyses on each.
