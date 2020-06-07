@@ -23,37 +23,28 @@ class GraphAnalyzer():
 
             storage_mode (str) where the graph object file has been stored ("local" or "remote")
         """
+        self.storage_mode = storage_mode
         self.job_id = job_id
         self.job = BaseGrapher(job_id=self.job_id)
 
-        self.storage_mode = storage_mode
-
-
     def __repr__(self):
         return f"<GraphAnalyzer {self.job_id}>"
+
+    @property
+    @lru_cache(maxsize=None) # memoizes the results
+    def graph(self):
+        return self.load_graph()
 
     def load_graph(self):
         if self.storage_mode == "local":
             print("LOADING GRAPH FROM LOCAL FILE...")
             return read_gpickle(self.job.local_graph_filepath)
+
         elif self.storage_mode == "remote":
             print("LOADING GRAPH FROM REMOTE STORAGE...")
-
-
-            #TODO: use job.gcs_service to download self.job.gcs_graph_filepath
-
             breakpoint()
+            #TODO: job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
-
-    @lru_cache(maxsize=None) # memoizes the results
-    def graph(self):
-        return self.load_graph()
-
-    @lru_cache(maxsize=None) # memoizes the results
-    def test_method(self):
-        print("DOING WORK HERE...")
-        time.sleep(10)
-        return "COMPLETE"
 
     def report(self, graph=None):
         if not isinstance(graph, DiGraph):
@@ -71,13 +62,3 @@ if __name__ == "__main__":
     graph = DiGraph() #analyzer.load_graph()
 
     analyzer.report(graph)
-
-    # h/t: http://codingnews.info/post/memoization.html
-    #  ... https://docs.python.org/3/library/functools.html#functools.lru_cache
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
