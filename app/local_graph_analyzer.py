@@ -38,12 +38,6 @@ class LocalGraphAnalyzer():
     def graph(self):
         return self.load_graph()
 
-    @lru_cache(maxsize=None) # memoizes the results
-    def test_method(self):
-        print("DOING WORK HERE...")
-        time.sleep(10)
-        return "COMPLETE"
-
     def report(self, graph=None):
         if not isinstance(graph, DiGraph):
             graph = self.load_graph()
@@ -60,13 +54,3 @@ if __name__ == "__main__":
     graph = DiGraph() #analyzer.load_graph()
 
     analyzer.report(graph)
-
-    # h/t: http://codingnews.info/post/memoization.html
-    #  ... https://docs.python.org/3/library/functools.html#functools.lru_cache
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())
-    print(analyzer.test_method())

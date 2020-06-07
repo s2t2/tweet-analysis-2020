@@ -1,6 +1,10 @@
+import os
 
 import pytest
 from networkx import DiGraph
+
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test", "data")
+TMP_DATA_DIR = os.path.join(TEST_DATA_DIR, "tmp")
 
 @pytest.fixture(scope="module")
 def mock_user_friends():
