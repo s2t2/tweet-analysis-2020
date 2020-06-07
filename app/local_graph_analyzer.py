@@ -1,5 +1,7 @@
 
 import os
+import time
+from functools import lru_cache
 
 from networkx import read_gpickle, DiGraph
 from dotenv import load_dotenv
@@ -32,6 +34,16 @@ class LocalGraphAnalyzer():
         print("LOADING GRAPH FROM...", self.graph_filepath)
         return read_gpickle(self.graph_filepath)
 
+    @lru_cache(maxsize=None) # memoizes the results
+    def graph(self):
+        return self.load_graph()
+
+    @lru_cache(maxsize=None) # memoizes the results
+    def test_method(self):
+        print("DOING WORK HERE...")
+        time.sleep(10)
+        return "COMPLETE"
+
     def report(self, graph=None):
         if not isinstance(graph, DiGraph):
             graph = self.load_graph()
@@ -48,3 +60,13 @@ if __name__ == "__main__":
     graph = DiGraph() #analyzer.load_graph()
 
     analyzer.report(graph)
+
+    # h/t: http://codingnews.info/post/memoization.html
+    #  ... https://docs.python.org/3/library/functools.html#functools.lru_cache
+    print(analyzer.test_method())
+    print(analyzer.test_method())
+    print(analyzer.test_method())
+    print(analyzer.test_method())
+    print(analyzer.test_method())
+    print(analyzer.test_method())
+    print(analyzer.test_method())
