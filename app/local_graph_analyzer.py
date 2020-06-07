@@ -1,10 +1,11 @@
 
 import os
 
-from networkx import read_gpickle
+from networkx import read_gpickle, DiGraph
 from dotenv import load_dotenv
 
 from app import DATA_DIR
+from app.workers import fmt_n
 
 load_dotenv()
 
@@ -24,21 +25,26 @@ class LocalGraphAnalyzer():
         if not os.path.exists(self.dirpath):
             raise "OOPS EXPECTING SOME GRAPH FILES AT..." + os.path.abspath(self.dirpath)
 
+    def __repr__(self):
+        return f"<LocalGraphAnalyzer {self.job_id} {os.path.exists(self.dirpath)}>"
+
     def load_graph(self):
+        print("LOADING GRAPH FROM...", self.graph_filepath)
         return read_gpickle(self.graph_filepath)
 
     def report(self, graph=None):
-        if not graph:
+        if not isinstance(graph, DiGraph):
             graph = self.load_graph()
-        print("NODES:", fmt_n(len(self.graph.nodes)))
-        print("EDGES:", fmt_n(len(self.graph.edges)))
-        print("SIZE:", fmt_n(self.graph.size()))
+        print("GRAPH:", type(graph))
+        print("NODES:", fmt_n(len(graph.nodes)))
+        print("EDGES:", fmt_n(len(graph.edges)))
+        print("SIZE:", fmt_n(graph.size()))
 
 if __name__ == "__main__":
 
     analyzer = LocalGraphAnalyzer(job_id=JOB_ID)
-    print(type(analyzer))
+    print(analyzer)
 
-    graph = analyzer.load_graph()
+    graph = DiGraph() #analyzer.load_graph()
 
     analyzer.report(graph)
