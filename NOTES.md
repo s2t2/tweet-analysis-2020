@@ -41,6 +41,15 @@ year	| month	| first_day	| last_day  | tweet_count	| user_count
 
 Over 67.6M tweets from over 3.6M users were collected during the period from December 2, 2019 through March 24, 2020.
 
+```sql
+SELECT min(created_at) as first_at, max(created_at) as last_at FROM impeachment_production.tweets
+```
+
+first_at | last_at
+--- | ---
+2019-12-02 01:13:49 UTC | 2020-03-24 19:04:03 UTC
+
+
 ### Topics
 
 Listing topics (25):

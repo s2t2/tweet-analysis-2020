@@ -186,6 +186,33 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
+    def fetch_random_users(self, limit=1000, topic="impeach", start_at="2019-12-02 01:00:00", end_at="2020-03-24 20:00:00"):
+        """
+        Fetches a random slice of users talking about a given topic during a given timeframe.
+
+        Params:
+
+            topic (str) the topic they were tweeting about:
+                        to be balances, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
+                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
+                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
+
+            limit (int) the max number of users to fetch
+
+            start_at (str) a date string for the earliest tweet
+
+            end_at (str) a date string for the latest tweet.
+
+        See NOTES.md for more background about the timeline and topics collected.
+        """
+        sql = f"""
+            SELECT DISTINCT user_id, user_screen_name
+            FROM `{self.dataset_address}.tweets`
+            WHERE upper(status_text) LIKE '%{topic.upper()}%' AND (created_at BETWEEN '{start_at}' AND '{end_at}')
+            ORDER BY rand()
+            LIMIT {int(limit)};
+        """
+        return self.execute_query(sql)
 
 
 if __name__ == "__main__":
