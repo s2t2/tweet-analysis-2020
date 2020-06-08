@@ -5,7 +5,7 @@ from networkx import DiGraph
 from memory_profiler import profile
 from dotenv import load_dotenv
 
-#from app.workers import fmt_ts, fmt_n
+from app.workers import fmt_ts, fmt_n
 from app.workers.bq_grapher import BigQueryGrapher
 
 load_dotenv()
@@ -17,26 +17,27 @@ END_AT = os.getenv("END_AT", default="2020-01-30 01:00:00")
 
 class BigQueryCustomGrapher(BigQueryGrapher):
 
-    def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, start_at=START_AT, end_at=END_AT, bq_service=None, gcs_service=None):
+    def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT,
+                bq_service=None, gcs_service=None):
         super().__init__(bq_service=bq_service, gcs_service=gcs_service)
         self.users_limit = users_limit
         self.topic = topic
-        self.start_at = start_at
-        self.end_at = end_at
+        self.convo_start_at = convo_start_at
+        self.convo_end_at = convo_end_at
 
         print("---------------------------------------")
-        print("CUSTOM GRAPHER...")
-        print(f"  FETCHING {self.users_limit} USERS")
-        print(f"  TALKING ABOUT '{self.topic.upper()}' ")
-        print(f"  BETWEEN '{self.start_at} AND '{self.end_at}'")
+        print("CONVERSATION FILTERS...")
+        print(f"  USERS LIMIT: {self.users_limit}")
+        print(f"  TOPIC: '{self.topic.upper()}' ")
+        print(f"  BETWEEN: '{self.convo_start_at}' AND '{self.convo_end_at}'")
 
     @property
     def metadata(self):
-        return {**super().metadata, **{"customizations": {
+        return {**super().metadata, **{"conversation": {
             "users_limit": self.users_limit,
             "topic": self.topic,
-            "start_at": self.start_at,
-            "end_at": self.end_at,
+            "start_at": self.convo_start_at,
+            "end_at": self.convo_end_at,
         }}} # merges dicts
 
     @profile
@@ -46,12 +47,27 @@ class BigQueryCustomGrapher(BigQueryGrapher):
 
         self.start()
         self.graph = DiGraph()
+        self.running_results = []
 
-        screen_names = list(self.bq_service.fetch_random_users(limit=USERS_LIMIT, topic=TOPIC, start_at=START_AT, end_at=END_AT))
-        print("FETCHED", len(screen_names), "USERS")
+        users = list(self.bq_service.fetch_random_users(
+            limit=self.users_limit,
+            topic=self.topic,
+            start_at=self.convo_start_at,
+            end_at=self.convo_end_at
+        ))
+        print("FETCHED", len(users), "USERS")
+        screen_names = sorted([row["user_screen_name"] for row in users])
 
-        #for row in self.bq_service.fetch_specific_user_friends(screen_names=screen_names):
-        #    self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
+        for row in self.bq_service.fetch_specific_user_friends(screen_names=screen_names):
+            self.counter += 1
+
+            if not self.dry_run:
+                self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
+
+            if self.counter % self.batch_size == 0:
+                rr = {"ts": fmt_ts(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
+                print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
+                self.running_results.append(rr)
 
         self.end()
         self.report()

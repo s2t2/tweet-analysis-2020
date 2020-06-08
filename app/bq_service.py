@@ -214,6 +214,14 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def fetch_specific_user_friends(self, screen_names):
+        sql = f"""
+            SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
+            FROM `{self.dataset_address}.user_friends`
+            WHERE screen_name in {tuple(screen_names)} -- tuple conversion surrounds comman-separated screen_names in parens
+        """
+        return self.execute_query(sql)
+
 
 if __name__ == "__main__":
 
