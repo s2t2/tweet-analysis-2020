@@ -71,6 +71,8 @@ class BigQueryCustomGrapher(BigQueryGrapher):
 
         self.end()
         self.report()
+        self.write_results_to_file()
+        self.upload_results()
         self.write_graph_to_file()
         self.upload_graph()
 
