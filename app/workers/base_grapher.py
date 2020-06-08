@@ -88,7 +88,7 @@ class BaseGrapher():
             if input("CONTINUE? (Y/N): ").upper() != "Y":
                 print("EXITING...")
                 exit()
-        self.init_local_dir()
+        service.init_local_dir()
         return service
 
     def init_local_dir(self):

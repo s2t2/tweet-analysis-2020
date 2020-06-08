@@ -154,7 +154,7 @@ USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list
 The graphs are very large, so how about we create a few different smaller topic-specific graphs. To create a custom graph:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=100 TOPIC="#MAGA" python -m app.workers.bq_custom_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.workers.bq_custom_grapher
 ```
 
 ## Testing
