@@ -1,7 +1,9 @@
 
 # Tweet Analysis (Python)
 
-So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets. Now it's time to analyze them.
+So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic. Now it's time to analyze them.
+
+This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
 ## [Reproducibility Notes](NOTES.md)
 
