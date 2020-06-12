@@ -51,13 +51,11 @@ class GraphAnalyzer():
             self.job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
 
-    def report(self, graph=None):
-        if not isinstance(graph, DiGraph):
-            graph = self.load_graph()
-        print("GRAPH:", type(graph))
-        print("NODES:", fmt_n(len(graph.nodes)))
-        print("EDGES:", fmt_n(len(graph.edges)))
-        print("SIZE:", fmt_n(graph.size()))
+    def report(self):
+        print("GRAPH:", type(self.graph))
+        print("NODES:", fmt_n(len(self.graph.nodes)))
+        print("EDGES:", fmt_n(len(self.graph.edges)))
+        print("SIZE:", fmt_n(self.graph.size()))
 
 if __name__ == "__main__":
 
