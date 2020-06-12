@@ -49,12 +49,8 @@ class BigQueryCustomGrapher(BigQueryGrapher):
         self.graph = DiGraph()
         self.running_results = []
 
-        users = list(self.bq_service.fetch_random_users(
-            limit=self.users_limit,
-            topic=self.topic,
-            start_at=self.convo_start_at,
-            end_at=self.convo_end_at
-        ))
+        users = list(self.bq_service.fetch_random_users(limit=self.users_limit, topic=self.topic,
+                                                        start_at=self.convo_start_at, end_at=self.convo_end_at))
         print("FETCHED", len(users), "USERS")
         screen_names = sorted([row["user_screen_name"] for row in users])
 
