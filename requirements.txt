@@ -13,4 +13,6 @@ networkx
 psycopg2
 sqlalchemy
 
+# formerly known as dev dependencies:
+pytest
 memory_profiler

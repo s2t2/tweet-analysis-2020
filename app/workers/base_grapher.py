@@ -59,8 +59,6 @@ class BaseGrapher():
             self.users_limit = None
 
         self.local_dirpath = os.path.join(DATA_DIR, self.job_id)
-        if not os.path.exists(self.local_dirpath):
-            os.mkdir(self.local_dirpath)
         self.local_metadata_filepath = os.path.join(self.local_dirpath, "metadata.json")
         self.local_results_filepath = os.path.join(self.local_dirpath, "results.csv")
         self.local_edges_filepath = os.path.join(self.local_dirpath, "edges.gpickle")
@@ -87,7 +85,12 @@ class BaseGrapher():
             if input("CONTINUE? (Y/N): ").upper() != "Y":
                 print("EXITING...")
                 exit()
+        service.init_local_dir()
         return service
+
+    def init_local_dir(self):
+        if not os.path.exists(self.local_dirpath):
+            os.mkdir(self.local_dirpath)
 
     @property
     def metadata(self):

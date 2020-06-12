@@ -151,6 +151,31 @@ USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
+##### Custom Conversation Graphs
+
+The graphs are very large, so how about we create a few different smaller topic-specific graphs:
+
+```sh
+# assemble right-leaning conversation graph:
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.workers.bq_custom_grapher
+
+# assemble left-leaning conversation graph:
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
+```
+
+#### Graph Analysis
+
+See how much memory it takes to load a given graph:
+
+```py
+# right-leaning conversation graph
+JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.graph_analyzer
+
+# left-leaning conversation graph
+JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
+```
 
 ## Testing
 

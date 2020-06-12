@@ -41,6 +41,15 @@ year	| month	| first_day	| last_day  | tweet_count	| user_count
 
 Over 67.6M tweets from over 3.6M users were collected during the period from December 2, 2019 through March 24, 2020.
 
+```sql
+SELECT min(created_at) as first_at, max(created_at) as last_at FROM impeachment_production.tweets
+```
+
+first_at | last_at
+--- | ---
+2019-12-02 01:13:49 UTC | 2020-03-24 19:04:03 UTC
+
+
 ### Topics
 
 Listing topics (25):
@@ -402,3 +411,45 @@ The largest friend graph we've been able to construct so far is from only 50K us
 These memory constraints require us to either further optimize memory usage, get access to much larger servers, or deem acceptable the graph size we do have.
 
 In the future, we'll probably construct separate graph objects for different topics of conversation across different periods of time (e.g. the graph for discussion of the topic ABC during the week of XYZ), and perform the same analyses on each.
+
+### Custom Conversation Graphs
+
+Assembled right-leaning graph (job `2020-06-07-2049`):
+
+```js
+{
+  "app_env": "development",
+  "job_id": "2020-06-07-2049",
+  "dry_run": false,
+  "batch_size": 100,
+  "dataset_address": "tweet-collector-py.impeachment_production",
+  "destructive": false,
+  "verbose": false,
+  "conversation": {
+    "users_limit": 1000,
+    "topic": "#MAGA",
+    "start_at": "2019-01-15 01:00:00",
+    "end_at": "2020-01-30 01:00:00"
+  }
+}
+```
+
+Assembled left-leaning graph (job `2020-06-07-2056`):
+
+```js
+{
+  "app_env": "development",
+  "job_id": "2020-06-07-2056",
+  "dry_run": false,
+  "batch_size": 100,
+  "dataset_address": "tweet-collector-py.impeachment_production",
+  "destructive": false,
+  "verbose": false,
+  "conversation": {
+    "users_limit": 1000,
+    "topic": "#ImpeachAndConvict",
+    "start_at": "2019-01-15 01:00:00",
+    "end_at": "2020-01-30 01:00:00"
+  }
+}
+```
