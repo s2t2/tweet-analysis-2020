@@ -59,9 +59,6 @@ class BaseGrapher():
             self.users_limit = None
 
         self.local_dirpath = os.path.join(DATA_DIR, self.job_id)
-        #if not os.path.exists(self.local_dirpath):
-        #    os.mkdir(self.local_dirpath) # TODO: do this later, to prevent proliferation of empty local dirs
-
         self.local_metadata_filepath = os.path.join(self.local_dirpath, "metadata.json")
         self.local_results_filepath = os.path.join(self.local_dirpath, "results.csv")
         self.local_edges_filepath = os.path.join(self.local_dirpath, "edges.gpickle")
