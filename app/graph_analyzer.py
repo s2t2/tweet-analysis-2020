@@ -45,8 +45,7 @@ class GraphAnalyzer():
 
         elif self.storage_mode == "remote":
             print("LOADING GRAPH FROM REMOTE STORAGE...")
-            breakpoint()
-            #TODO: job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
+            self.job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
 
     def report(self, graph=None):

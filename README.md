@@ -170,9 +170,11 @@ See how much memory it takes to load a given graph:
 ```py
 # right-leaning conversation graph
 JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.graph_analyzer
 
 # left-leaning conversation graph
 JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
 ```
 
 ## Testing
