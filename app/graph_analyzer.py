@@ -44,6 +44,9 @@ class GraphAnalyzer():
             return read_gpickle(self.job.local_graph_filepath)
 
         elif self.storage_mode == "remote":
+            print("PREPARING LOCAL DOWNLOAD DIR...")
+            if not os.path.isdir(self.job.local_dirpath):
+                os.mkdir(self.job.local_dirpath)
             print("LOADING GRAPH FROM REMOTE STORAGE...")
             self.job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
