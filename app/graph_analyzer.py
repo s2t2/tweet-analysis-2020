@@ -5,17 +5,19 @@ from functools import lru_cache
 
 from networkx import read_gpickle, DiGraph
 from dotenv import load_dotenv
+from memory_profiler import profile
 
 from app import DATA_DIR
 from app.workers import fmt_n
-from app.workers.base_grapher
+from app.workers.base_grapher import BaseGrapher
 
 load_dotenv()
 
 JOB_ID = os.getenv("JOB_ID", default="2020-05-30-0338")
+STORAGE_MODE = os.getenv("STORAGE_MODE", default="local")
 
 class GraphAnalyzer():
-    def __init__(self, job_id, storage_mode="local"):
+    def __init__(self, job_id=JOB_ID, storage_mode=STORAGE_MODE):
         """
         Params:
 
@@ -35,6 +37,7 @@ class GraphAnalyzer():
     def graph(self):
         return self.load_graph()
 
+    @profile
     def load_graph(self):
         if self.storage_mode == "local":
             print("LOADING GRAPH FROM LOCAL FILE...")
@@ -56,9 +59,7 @@ class GraphAnalyzer():
 
 if __name__ == "__main__":
 
-    analyzer = LocalGraphAnalyzer(job_id=JOB_ID)
+    analyzer = GraphAnalyzer()
     print(analyzer)
 
-    graph = DiGraph() #analyzer.load_graph()
-
-    analyzer.report(graph)
+    analyzer.report()

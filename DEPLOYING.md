@@ -71,12 +71,19 @@ Checking logs:
 heroku logs --ps friend_collector
 ```
 
-
 Running network grapher:
 
 ```sh
-heroku config:set BATCH_SIZE=1000
-heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
-heroku config:set DRY_RUN="false"
+heroku config:set BATCH_SIZE=1000 -r heroku-4
+heroku config:set BIGQUERY_DATASET_NAME="impeachment_production" -r heroku-4
+heroku config:set DRY_RUN="false" -r heroku-4
 heroku run:detached "python -m app.workers.bq_grapher" -r heroku-4
+```
+
+Running graph analyzer:
+
+```sh
+heroku config:set JOB_ID="2020-05-30-0338" -r heroku-4
+heroku config:set STORAGE_MODE="remote" -r heroku-4
+heroku run:detached "python -m app.graph_anayzer" -r heroku-4
 ```

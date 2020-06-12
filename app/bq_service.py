@@ -193,7 +193,7 @@ class BigQueryService():
         Params:
 
             topic (str) the topic they were tweeting about:
-                        to be balances, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
+                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
                         to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
                         to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
 

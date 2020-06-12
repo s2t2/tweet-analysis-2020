@@ -163,6 +163,18 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
 ```
 
+#### Graph Analysis
+
+See how much memory it takes to load a given graph:
+
+```py
+# right-leaning conversation graph
+JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.graph_analyzer
+
+# left-leaning conversation graph
+JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.graph_analyzer
+```
+
 ## Testing
 
 Run tests:
