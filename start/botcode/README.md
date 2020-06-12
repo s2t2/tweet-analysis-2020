@@ -72,7 +72,7 @@ In the csv file. Note that if User2 retweets User1 three (edit: six?) times; the
     54321; 12345; 6;
 
 
-However, if User2 never retweeted User1, there will NOT be a line:
+However, if User2 never retweeted User1, there will NOT be a line (edit: line with zero?):
 
 
     54321; 12345; 0;
