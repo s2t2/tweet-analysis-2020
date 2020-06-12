@@ -83,7 +83,9 @@ heroku run:detached "python -m app.workers.bq_grapher" -r heroku-4
 Running graph analyzer:
 
 ```sh
-heroku config:set JOB_ID="2020-05-30-0338" -r heroku-4
+#heroku config:set JOB_ID="2020-05-30-0338" -r heroku-4 # FIRST
+#heroku config:set JOB_ID="2020-06-07-2049" -r heroku-4 # RIGHT
+heroku config:set JOB_ID="2020-06-07-2056" -r heroku-4 # LEFT
 heroku config:set STORAGE_MODE="remote" -r heroku-4
 heroku run:detached "python -m app.graph_anayzer" -r heroku-4
 ```
