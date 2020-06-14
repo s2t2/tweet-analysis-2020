@@ -453,3 +453,68 @@ Assembled left-leaning graph (job `2020-06-07-2056`):
   }
 }
 ```
+
+
+
+
+### Retweet Graphs
+
+Migrate and populate a few tables which we'll use to construct mention graphs.
+
+First, for each tweet that is a retweet, determine the screen names of the user (i.e. retweeter) and the retweet user (i.e. retweeted) in a new table called "retweets":
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.retweets;
+CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
+  SELECT
+    user_id
+    ,user_screen_name
+    ,split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)] as retweet_user_screen_name
+    ,status_id
+    ,status_text
+  FROM impeachment_production.tweets
+  WHERE retweet_status_id is not null
+);
+
+```
+
+> NOTE: this is an expensive query, as it is processing all 67M tweets. Bytes processed: 13.12 GB.
+
+```sql
+SELECT count(DISTINCT status_id)
+FROM impeachment_production.retweets;
+```
+
+Of the 67M tweets, 55M are retweets.
+
+Let's count how many times each user retweeted another, in a new table called "retweet_counts":
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.retweet_counts;
+CREATE TABLE IF NOT EXISTS impeachment_production.retweet_counts as (
+  SELECT
+    user_id
+    ,user_screen_name
+    ,retweet_user_id as retweet_user_screen_name
+    ,count(distinct status_id) as rt_count
+  FROM impeachment_production.retweets
+  GROUP BY 1,2,3
+);
+```
+
+```sql
+SELECT count(DISTINCT user_id)
+FROM impeachment_production.retweet_counts;
+```
+
+Of the 55M retweets, there are 2.7M users who did the retweeting.
+
+
+It seems there are many users who retweeted themselves hundreds or thousands of times. Perhaps we want to filter them out of a table that will construct the rt graphs. Although it is possible they could indicate bot behavior.
+
+```sql
+SELECT user_id, user_screen_name, retweet_user_screen_name, rt_count
+FROM impeachment_production.user_mention_counts
+order by rt_count desc
+limit 100
+```

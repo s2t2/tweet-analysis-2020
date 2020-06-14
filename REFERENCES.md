@@ -4,7 +4,7 @@
 
 Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
 
-## Database Resources
+## Google BigQuery
 
 Working with BigQuery:
 
@@ -15,6 +15,8 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
   + https://cloud.google.com/bigquery/docs/running-queries#batch
   + https://cloud.google.com/bigquery/docs/paging-results
+  + https://stackoverflow.com/a/27158310/670433
+
 
 ## Twitter Resources
 
