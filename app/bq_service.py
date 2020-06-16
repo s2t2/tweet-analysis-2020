@@ -222,6 +222,14 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def fetch_specific_retweet_counts(self, screen_names):
+        sql = f"""
+            SELECT user_id, user_screen_name, retweet_user_screen_name, retweet_count
+            FROM `{self.dataset_address}.retweet_counts`
+            WHERE user_screen_name in {tuple(screen_names)} -- tuple conversion surrounds comma-separated screen_names in parens
+            ORDER BY 2,3
+        """
+        return self.execute_query(sql)
 
 if __name__ == "__main__":
 

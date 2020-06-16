@@ -153,7 +153,7 @@ USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
-##### Custom Conversation Graphs
+#### Conversation Graphs
 
 The graphs are very large, so how about we create a few different smaller topic-specific graphs:
 
@@ -163,6 +163,21 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 
 # assemble left-leaning conversation graph:
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
+```
+
+#### Conversation Retweet Graphs
+
+The previous research focuses on constructing retweet graphs, so let's do that:
+
+```sh
+# assemble neutral conversation graph:
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
+
+# assemble right-leaning conversation graph:
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
+
+# assemble left-leaning conversation graph:
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
 ```
 
 #### Graph Analysis

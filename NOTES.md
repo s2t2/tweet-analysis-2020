@@ -494,8 +494,8 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweet_counts as (
   SELECT
     user_id
     ,user_screen_name
-    ,retweet_user_id as retweet_user_screen_name
-    ,count(distinct status_id) as rt_count
+    ,retweet_user_screen_name
+    ,count(distinct status_id) as retweet_count
   FROM impeachment_production.retweets
   GROUP BY 1,2,3
 );
@@ -511,9 +511,9 @@ FROM impeachment_production.retweet_counts;
 It seems there are many users who retweeted themselves hundreds or thousands of times. Perhaps we want to filter them out of a table that will construct the rt graphs. Although it is possible they could indicate bot behavior.
 
 ```sql
-SELECT user_id, user_screen_name, retweet_user_screen_name, rt_count
-FROM impeachment_production.user_mention_counts
-order by rt_count desc
+SELECT user_id, user_screen_name, retweet_user_screen_name, retweet_count
+FROM impeachment_production.retweet_counts
+order by retweet_count desc
 limit 100
 ```
 
