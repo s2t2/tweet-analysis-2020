@@ -475,7 +475,6 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
   FROM impeachment_production.tweets
   WHERE retweet_status_id is not null
 );
-
 ```
 
 > NOTE: this is an expensive query, as it is processing all 67M tweets. Bytes processed: 13.12 GB.
@@ -502,13 +501,12 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweet_counts as (
 );
 ```
 
+For the 55M retweets, there are 2.7M users who did the retweeting. This is compared to the 3.6M users total.
+
 ```sql
 SELECT count(DISTINCT user_id)
 FROM impeachment_production.retweet_counts;
 ```
-
-Of the 55M retweets, there are 2.7M users who did the retweeting.
-
 
 It seems there are many users who retweeted themselves hundreds or thousands of times. Perhaps we want to filter them out of a table that will construct the rt graphs. Although it is possible they could indicate bot behavior.
 
@@ -518,3 +516,42 @@ FROM impeachment_production.user_mention_counts
 order by rt_count desc
 limit 100
 ```
+
+Which users were retweeted the most?
+
+```sql
+select retweet_user_screen_name, count(distinct user_id) as rt_by_users_count, count(distinct status_id) as rt_count
+from impeachment_production.retweets
+group by 1
+order by 2 desc
+limit 25
+```
+
+
+retweet_user_screen_name | rt_by_users_count | rt_count
+--- | --- | ---
+realDonaldTrump | 330211 | 2572421
+charliekirk11 | 261486 | 1235210
+SethAbramson | 137606 | 536125
+gtconway3d | 133292 | 536097
+tribelaw | 121937 | 639320
+RepAdamSchiff | 117465 | 293892
+SpeakerPelosi | 114274 | 226393
+funder | 112302 | 394151
+dbongino | 110514 | 456759
+DonaldJTrumpJr | 104977 | 334537
+JoyceWhiteVance | 102185 | 472908
+kylegriffin1 | 98250 | 389961
+RepMarkMeadows | 98027 | 434223
+RudyGiuliani | 89722 | 266291
+marklevinshow | 87526 | 331255
+GOPLeader | 87211 | 276222
+mmpadellan | 80404 | 200454
+RealJamesWoods | 79354 | 157840
+joncoopertweets | 79340 | 212499
+justinamash | 79183 | 166078
+w_terrence | 78612 | 185069
+TomFitton | 78148 | 405667
+RyanAFournier | 78090 | 179753
+TheRickWilson | 77116 | 172818
+senatemajldr | 75212 | 191118
