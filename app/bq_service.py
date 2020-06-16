@@ -223,6 +223,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     def fetch_specific_retweet_counts(self, screen_names):
+        """FYI this fetches multiple rows per screen_name, for each screen_name that user retweeted"""
         sql = f"""
             SELECT user_id, user_screen_name, retweet_user_screen_name, retweet_count
             FROM `{self.dataset_address}.retweet_counts`

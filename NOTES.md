@@ -555,3 +555,20 @@ TomFitton | 78148 | 405667
 RyanAFournier | 78090 | 179753
 TheRickWilson | 77116 | 172818
 senatemajldr | 75212 | 191118
+
+
+Constructing Retweet Graphs:
+
+```json
+{
+  "app_env": "development",
+  "job_id": "2020-06-15-2141",
+  "dry_run": false,
+  "batch_size": 1000,
+  "dataset_address": "tweet-collector-py.impeachment_production",
+  "destructive": false,
+  "verbose": false,
+  "retweeters": true,
+  "conversation": {"users_limit": 50000, "topic": "impeach", "start_at": "2020-01-01", "end_at": "2020-01-30"}
+}
+```
