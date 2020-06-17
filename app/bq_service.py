@@ -214,6 +214,39 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def fetch_retweet_counts(self, topic="impeach", start_at="2019-12-02 01:00:00", end_at="2020-03-24 20:00:00"):
+        """
+        Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
+            row per user per retweeted user, counting the number of times that user retweeted the other
+
+        Params:
+
+            topic (str) the topic they were tweeting about:
+                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
+                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
+                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
+
+            start_at (str) a date string for the earliest tweet
+
+            end_at (str) a date string for the latest tweet.
+
+        See NOTES.md for more background about the timeline and topics collected.
+        """
+        sql = f"""
+            SELECT
+                rt.user_id
+                ,rt.user_screen_name
+                ,rt.retweet_user_screen_name
+                ,count(distinct status_id) as retweet_count
+            FROM `{self.dataset_address}.retweets` rt
+            WHERE upper(status_text) LIKE '%{topic.upper()}%'
+                AND (created_at BETWEEN '{start_at}' AND '{end_at}')
+                AND rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves, right?
+            GROUP BY 1,2,3
+            -- ORDER BY 4 desc
+        """
+        return self.execute_query(sql)
+
     def fetch_specific_user_friends(self, screen_names):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
@@ -228,6 +261,7 @@ class BigQueryService():
             SELECT user_id, user_screen_name, retweet_user_screen_name, retweet_count
             FROM `{self.dataset_address}.retweet_counts`
             WHERE user_screen_name in {tuple(screen_names)} -- tuple conversion surrounds comma-separated screen_names in parens
+                -- AND user_screen_name <> retweet_user_screen_name -- exclude users who have retweeted themselves
             ORDER BY 2,3
         """
         return self.execute_query(sql)

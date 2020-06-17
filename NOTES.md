@@ -557,6 +557,29 @@ TheRickWilson | 77116 | 172818
 senatemajldr | 75212 | 191118
 
 
+Identify which users were retweeted the most, about a given topic:
+
+```sql
+SELECT
+  retweet_user_screen_name
+  ,count(distinct user_id) as retweet_user_count
+  ,sum(retweet_count) as retweeted_total
+FROM (
+  SELECT
+    rt.user_id
+    ,rt.user_screen_name
+    ,rt.retweet_user_screen_name
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.retweets rt
+  WHERE upper(rt.status_text) LIKE '%#IMPEACHANDCONVICT%' -- AND (created_at BETWEEN  AND '{end_at}')
+    AND rt.user_screen_name <> rt.retweet_user_screen_name -- exlude people retweeting themselves, right?
+  GROUP BY 1,2,3
+  -- ORDER BY 4 desc
+)
+GROUP BY retweet_user_screen_name
+ORDER BY 3 DESC
+```
+
 Constructing Retweet Graphs:
 
 ```json
