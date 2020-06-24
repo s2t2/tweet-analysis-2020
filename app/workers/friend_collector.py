@@ -87,6 +87,6 @@ if __name__ == "__main__":
                 print("-------------------------")
                 print(f"SAVING BATCH OF {len(batch)}...")
                 print("-------------------------")
-                service.append_user_friends(batch)
+                service.insert_user_friends(batch)
                 batch = []
             lock.release()

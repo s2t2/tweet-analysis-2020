@@ -12,19 +12,19 @@ load_dotenv()
 
 USERS_LIMIT = int(os.getenv("USERS_LIMIT", default="1000")) # forces us to have a limit, unlike the app.workers version
 TOPIC = os.getenv("TOPIC", default="impeach")
-START_AT = os.getenv("START_AT", default="2020-01-01 01:00:00") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
-END_AT = os.getenv("END_AT", default="2020-01-30 01:00:00")
+START_AT = os.getenv("START_AT", default="2020-01-01") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
+END_AT = os.getenv("END_AT", default="2020-01-30")
 
-class BigQueryCustomGrapher(BigQueryGrapher):
-
-    def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT,
-                bq_service=None, gcs_service=None):
+class BigQueryRetweetGrapher(BigQueryGrapher):
+    def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT, bq_service=None, gcs_service=None):
         super().__init__(bq_service=bq_service, gcs_service=gcs_service)
         self.users_limit = users_limit
         self.topic = topic
         self.convo_start_at = convo_start_at
         self.convo_end_at = convo_end_at
 
+        print("---------------------------------------")
+        print("RETWEET GRAPHER...")
         print("---------------------------------------")
         print("CONVERSATION FILTERS...")
         print(f"  USERS LIMIT: {self.users_limit}")
@@ -33,12 +33,15 @@ class BigQueryCustomGrapher(BigQueryGrapher):
 
     @property
     def metadata(self):
-        return {**super().metadata, **{"conversation": {
-            "users_limit": self.users_limit,
-            "topic": self.topic,
-            "start_at": self.convo_start_at,
-            "end_at": self.convo_end_at,
-        }}} # merges dicts
+        return {**super().metadata, **{
+            "retweeters":True,
+            "conversation": {
+                "users_limit": self.users_limit,
+                "topic": self.topic,
+                "start_at": self.convo_start_at,
+                "end_at": self.convo_end_at,
+            }
+        }} # merges dicts
 
     @profile
     def perform(self):
@@ -49,17 +52,11 @@ class BigQueryCustomGrapher(BigQueryGrapher):
         self.graph = DiGraph()
         self.running_results = []
 
-        users = list(self.bq_service.fetch_random_users(limit=self.users_limit, topic=self.topic,
-                                                        start_at=self.convo_start_at, end_at=self.convo_end_at))
-        print("FETCHED", len(users), "USERS")
-        screen_names = sorted([row["user_screen_name"] for row in users])
+        for row in self.bq_service.fetch_retweet_counts_in_batches(topic=self.topic, start_at=self.convo_start_at, end_at=self.convo_end_at):
+            # see: https://networkx.github.io/documentation/stable/reference/classes/generated/networkx.DiGraph.add_edge.html#networkx.DiGraph.add_edge
+            self.graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=row["retweet_count"])
 
-        for row in self.bq_service.fetch_specific_user_friends(screen_names=screen_names):
             self.counter += 1
-
-            if not self.dry_run:
-                self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
-
             if self.counter % self.batch_size == 0:
                 rr = {"ts": fmt_ts(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
@@ -75,7 +72,7 @@ class BigQueryCustomGrapher(BigQueryGrapher):
 if __name__ == "__main__":
 
 
-    grapher = BigQueryCustomGrapher.cautiously_initialized()
+    grapher = BigQueryRetweetGrapher.cautiously_initialized()
 
     grapher.perform()
 

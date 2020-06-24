@@ -1,7 +1,9 @@
 
 # Tweet Analysis (Python)
 
-So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets. Now it's time to analyze them.
+So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic. Now it's time to analyze them.
+
+This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
 ## [Reproducibility Notes](NOTES.md)
 
@@ -151,7 +153,7 @@ USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
-##### Custom Conversation Graphs
+#### Conversation Graphs
 
 The graphs are very large, so how about we create a few different smaller topic-specific graphs:
 
@@ -161,6 +163,19 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 
 # assemble left-leaning conversation graph:
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
+```
+
+#### Conversation Retweet Graphs
+
+The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
+
 ```
 
 #### Graph Analysis
@@ -175,6 +190,9 @@ JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.graph_analyzer
 # left-leaning conversation graph
 JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.graph_analyzer
 JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
+
+# neutral conversation retweet graph
+JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 ```
 
 ## Testing

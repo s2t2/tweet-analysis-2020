@@ -16,3 +16,5 @@ sqlalchemy
 # formerly known as dev dependencies:
 pytest
 memory_profiler
+
+# mpi4py # see: https://mpi4py.readthedocs.io/en/stable/install.html
