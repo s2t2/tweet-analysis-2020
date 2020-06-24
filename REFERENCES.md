@@ -54,7 +54,7 @@ Locks and Semaphores:
   + https://devcenter.heroku.com/articles/limits#processes-threads
   + https://devcenter.heroku.com/articles/dynos#process-thread-limits
 
-## Network Graphs
+## Networkx
 
   + https://networkx.github.io/
   + https://github.com/networkx/networkx
@@ -92,3 +92,8 @@ Big PG Data:
 
   + https://www.postgresqltutorial.com/postgresql-fetch/
   + https://www.buggycoder.com/fetching-millions-of-rows-in-python-psycopg2/
+
+## MPI
+
+  + https://mpi4py.readthedocs.io/en/stable/install.html
+  + https://mpi4py.readthedocs.io/en/stable/tutorial.html?highlight=comm_world
