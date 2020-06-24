@@ -167,7 +167,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 
 #### Conversation Retweet Graphs
 
-The previous research focuses on constructing retweet graphs, so let's do that:
+The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that:
 
 ```sh
 # assemble neutral conversation graph:

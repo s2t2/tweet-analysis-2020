@@ -20,7 +20,7 @@ def split_into_batches(all_users, batch_size=BATCH_SIZE):
 def process_and_save_batch(user_rows, bq, lock=None):
     print(generate_timestamp(), "|", current_thread().name, "|", "PROCESSING...")
     #lock.acquire()
-    bq.append_user_friends([user_with_friends(user_row) for user_row in user_rows])
+    bq.insert_user_friends([user_with_friends(user_row) for user_row in user_rows])
     print(generate_timestamp(), "|", current_thread().name, "|", "PROCESSED BATCH OF", len(user_rows))
     #lock.release()
     return True

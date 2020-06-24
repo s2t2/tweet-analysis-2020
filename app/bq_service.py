@@ -13,6 +13,9 @@ DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_developme
 DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
 VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
+DEFAULT_START = "2019-12-02 01:00:00" # the "beginning of time" for the impeachment dataset. todo: allow customization via env var
+DEFAULT_END = "2020-03-24 20:00:00" # the "end of time" for the impeachment dataset. todo: allow customization via env var
+
 def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -68,6 +71,14 @@ class BigQueryService():
             print(sql)
         job = self.client.query(sql)
         return job.result()
+
+    def fetch_topics(self):
+        sql = f"""
+            SELECT topic, created_at
+            FROM `{self.dataset_address}.topics`
+            ORDER BY created_at;
+        """
+        return self.execute_query(sql)
 
     def migrate_populate_users(self):
         """
@@ -125,7 +136,7 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def append_user_friends(self, records):
+    def insert_user_friends(self, records):
         """
         Param: records (list of dictionaries)
         """
@@ -186,7 +197,7 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-    def fetch_random_users(self, limit=1000, topic="impeach", start_at="2019-12-02 01:00:00", end_at="2020-03-24 20:00:00"):
+    def fetch_random_users(self, limit=1000, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
         """
         Fetches a random slice of users talking about a given topic during a given timeframe.
 
@@ -214,7 +225,7 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def fetch_retweet_counts(self, topic="impeach", start_at="2019-12-02 01:00:00", end_at="2020-03-24 20:00:00"):
+    def fetch_retweet_counts(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
         """
         Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
             row per user per retweeted user, counting the number of times that user retweeted the other
@@ -247,8 +258,7 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-
-    def fetch_retweet_counts_in_batches(self, topic="impeach", start_at="2019-12-02 01:00:00", end_at="2020-03-24 20:00:00"):
+    def fetch_retweet_counts_in_batches(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
         """
         Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
             row per user per retweeted user, counting the number of times that user retweeted the other
@@ -311,27 +321,15 @@ class BigQueryService():
 
 if __name__ == "__main__":
 
-    service = BigQueryService()
-    print("BIGQUERY DATASET:", service.dataset_address.upper())
-    print("DESTRUCTIVE MIGRATIONS:", service.destructive)
-    print("VERBOSE QUERIES:", service.verbose)
-    if APP_ENV == "development":
-        print("--------------------")
-        if input("CONTINUE? (Y/N): ").upper() != "Y":
-            print("EXITING...")
-            exit()
+    service = BigQueryService.cautiously_initialized()
 
-    #print("--------------------")
-    #print("FETCHING TOPICS...")
-    #sql = f"""
-    #    SELECT topic, created_at
-    #    FROM `{self.dataset_address}.topics`
-    #    ORDER BY created_at;
-    #"""
-    #results = service.execute_query(sql)
-    #for row in results:
-    #    print(row)
-    #    print("---")
+    print("--------------------")
+    print("FETCHING TOPICS...")
+    for row in service.fetch_topics():
+        print("  ", row.topic)
+
+
+    exit()
 
     print("--------------------")
     #print("COUNTING TWEETS AND USERS...")
