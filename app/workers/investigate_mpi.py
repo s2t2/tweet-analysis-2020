@@ -25,12 +25,6 @@ EPSILON = float(os.getenv("EPSILON", default="0.001")) # called "delta" in the p
 RANDOM_SEED = int(os.getenv("RANDOM_SEED", default="0")) # called "delta" in the paper. should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > (lambda00 + lambda11 - 1).
 np.random.seed(RANDOM_SEED)
 
-# class Config:
-#     def __init__(self):
-#         self.mu = MU
-#         ...
-#         self.random_seed = RANDOM_SEED
-
 class ClusterManager:
     def __init__(self):
         self.node_name = MPI.Get_processor_name()
@@ -66,14 +60,58 @@ def mock_weighted_graph():
         graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
     return graph
 
+
+
+def compute_link_data(graph, weight_attr="rt_count"):
+    """
+    Takes as input the RT graph and retrieves information on edges to further build H.
+
+    Params: graph (networkx.DiGraph) a retweet graph with edges like ("user", "retweeted_user", rt_count=10)
+    """
+    edges = graph.edges(data=True)
+    #> OutEdgeDataView([('user1', 'leader1', {'rt_count': 4.0}), ('user2', 'leader1', {'rt_count': 6.0}), ('user3', 'leader2', {'rt_count': 4.0}), ('user4', 'leader2', {'rt_count': 2.0}), ('user5', 'leader3', {'rt_count': 4.0})])
+
+    edge_data = dict(((x,y), z[weight_attr]) for x, y, z in edges)
+    #> {('user1', 'leader1'): 4.0, ('user2', 'leader1'): 6.0, ('user3', 'leader2'): 4.0, ('user4', 'leader2'): 2.0, ('user5', 'leader3'): 4.0}
+
+    link_data = []
+    for e in edge_data:
+            i = e[0]
+            j = e[1]
+
+            rl = False
+            wrl = 0
+
+            if((j,i) in edge_data.keys()):
+                rl = True
+                wrl = edge_data[(j,i)]
+
+            #breakpoint()
+            link_data.append([i,j,True,rl, edge_data[e], wrl])
+
+    #> [['user1', 'leader1', True, False, 4.0, 0], ['user2', 'leader1', True, False, 6.0, 0], ['user3', 'leader2', True, False, 4.0, 0], ['user4', 'leader2', True, False, 2.0, 0], ['user5', 'leader3', True, False, 4.0, 0]]
+    return link_data
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
 
-    manager = ClusterManager()
+    # manager = ClusterManager()
 
-    #counter = 0 # to be compared with N_ITERS
-    #while counter < N_ITERS:
-    #    print("DOING STUFF HERE!")
-    #    counter += 1
+    # counter = 0 # to be compared with N_ITERS
+    # while counter < N_ITERS:
+    #     print("DOING STUFF HERE!")
+    #     counter += 1
 
     weighted_graph = mock_weighted_graph()
 
@@ -97,18 +135,19 @@ if __name__ == "__main__":
     print("OUTGOING RETWEETS")
     print(in_degrees)
 
+    print("----------------------")
+    print("GATHERING LINK DATA...")
 
-
-    #breakpoint()
+    link_data = compute_link_data(weighted_graph)
+    breakpoint()
 
 
 
 exit()
 
 
-print("Starting get link data step")
 
-link_data = getLinkDataRestrained(G0)
+
 
 for n in G0.nodes():
     if n not in graph_in.keys():
