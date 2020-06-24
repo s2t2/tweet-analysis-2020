@@ -14,6 +14,7 @@ psycopg2
 sqlalchemy
 
 mpi4py
+numpy
 
 # formerly known as dev dependencies:
 pytest
