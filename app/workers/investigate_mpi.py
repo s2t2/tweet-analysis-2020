@@ -90,13 +90,9 @@ def compute_link_data(graph, weight_attr="rt_count"):
                 has_reverse_edge = False
                 reverse_edge_weight = 0
 
-            link = [
-                user, retweeted_user,
-                True, has_reverse_edge,
-                edge_weight, reverse_edge_weight
-            ] #> ['user1', 'leader1', True, False, 4.0, 0]
+            link = [user, retweeted_user, True, has_reverse_edge, edge_weight, reverse_edge_weight]
+            #> ['user1', 'leader1', True, False, 4.0, 0] # TODO: prefer to assemble a dict here, for more explicit access later
             links.append(link)
-    #> [['user1', 'leader1', True, False, 4.0, 0], ['user2', 'leader1', True, False, 6.0, 0], ['user3', 'leader2', True, False, 4.0, 0], ['user4', 'leader2', True, False, 2.0, 0], ['user5', 'leader3', True, False, 4.0, 0]]
     return links
 
 
@@ -184,24 +180,17 @@ if __name__ == "__main__":
     in_degree = dict(weighted_graph.in_degree(weight="rt_count")) # sums by number of incoming RTs
     #> InDegreeView({'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0})
     in_degrees = dict(in_degree) # dict((k,v) for k,v in in_degree)
-    print("INCOMING RETWEETS")
+    print("IN-DEGREES", len(in_degrees))
     print(in_degrees)
 
     print("----------------------")
     out_degree = weighted_graph.out_degree(weight="rt_count") # sums by number of outgoing RTs
     #> OutDegreeView({'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0})
     out_degrees = dict(out_degree) # dict((k,v) for k,v in in_degree)
-    print("OUTGOING RETWEETS")
+    print("OUT-DEGREES", len(out_degrees))
     print(in_degrees)
 
-    print("----------------------")
-    print("GATHERING LINK DATA...")
-
-    bidirectional_edge_weights = compute_link_data(weighted_graph)
-    for link in bidirectional_edge_weights:
-        print(link)
-
-
+    # IS THIS NECESSARY?
     print("----------------------")
     print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
     for node in weighted_graph.nodes():
@@ -211,10 +200,23 @@ if __name__ == "__main__":
         if node not in out_degrees.keys():
             print("ADDING NODE TO OUT-DEGREES")
             out_degrees[node] = 0
-    print("IN-DEGREES")
-    print(in_degrees)
-    print("OUT-DEGREES")
-    print(out_degrees)
+    print("IN-DEGREES", len(in_degrees))
+    print("OUT-DEGREES", len(out_degrees))
+
+    print("----------------------")
+    print("GATHERING LINKS...")
+    links = compute_link_data(weighted_graph)
+    for link in links:
+        print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
+
+    print("----------------------")
+    print("COMPUTING ENERGIES...")
+    energies = [(link[0], link[1],
+        compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON)
+    ) for link in links]
+    #print(len(energies))
+    for energy in energies:
+        print(energy) #> ('user1', 'leader1', [0.0, 0, 0.0, 0.0])
 
 
 
@@ -230,9 +232,6 @@ exit()
 
 
 
-
-edgelist_data =[(i[0], i[1], psi(i[0],i[1],i[4],graph_in, graph_out,alpha,alambda1,alambda2,epsilon)) for i in link_data]
-print("tot edgelist", len(edgelist_data))
 
 
 ##ease computations by only keeping edges with non zero weight
