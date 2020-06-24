@@ -180,6 +180,15 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
 ```
 
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_simple_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_simple_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_simple_retweet_grapher
+
+```
+
 #### Graph Analysis
 
 See how much memory it takes to load a given graph:
