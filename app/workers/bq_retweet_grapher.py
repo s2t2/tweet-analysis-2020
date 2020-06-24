@@ -16,10 +16,6 @@ START_AT = os.getenv("START_AT", default="2020-01-01") # On 1/15, The House of R
 END_AT = os.getenv("END_AT", default="2020-01-30")
 
 class BigQueryRetweetGrapher(BigQueryGrapher):
-    """
-    Perhaps more accurately named BigQueryCustomRetweetGrapher.
-    """
-
     def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT, bq_service=None, gcs_service=None):
         super().__init__(bq_service=bq_service, gcs_service=gcs_service)
         self.users_limit = users_limit
