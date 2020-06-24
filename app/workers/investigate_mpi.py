@@ -7,6 +7,8 @@ from mpi4py import MPI
 import numpy as np
 from networkx import DiGraph
 
+#from start.botcode.networkClassifierHELPER import psi as compute_joint_energy
+
 # HYPERPARAMETERS
 
 MU = float(os.getenv("MU", default="1")) # called "gamma" in the paper
@@ -99,6 +101,58 @@ def compute_link_data(graph, weight_attr="rt_count"):
 
 
 
+def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha, alambda1, alambda2, epsilon):
+    """
+    Compute joint energy potential between two users
+
+	Params:
+        u1 (int) ID of user u1
+	    u2 (int) ID of user u2
+	    wlr (int) number of retweets from u1 to u2
+        out_graph (dict of ints) a graph that stores out degrees of accounts in retweet graph
+        in_graph (dict of ints) a graph that stores in degrees of accounts in retweet graph
+        alpha (list of floats) a list containing hyperparams mu, alpha1, alpha2
+        alambda1 (float) value of lambda11
+        alambda2 (float) value of lambda00
+        epsilon (int) exponent such that delta=10^(-espilon), where lambda01=lambda11+lambda00-1+delta
+	"""
+
+    #here alpha is a vector of length three, psi decays according to a logistic sigmoid function
+    val_00 = 0
+    val_01 = 0
+    val_10 = 0
+    val_11 = 0
+
+    if out_graph[u1]==0 or in_graph[u2]==0:
+        print("Relationship problem: "+str(u1)+" --> "+str(u2))
+
+    temp = alpha[1]/float(out_graph[u1])-1 + alpha[2]/float(in_graph[u2])-1
+    if temp <10:
+        val_01 =wlr*alpha[0]/(1+np.exp(temp))
+    else:
+        val_01=0
+
+    val_10 = (alambda2+alambda1-1+epsilon)*val_01
+    val_00 = alambda2*val_01
+    val_11 = alambda1*val_01
+
+    test2 = 0.5*val_11+0.25*(val_10-val_01)
+    test3 = 0.5*val_00+0.25*(val_10-val_01)
+    if(min(test2,test3)<0):
+        print('PB EDGE NEGATIVE')
+        val_00 = val_11 = 0.5*val_01
+
+    if(val_00+val_11>val_01+val_10):
+        print(u1,u2)
+        print('psi01',val_01)
+        print('psi11',val_11)
+        print('psi00',val_00)
+        print('psi10',val_10)
+        print("\n")
+
+    values = [val_00,val_01,val_10,val_11]
+    return values;
+
 
 
 
@@ -148,6 +202,26 @@ if __name__ == "__main__":
         print(link)
 
 
+    print("----------------------")
+    print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
+    for node in weighted_graph.nodes():
+        if node not in in_degrees.keys():
+            print("ADDING NODE TO IN-DEGREES")
+            in_degrees[node] = 0
+        if node not in out_degrees.keys():
+            print("ADDING NODE TO OUT-DEGREES")
+            out_degrees[node] = 0
+    print("IN-DEGREES")
+    print(in_degrees)
+    print("OUT-DEGREES")
+    print(out_degrees)
+
+
+
+
+
+
+
 
 exit()
 
@@ -155,11 +229,7 @@ exit()
 
 
 
-for n in G0.nodes():
-    if n not in graph_in.keys():
-        graph_in[n]=0
-    if n not in graph_out.keys():
-        graph_out[n]=0
+
 
 edgelist_data =[(i[0], i[1], psi(i[0],i[1],i[4],graph_in, graph_out,alpha,alambda1,alambda2,epsilon)) for i in link_data]
 print("tot edgelist", len(edgelist_data))
