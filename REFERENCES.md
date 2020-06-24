@@ -97,3 +97,9 @@ Big PG Data:
 
   + https://mpi4py.readthedocs.io/en/stable/install.html
   + https://mpi4py.readthedocs.io/en/stable/tutorial.html?highlight=comm_world
+  + https://mpi4py.readthedocs.io/en/stable/overview.html?highlight=intracomm#communicators
+
+> In MPI for Python, MPI.Comm is the base class of communicators.
+> The MPI.Intracomm and MPI.Intercomm classes are sublcasses of the MPI.Comm class.
+>
+> The two predefined intracommunicator instances are available: MPI.COMM_SELF and MPI.COMM_WORLD. From them, new communicators can be created as needed.
