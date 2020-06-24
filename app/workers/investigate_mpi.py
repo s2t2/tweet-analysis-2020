@@ -64,33 +64,38 @@ def mock_weighted_graph():
 
 def compute_link_data(graph, weight_attr="rt_count"):
     """
-    Takes as input the RT graph and retrieves information on edges to further build H.
+    Computes the degree to which the users in each edge were retweeting eachother.
 
-    Params: graph (networkx.DiGraph) a retweet graph with edges like ("user", "retweeted_user", rt_count=10)
+    Params: graph (networkx.DiGraph) a retweet graph with edges like: ("user", "retweeted_user", rt_count=10)
     """
     edges = graph.edges(data=True)
     #> OutEdgeDataView([('user1', 'leader1', {'rt_count': 4.0}), ('user2', 'leader1', {'rt_count': 6.0}), ('user3', 'leader2', {'rt_count': 4.0}), ('user4', 'leader2', {'rt_count': 2.0}), ('user5', 'leader3', {'rt_count': 4.0})])
 
-    edge_data = dict(((x,y), z[weight_attr]) for x, y, z in edges)
+    weighted_edges = dict(((x,y), z[weight_attr]) for x, y, z in edges)
     #> {('user1', 'leader1'): 4.0, ('user2', 'leader1'): 6.0, ('user3', 'leader2'): 4.0, ('user4', 'leader2'): 2.0, ('user5', 'leader3'): 4.0}
 
-    link_data = []
-    for e in edge_data:
-            i = e[0]
-            j = e[1]
+    links = []
+    for k in weighted_edges:
+            user = k[0] #> 'user1'
+            retweeted_user = k[1] #> 'leader1'
+            edge_weight = weighted_edges[k] #> 4.0
 
-            rl = False
-            wrl = 0
+            reverse_edge_key = (retweeted_user, user)
+            if(reverse_edge_key in weighted_edges.keys()):
+                has_reverse_edge = True
+                reverse_edge_weight = weighted_edges[reverse_edge_key]
+            else:
+                has_reverse_edge = False
+                reverse_edge_weight = 0
 
-            if((j,i) in edge_data.keys()):
-                rl = True
-                wrl = edge_data[(j,i)]
-
-            #breakpoint()
-            link_data.append([i,j,True,rl, edge_data[e], wrl])
-
+            link = [
+                user, retweeted_user,
+                True, has_reverse_edge,
+                edge_weight, reverse_edge_weight
+            ] #> ['user1', 'leader1', True, False, 4.0, 0]
+            links.append(link)
     #> [['user1', 'leader1', True, False, 4.0, 0], ['user2', 'leader1', True, False, 6.0, 0], ['user3', 'leader2', True, False, 4.0, 0], ['user4', 'leader2', True, False, 2.0, 0], ['user5', 'leader3', True, False, 4.0, 0]]
-    return link_data
+    return links
 
 
 
@@ -116,8 +121,8 @@ if __name__ == "__main__":
     weighted_graph = mock_weighted_graph()
 
     print("----------------------")
-    screen_names = list(weighted_graph.nodes) #> ["user1", "user2", "user3", etc.]
-    bot_probabilities = dict.fromkeys(screen_names, 0.5) # no priors, set all at 0.5!
+    nodes = list(weighted_graph.nodes) #> ["user1", "user2", "user3", etc.]
+    bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
     print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
     print(bot_probabilities)
 
@@ -138,8 +143,9 @@ if __name__ == "__main__":
     print("----------------------")
     print("GATHERING LINK DATA...")
 
-    link_data = compute_link_data(weighted_graph)
-    breakpoint()
+    bidirectional_edge_weights = compute_link_data(weighted_graph)
+    for link in bidirectional_edge_weights:
+        print(link)
 
 
 
