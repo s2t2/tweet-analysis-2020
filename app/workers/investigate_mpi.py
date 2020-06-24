@@ -5,6 +5,7 @@ import os
 
 from mpi4py import MPI
 import numpy as np
+from networkx import DiGraph
 
 # HYPERPARAMETERS
 
@@ -39,56 +40,71 @@ class ClusterManager:
 
         print("----------------------")
         print("CLUSTER MANAGER")
-        print("----------------------")
-        print(self.intracomm) #> <mpi4py.MPI.Intracomm object at 0x10ed94a70>
+        #print("----------------------")
+        #print(self.intracomm) #> <mpi4py.MPI.Intracomm object at 0x10ed94a70>
         #print(dict(self.intracomm.info)) #> {'mpi_assert_no_any_source': 'false', 'mpi_assert_allow_overtaking': 'false'}
-        print("----------------------")
-        print("NODE NAME:", self.node_name) #> 'MJs-MacBook-Air.local'
-        print("NODE RANK:", self.node_rank) #> 0
-        print("CLUSTER SIZE:", self.cluster_size) #> 1
-        print("MAIN NODE?:", self.is_main_node) #> True
+        #print("----------------------")
+        print("   NODE NAME:", self.node_name) #> 'MJs-MacBook-Air.local'
+        print("   NODE RANK:", self.node_rank) #> 0
+        print("   CLUSTER SIZE:", self.cluster_size) #> 1
+        print("   MAIN NODE?:", self.is_main_node) #> True
 
     @property
     def is_main_node(self):
         return self.node_rank + 1 == self.cluster_size
 
+def mock_weighted_graph():
+    graph = DiGraph()
+    rows = [
+        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
+        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
+        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
+        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 2},
+        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 4}
+    ]
+    for row in rows:
+        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
+    return graph
 
 if __name__ == "__main__":
 
     manager = ClusterManager()
 
-    screen_names = ["user1", "user2", "user3"] # TODO: fetch via graph.nodes
+    #counter = 0 # to be compared with N_ITERS
+    #while counter < N_ITERS:
+    #    print("DOING STUFF HERE!")
+    #    counter += 1
+
+    weighted_graph = mock_weighted_graph()
+
+    print("----------------------")
+    screen_names = list(weighted_graph.nodes) #> ["user1", "user2", "user3", etc.]
     bot_probabilities = dict.fromkeys(screen_names, 0.5) # no priors, set all at 0.5!
-    print(bot_probabilities) #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
+    print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
+    print(bot_probabilities)
 
-    counter = 0 # to be compared with N_ITERS
-    while counter < N_ITERS:
-        print("DOING STUFF HERE!")
-        counter += 1
+    print("----------------------")
+    in_degree = dict(weighted_graph.in_degree(weight="rt_count")) # sums by number of incoming RTs
+    #> InDegreeView({'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0})
+    in_degrees = dict(in_degree) # dict((k,v) for k,v in in_degree)
+    print("INCOMING RETWEETS")
+    print(in_degrees)
+
+    print("----------------------")
+    out_degree = weighted_graph.out_degree(weight="rt_count") # sums by number of outgoing RTs
+    #> OutDegreeView({'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0})
+    out_degrees = dict(out_degree) # dict((k,v) for k,v in in_degree)
+    print("OUTGOING RETWEETS")
+    print(in_degrees)
 
 
 
-
+    #breakpoint()
 
 
 
 exit()
 
-
-
-
-
-inDeg = G0.in_degree(weight='weight')
-if(type(inDeg)!=dict):
-    graph_in = dict((x,y) for x, y in inDeg)
-else:
-    graph_in = inDeg
-
-outDeg = G0.out_degree(weight='weight')
-if(type(outDeg)!=dict):
-    graph_out = dict((x,y) for x, y in outDeg)
-else :
-    graph_out = outDeg
 
 print("Starting get link data step")
 
