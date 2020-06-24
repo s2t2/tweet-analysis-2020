@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from google.cloud import bigquery
 
 from app import APP_ENV
+from app.workers import fmt_n
 
 load_dotenv()
 
@@ -118,6 +119,11 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
+
+    #
+    # COLLECTING USER FRIENDS
+    #
+
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
         sql = f"""
@@ -145,6 +151,31 @@ class BigQueryService():
         #if any(rows_to_insert):
         errors = self.client.insert_rows(self.user_friends_table, rows_to_insert)
         return errors
+
+    def user_friend_collection_progress(self):
+        sql = f"""
+        SELECT
+            count(distinct user_id) as user_count
+            ,round(avg(runtime_seconds), 2) as avg_duration
+            ,round(sum(has_friends) / count(distinct user_id), 2) as pct_friendly
+            ,round(avg(CASE WHEN has_friends = 1 THEN runtime_seconds END), 2) as avg_duration_friendly
+            ,round(avg(CASE WHEN has_friends = 1 THEN friend_count END), 2) as avg_friends_friendly
+        FROM (
+            SELECT
+                user_id
+                ,friend_count
+                ,if(friend_count > 0, 1, 0) as has_friends
+                ,start_at
+                ,end_at
+                ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
+            FROM `{service.dataset_address}.user_friends`
+        ) subq
+        """
+        return self.execute_query(sql)
+
+    #
+    # CONSTRUCTING NETWORK GRAPHS
+    #
 
     def fetch_user_friends(self, min_id=None, max_id=None, limit=None):
         sql = f"""
@@ -324,74 +355,31 @@ if __name__ == "__main__":
     service = BigQueryService.cautiously_initialized()
 
     print("--------------------")
-    print("FETCHING TOPICS...")
-    for row in service.fetch_topics():
-        print("  ", row.topic)
+    print("FETCHED TOPICS:")
+    print([row.topic for row in service.fetch_topics()])
 
-
-    exit()
+    sql = f"SELECT count(distinct status_id) as tweet_count FROM `{service.dataset_address}.tweets`"
+    results = service.execute_query(sql)
+    print("--------------------")
+    tweet_count = list(results)[0].tweet_count
+    print(f"FETCHED {fmt_n(tweet_count)} TWEETS")
 
     print("--------------------")
-    #print("COUNTING TWEETS AND USERS...")
-    sql = f"""
-        SELECT
-            count(distinct status_id) as tweet_count
-            ,count(distinct user_id) as user_count
-        FROM `{service.dataset_address}.tweets`
-    """
+    sql = f"SELECT count(distinct user_id) as user_count FROM `{service.dataset_address}.tweets`"
     results = service.execute_query(sql)
-    first_row = list(results)[0]
-    user_count = first_row.user_count
-    print(f"TWEETS: {first_row.tweet_count:,}") # formatting with comma separators for large numbers
-    print(f"USERS: {user_count:,}") # formatting with comma separators for large numbers
+    user_count = list(results)[0].user_count
+    print(f"FETCHED {fmt_n(user_count)} USERS")
 
-    #print("--------------------")
-    #print("FETCHING LATEST TWEETS...")
-    #sql = f"""
-    #    SELECT
-    #        status_id, status_text, geo, created_at,
-    #        user_id, user_screen_name, user_description, user_location, user_verified
-    #    FROM `{service.dataset_address}.tweets`
-    #    ORDER BY created_at DESC
-    #    LIMIT 3
-    #"""
-    #results = service.execute_query(sql)
-    #for row in results:
-    #    print(row)
-    #    print("---")
-
-    service.init_tables()
-
-    sql = f"""
-    SELECT
-        count(distinct user_id) as user_count
-        ,round(avg(runtime_seconds), 2) as avg_duration
-        ,round(sum(has_friends) / count(distinct user_id), 2) as pct_friendly
-        ,round(avg(CASE WHEN has_friends = 1 THEN runtime_seconds END), 2) as avg_duration_friendly
-        ,round(avg(CASE WHEN has_friends = 1 THEN friend_count END), 2) as avg_friends_friendly
-    FROM (
-        SELECT
-            user_id
-            ,friend_count
-            ,if(friend_count > 0, 1, 0) as has_friends
-            ,start_at
-            ,end_at
-            ,DATETIME_DIFF(CAST(end_at as DATETIME), cast(start_at as DATETIME), SECOND) as runtime_seconds
-        FROM `{service.dataset_address}.user_friends`
-    ) subq
-    """
-    results = service.execute_query(sql)
+    results = service.user_friend_collection_progress()
     row = list(results)[0]
-    #print(dict(row))
-
     collected_count = row.user_count
     pct = collected_count / user_count
-    print("--------------------")
-    print("USERS COLLECTED:", collected_count)
-    print("  PCT COLLECTED:", f"{(pct * 100):.1f}%")
-    print("  AVG DURATION:", row.avg_duration)
+    #print("--------------------")
+    #print("USERS COLLECTED:", collected_count)
+    #print("  PCT COLLECTED:", f"{(pct * 100):.1f}%")
+    #print("  AVG DURATION:", row.avg_duration)
     if collected_count > 0:
         print("--------------------")
         print(f"USERS WITH FRIENDS: {row.pct_friendly * 100}%")
         print("  AVG FRIENDS:", round(row.avg_friends_friendly))
-        print("  AVG DURATION:", row.avg_duration_friendly)
+        #print("  AVG DURATION:", row.avg_duration_friendly)
