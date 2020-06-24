@@ -54,16 +54,7 @@ class BigQueryRetweetGrapher(BigQueryGrapher):
         self.graph = DiGraph()
         self.running_results = []
 
-        users = list(self.bq_service.fetch_random_users(
-            limit=self.users_limit,
-            topic=self.topic,
-            start_at=self.convo_start_at,
-            end_at=self.convo_end_at
-        ))
-        print("FETCHED", len(users), "USERS")
-        screen_names = sorted([row["user_screen_name"] for row in users])
-
-        for row in self.bq_service.fetch_specific_retweet_counts(screen_names=screen_names):
+        for row in self.bq_service.fetch_retweet_counts_in_batches(topic=self.topic, start_at=self.convo_start_at, end_at=self.convo_end_at):
             # see: https://networkx.github.io/documentation/stable/reference/classes/generated/networkx.DiGraph.add_edge.html#networkx.DiGraph.add_edge
             self.graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=row["retweet_count"])
 

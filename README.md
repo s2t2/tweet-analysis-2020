@@ -170,22 +170,11 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that:
 
 ```sh
-# assemble neutral conversation graph:
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
 
-# assemble right-leaning conversation graph:
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
 
-# assemble left-leaning conversation graph:
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
-```
-
-```sh
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_simple_retweet_grapher
-
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_simple_retweet_grapher
-
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_simple_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
 
 ```
 
