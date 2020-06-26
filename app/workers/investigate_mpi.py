@@ -64,7 +64,7 @@ def mock_weighted_graph():
 
 
 
-def compute_link_data(graph, weight_attr="rt_count"):
+def parse_bidirectional_links(graph, weight_attr="rt_count"):
     """
     Computes the degree to which the users in each edge were retweeting eachother.
 
@@ -100,6 +100,7 @@ def compute_link_data(graph, weight_attr="rt_count"):
 def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha, alambda1, alambda2, epsilon):
     """
     Compute joint energy potential between two users
+    This is an unchanged copy of a function from the botcode directory.
 
 	Params:
         u1 (int) ID of user u1
@@ -190,53 +191,47 @@ if __name__ == "__main__":
     print("OUT-DEGREES", len(out_degrees))
     print(in_degrees)
 
-    # IS THIS NECESSARY?
-    print("----------------------")
-    print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
-    for node in weighted_graph.nodes():
-        if node not in in_degrees.keys():
-            print("ADDING NODE TO IN-DEGREES")
-            in_degrees[node] = 0
-        if node not in out_degrees.keys():
-            print("ADDING NODE TO OUT-DEGREES")
-            out_degrees[node] = 0
-    print("IN-DEGREES", len(in_degrees))
-    print("OUT-DEGREES", len(out_degrees))
+    ## IS THIS NECESSARY?
+    #print("----------------------")
+    #print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
+    #for node in weighted_graph.nodes():
+    #    if node not in in_degrees.keys():
+    #        print("ADDING NODE TO IN-DEGREES")
+    #        in_degrees[node] = 0
+    #    if node not in out_degrees.keys():
+    #        print("ADDING NODE TO OUT-DEGREES")
+    #        out_degrees[node] = 0
+    #print("IN-DEGREES", len(in_degrees))
+    #print("OUT-DEGREES", len(out_degrees))
 
     print("----------------------")
     print("GATHERING LINKS...")
-    links = compute_link_data(weighted_graph)
+    links = parse_bidirectional_links(weighted_graph)
     for link in links:
         print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
 
     print("----------------------")
     print("COMPUTING ENERGIES...")
-    energies = [(link[0], link[1],
+    energies = [(
+        link[0],
+        link[1],
         compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON)
     ) for link in links]
     #print(len(energies))
     for energy in energies:
         print(energy) #> ('user1', 'leader1', [0.0, 0, 0.0, 0.0])
 
+    # ease computations by only keeping edges with non zero weight
+    print("----------------------")
+    weighty_energies = [e for e in energies if sum(e[2]) > 0]
+    print("ENERGIES WITH POSITIVE BIDIRECTIONAL WEIGHTS:",  len(weighty_energies))
+    for we in weighty_energies:
+        print(we)
 
-
-
-
-
-
+    # TODO: update dataset to include some reverse RTs to get some energies to use at this point!
 
 exit()
 
-
-
-
-
-
-
-
-##ease computations by only keeping edges with non zero weight
-edgelist_data = [t for t in edgelist_data if sum(t[2]) > 0]
-print("only > 0 edgelist", len(edgelist_data))
 
 H, PL, user_data = computeH(G0, piBot, edgelist_data, graph_out, graph_in)
 print(rank, 'completed graph cut, send it to children')
