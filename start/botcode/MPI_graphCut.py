@@ -32,7 +32,7 @@ alpha1 = float(sys.argv[2]) ##alpha_1 in the paper
 alpha2 = float(sys.argv[3]) ##alpha_2 in the paper
 iterations = int( sys.argv[4]) ##number of iterations (=1 cut/classify iteration in paper)
 db = sys.aragv[5] ##name of the database/event studied (must match the DB_NAME name in RT_grahs/DB_NAME_G0_RT_GRAPH.csv)
-mode = sys.argv[6] ##choose the prior to use : no prior, botometer scores, random scores, verified accounts, friends/fol ratio/score
+mode = sys.argv[6] ##choose the prior to use : no prior, botometer scores, random scores, verified accounts, friends/fol ratio/score 
 alambda1 = float(sys.argv[7]) ##lamba11 parameter in paper, chosen equal to 0.8
 alambda2 = float(sys.argv[8])##lambda00 parameter in paper, chose equal to  0.6
 epsilon = 10**(-float(sys.argv[9]))##named delta in paper, should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > to lambda00+lambda11-1.
@@ -65,7 +65,7 @@ totUsers = len(all_users)
 batch_size = int(totUsers/(nproc-1))
 
 if(rank !=nproc-1):
-	countC = 0
+	countC = 0 
 	while(True and countC < iterations):
 
 		local_piBot={}
@@ -74,17 +74,17 @@ if(rank !=nproc-1):
 		PL=[int(i) for i in readCustomFile('./'+db+'_subGraphs/PL_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'.csv')]
 		H=readCSVFile_H('./'+db+'_subGraphs/H_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_'+str(0)+'.csv')
 		if(rank<nproc-2):
-			subUsers = all_users[rank*batch_size:(rank+1)*batch_size]
+			subUsers = all_users[rank*batch_size:(rank+1)*batch_size] 
 		else :
-			subUsers = all_users[rank*batch_size:]
+			subUsers = all_users[rank*batch_size:] 
 
 		print(rank, 'gotya, I have ', len(subUsers), ' accounts to compute')
 		count=0
 		for node in subUsers:
-			neighbors=list(np.unique([i for i in nx.all_neighbors(H,node) if i not in [0,1]]))
-			ebots=list(np.unique(np.intersect1d(neighbors,PL)))
-			ehumans=list(set(neighbors)-set(ebots))
-			psi_l= sum([H[node][j]['capacity'] for j in ehumans])- sum([H[node][i]['capacity'] for i in ebots])
+			neighbors=list(np.unique([i for i in nx.all_neighbors(H,node) if i not in [0,1]])) 
+			ebots=list(np.unique(np.intersect1d(neighbors,PL))) 
+			ehumans=list(set(neighbors)-set(ebots)) 
+			psi_l= sum([H[node][j]['capacity'] for j in ehumans])- sum([H[node][i]['capacity'] for i in ebots]) 
 			psi_l_bis= psi_l + H[node][0]['capacity'] - H[1][node]['capacity'] ##proba to be in 1 = notPL
 
 			if (psi_l_bis)>12:
@@ -100,7 +100,7 @@ if(rank !=nproc-1):
 
 ##master processor first sends cut info, then aggregates results of local pibots from other processors
 if(rank==nproc-1):
-
+	
 	np.random.seed(SEED)
 	countP=0
 	piBot = dict.fromkeys(all_users,0.5)
@@ -112,13 +112,13 @@ if(rank==nproc-1):
 	##use botometer scores
 	if(mode=='boto'):
 		boto = readCustomDic_Pibot('botometer_scores/'+db+'_fullBotometer_piBots.csv')
-		med = np.median(list(boto.values()))
+		med = np.median(list(boto.values()))	
 
 		for i in piBot:
 			if(i in boto):
 				piBot[i]=boto[i]
 			else:
-				piBot[i]=med
+				piBot[i]=med		
 
 
 	##random priors
@@ -129,10 +129,10 @@ if(rank==nproc-1):
 	elif(mode=='random_gauss'):
 		rand=np.random.normal(0.5,0.1,len(piBot))
 		piBot=dict(zip(all_users,rand))
-
-	##############################
+	
+	##############################	
 	###### Perform the cut ######
-	##############################
+	##############################	
 	while(True and countP < iterations):
 
 		inDeg = G0.in_degree(weight='weight')
@@ -164,7 +164,7 @@ if(rank==nproc-1):
 		##ease computations by only keeping edges with non zero weight
 		edgelist_data = [t for t in edgelist_data if sum(t[2]) > 0]
 		print("only > 0 edgelist", len(edgelist_data))
-
+		
 		H, PL, user_data = computeH(G0, piBot, edgelist_data, graph_out, graph_in)
 		print(rank, 'completed graph cut, send it to children')
 		writeCSVFile('./'+db+'_subGraphs/PL_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'.csv',PL)
@@ -196,11 +196,28 @@ if(rank==nproc-1):
 		for d in gather:
 			for user in d:
 				piBot[user] = d[user]
-
+		
 		##write result of aggregation. Clustering= hard score, piBot= continuous score between 0 and 1 (pick threshold)
 		writeCSVFile_piBot('./network_piBots_'+db+'/ntwk_piBot_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_iteration_'+str(countP)+'_SEED_'+str(SEED)+'.csv', piBot)
 		#writeCSVFile_piBot('./network_piBots_'+db+'/ntwk_clustering_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_iteration_'+str(countP)+'.csv', clustering)
 		countP += 1
-
+		
 
 MPI.Finalize()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
