@@ -126,7 +126,7 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
         val_01 = rt_count * alpha[0] / (1 + np.exp(temp))
     else:
         val_01 = 0
-    print("VAL 01:", val_01) #> 0
+    print("VAL:", val_01) #> 0
 
 
 
