@@ -10,24 +10,6 @@ from networkx import DiGraph
 
 from app.botcode import parse_bidirectional_links, compute_joint_energy
 
-# HYPERPARAMETERS
-
-MU = float(os.getenv("MU", default="1")) # called "gamma" in the paper
-ALPHA_1 = float(os.getenv("ALPHA_1", default="100"))
-ALPHA_2 = float(os.getenv("ALPHA_2", default="100"))
-ALPHA = [MU, ALPHA_1, ALPHA_2]
-
-N_ITERS = int(os.getenv("N_ITERS", default="1"))
-DIRNAME = os.getenv("DIRNAME", default="impeachment-dev")
-PRIORS_MODE = os.getenv("PRIORS_MODE", default="normal") # should be one of ["boto", "random_unif", "random_gaus"]
-
-LAMBDA_1 = float(os.getenv("LAMBDA_1", default="0.8")) # called "lamba11" in the paper
-LAMBDA_2 = float(os.getenv("LAMBDA_2", default="0.6")) # called "lambda00" in the paper
-EPSILON = float(os.getenv("EPSILON", default="0.001")) # called "delta" in the paper. should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > (lambda00 + lambda11 - 1).
-
-RANDOM_SEED = int(os.getenv("RANDOM_SEED", default="0")) # called "delta" in the paper. should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > (lambda00 + lambda11 - 1).
-np.random.seed(RANDOM_SEED)
-
 class ClusterManager:
     def __init__(self):
         self.node_name = MPI.Get_processor_name()
@@ -150,37 +132,40 @@ if __name__ == "__main__":
 
     print("----------------------")
     print("COMPUTING ENERGIES...")
+
     energies = [(
         link[0],
         link[1],
-        compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON)
+        compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees)
     ) for link in links]
     pprint(energies)
-    assert energies == [
-        ('user1', 'leader1', [0.0, 0, 0.0, 0.0]),
-        ('user1', 'colead1', [0.0, 0, 0.0, 0.0]),
-        ('user2', 'leader1', [0.0, 0, 0.0, 0.0]),
-        ('user2', 'colead1', [0.0, 0, 0.0, 0.0]),
-        ('user3', 'leader2', [0.0, 0, 0.0, 0.0]),
-        ('user3', 'colead3', [0.0, 0, 0.0, 0.0]),
-        ('user4', 'leader2', [0.0, 0, 0.0, 0.0]),
-        ('user4', 'colead3', [0.0, 0, 0.0, 0.0]),
-        ('user5', 'leader3', [0.0, 0, 0.0, 0.0]),
-        ('user5', 'colead4', [0.0, 0, 0.0, 0.0]),
-        ('colead1', 'colead2', [0.0, 0, 0.0, 0.0]),
-        ('colead2', 'colead1', [0.0, 0, 0.0, 0.0]),
-        ('colead3', 'colead4', [0.0, 0, 0.0, 0.0]),
-        ('colead4', 'colead3', [0.0, 0, 0.0, 0.0])
-    ]
-
-    breakpoint()
+    # assert energies == [
+    #     ('user1', 'leader1', [0.0, 0, 0.0, 0.0]),
+    #     ('user1', 'colead1', [0.0, 0, 0.0, 0.0]),
+    #     ('user2', 'leader1', [0.0, 0, 0.0, 0.0]),
+    #     ('user2', 'colead1', [0.0, 0, 0.0, 0.0]),
+    #     ('user3', 'leader2', [0.0, 0, 0.0, 0.0]),
+    #     ('user3', 'colead3', [0.0, 0, 0.0, 0.0]),
+    #     ('user4', 'leader2', [0.0, 0, 0.0, 0.0]),
+    #     ('user4', 'colead3', [0.0, 0, 0.0, 0.0]),
+    #     ('user5', 'leader3', [0.0, 0, 0.0, 0.0]),
+    #     ('user5', 'colead4', [0.0, 0, 0.0, 0.0]),
+    #     ('colead1', 'colead2', [0.0, 0, 0.0, 0.0]),
+    #     ('colead2', 'colead1', [0.0, 0, 0.0, 0.0]),
+    #     ('colead3', 'colead4', [0.0, 0, 0.0, 0.0]),
+    #     ('colead4', 'colead3', [0.0, 0, 0.0, 0.0])
+    # ]
 
     # ease computations by only keeping edges with non zero weight
     print("----------------------")
     weighty_energies = [e for e in energies if sum(e[2]) > 0]
-    print("ENERGIES WITH POSITIVE BIDIRECTIONAL WEIGHTS:",  len(weighty_energies))
-    for we in weighty_energies:
-        print(we)
+    print("ENERGIES WITH POSITIVE BIDIRECTIONAL WEIGHTS...")
+    print(len(weighty_energies))
+    pprint(weighty_energies)
+    #for we in weighty_energies:
+    #    print(we)
+
+    #breakpoint()
 
     # TODO: update dataset to include some reverse RTs to get some energies to use at this point!
 

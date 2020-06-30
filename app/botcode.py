@@ -1,4 +1,28 @@
 
+import os
+
+from dotenv import load_dotenv
+import numpy as np
+
+# load_dotenv()
+
+# HYPERPARAMETERS
+
+MU = float(os.getenv("MU", default="1")) # called "gamma" in the paper
+ALPHA_1 = float(os.getenv("ALPHA_1", default="100"))
+ALPHA_2 = float(os.getenv("ALPHA_2", default="100"))
+ALPHA = [MU, ALPHA_1, ALPHA_2]
+
+N_ITERS = int(os.getenv("N_ITERS", default="1"))
+DIRNAME = os.getenv("DIRNAME", default="impeachment-dev")
+PRIORS_MODE = os.getenv("PRIORS_MODE", default="normal") # should be one of ["boto", "random_unif", "random_gaus"]
+
+LAMBDA_1 = float(os.getenv("LAMBDA_1", default="0.8")) # called "lamba11" in the paper
+LAMBDA_2 = float(os.getenv("LAMBDA_2", default="0.6")) # called "lambda00" in the paper
+EPSILON = float(os.getenv("EPSILON", default="0.001")) # called "delta" in the paper. should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > (lambda00 + lambda11 - 1).
+
+RANDOM_SEED = int(os.getenv("RANDOM_SEED", default="0"))
+np.random.seed(RANDOM_SEED)
 
 def parse_bidirectional_links(graph, weight_attr="rt_count"):
     """
@@ -45,9 +69,7 @@ def parse_bidirectional_links(graph, weight_attr="rt_count"):
             links.append(link)
     return links
 
-
-
-def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha, alambda1, alambda2, epsilon):
+def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha=ALPHA, alambda1=LAMBDA_1, alambda2=LAMBDA_2, epsilon=EPSILON):
     """
     Computes joint energy potential between two users.
 
