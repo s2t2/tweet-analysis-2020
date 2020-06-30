@@ -2,6 +2,7 @@
 
 
 import os
+from pprint import pprint
 
 from mpi4py import MPI
 import numpy as np
@@ -52,11 +53,23 @@ class ClusterManager:
 def mock_weighted_graph():
     graph = DiGraph()
     rows = [
+        # add some examples of users retweeting others:
         {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
         {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
         {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
         {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 2},
-        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 4}
+        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 4},
+        # add some examples of users retweeting eachother:
+        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 3},
+        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 2},
+        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 1},
+        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 4},
+        # and users tweeting them as well:
+        {"user_screen_name": "user1", "retweet_user_screen_name": "colead1", "retweet_count": 4},
+        {"user_screen_name": "user2", "retweet_user_screen_name": "colead1", "retweet_count": 6},
+        {"user_screen_name": "user3", "retweet_user_screen_name": "colead3", "retweet_count": 4},
+        {"user_screen_name": "user4", "retweet_user_screen_name": "colead3", "retweet_count": 2},
+        {"user_screen_name": "user5", "retweet_user_screen_name": "colead4", "retweet_count": 4},
     ]
     for row in rows:
         graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
@@ -85,13 +98,17 @@ if __name__ == "__main__":
     in_degrees = dict(in_degree) # dict((k,v) for k,v in in_degree)
     print("IN-DEGREES", len(in_degrees))
     print(in_degrees)
+    assert in_degrees == {'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0, 'colead1': 12.0, 'colead2': 3.0, 'colead3': 10.0, 'colead4': 5.0}
+    assert len(in_degrees) == 12
 
     print("----------------------")
     out_degree = weighted_graph.out_degree(weight="rt_count") # sums by number of outgoing RTs
     #> OutDegreeView({'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0})
     out_degrees = dict(out_degree) # dict((k,v) for k,v in in_degree)
     print("OUT-DEGREES", len(out_degrees))
-    print(in_degrees)
+    print(out_degrees)
+    assert out_degrees == {'user1': 8.0, 'leader1': 0, 'user2': 12.0, 'user3': 8.0, 'leader2': 0, 'user4': 4.0, 'user5': 8.0, 'leader3': 0, 'colead1': 3.0, 'colead2': 2.0, 'colead3': 1.0, 'colead4': 4.0}
+    assert len(out_degrees) == 12
 
     # IS THIS NECESSARY?
     print("----------------------")
@@ -103,14 +120,33 @@ if __name__ == "__main__":
         if node not in out_degrees.keys():
             print("ADDING NODE TO OUT-DEGREES")
             out_degrees[node] = 0
-    print("IN-DEGREES", len(in_degrees))
-    print("OUT-DEGREES", len(out_degrees))
+    print("IN-DEGREES:", len(in_degrees))
+    print("OUT-DEGREES:", len(out_degrees))
+    assert len(in_degrees) == 12
+    assert len(out_degrees) == 12
 
     print("----------------------")
     print("GATHERING LINKS...")
     links = parse_bidirectional_links(weighted_graph)
-    for link in links:
-        print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
+    pprint(links)
+    #for link in links:
+    #    print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
+    assert links == [
+        ['user1', 'leader1', True, False, 4.0, 0],
+        ['user1', 'colead1', True, False, 4.0, 0],
+        ['user2', 'leader1', True, False, 6.0, 0],
+        ['user2', 'colead1', True, False, 6.0, 0],
+        ['user3', 'leader2', True, False, 4.0, 0],
+        ['user3', 'colead3', True, False, 4.0, 0],
+        ['user4', 'leader2', True, False, 2.0, 0],
+        ['user4', 'colead3', True, False, 2.0, 0],
+        ['user5', 'leader3', True, False, 4.0, 0],
+        ['user5', 'colead4', True, False, 4.0, 0],
+        ['colead1', 'colead2', True, True, 3.0, 2.0],
+        ['colead2', 'colead1', True, True, 2.0, 3.0],
+        ['colead3', 'colead4', True, True, 1.0, 4.0],
+        ['colead4', 'colead3', True, True, 4.0, 1.0]
+    ]
 
     print("----------------------")
     print("COMPUTING ENERGIES...")
@@ -119,9 +155,25 @@ if __name__ == "__main__":
         link[1],
         compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON)
     ) for link in links]
-    #print(len(energies))
-    for energy in energies:
-        print(energy) #> ('user1', 'leader1', [0.0, 0, 0.0, 0.0])
+    pprint(energies)
+    assert energies == [
+        ('user1', 'leader1', [0.0, 0, 0.0, 0.0]),
+        ('user1', 'colead1', [0.0, 0, 0.0, 0.0]),
+        ('user2', 'leader1', [0.0, 0, 0.0, 0.0]),
+        ('user2', 'colead1', [0.0, 0, 0.0, 0.0]),
+        ('user3', 'leader2', [0.0, 0, 0.0, 0.0]),
+        ('user3', 'colead3', [0.0, 0, 0.0, 0.0]),
+        ('user4', 'leader2', [0.0, 0, 0.0, 0.0]),
+        ('user4', 'colead3', [0.0, 0, 0.0, 0.0]),
+        ('user5', 'leader3', [0.0, 0, 0.0, 0.0]),
+        ('user5', 'colead4', [0.0, 0, 0.0, 0.0]),
+        ('colead1', 'colead2', [0.0, 0, 0.0, 0.0]),
+        ('colead2', 'colead1', [0.0, 0, 0.0, 0.0]),
+        ('colead3', 'colead4', [0.0, 0, 0.0, 0.0]),
+        ('colead4', 'colead3', [0.0, 0, 0.0, 0.0])
+    ]
+
+    breakpoint()
 
     # ease computations by only keeping edges with non zero weight
     print("----------------------")

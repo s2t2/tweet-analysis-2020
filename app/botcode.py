@@ -65,6 +65,8 @@ def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha, alambda1, alam
         epsilon (int) exponent such that delta=10^(-espilon), where lambda01=lambda11+lambda00-1+delta
 	"""
 
+    #breakpoint()
+
     #here alpha is a vector of length three, psi decays according to a logistic sigmoid function
     val_00 = 0
     val_01 = 0
