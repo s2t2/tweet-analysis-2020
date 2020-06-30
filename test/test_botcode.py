@@ -49,5 +49,8 @@ def test_bidirectional_energy():
     user2 = link[1] #> 'colead2'
     rt_count = link[4] #> 3.0
 
-    energy = compute_joint_energy(user1, user2, rt_count, in_degrees, out_degrees)
+    energy = compute_joint_energy(user1, user2, rt_count, in_degrees, out_degrees, alambda1=100, alambda2=100)
+    assert sum(energy) == 0
+
+    energy = compute_joint_energy(user1, user2, rt_count, in_degrees, out_degrees, alambda1=10, alambda2=10)
     assert sum(energy) > 0 # right now this is failing.
