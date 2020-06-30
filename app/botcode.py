@@ -69,7 +69,7 @@ def parse_bidirectional_links(graph, weight_attr="rt_count"):
             links.append(link)
     return links
 
-def compute_joint_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alambda1=LAMBDA_1, alambda2=LAMBDA_2, epsilon=EPSILON):
+def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alambda1=LAMBDA_1, alambda2=LAMBDA_2, epsilon=EPSILON):
     """
     Computes joint energy potential between two users.
 

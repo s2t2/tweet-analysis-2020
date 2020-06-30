@@ -8,7 +8,7 @@ from mpi4py import MPI
 import numpy as np
 from networkx import DiGraph
 
-from app.botcode import parse_bidirectional_links, compute_joint_energy
+from app.botcode import parse_bidirectional_links, compute_link_energy
 
 class ClusterManager:
     def __init__(self):
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     energies = [(
         link[0],
         link[1],
-        compute_joint_energy(link[0], link[1], link[4], in_degrees, out_degrees)
+        compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)
     ) for link in links]
     pprint(energies)
     # assert energies == [

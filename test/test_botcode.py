@@ -1,7 +1,7 @@
 
+from networkx import DiGraph
 
-
-from app.botcode import compute_joint_energy, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON
+from app.botcode import compute_link_energy, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON
 
 def test_hyperparams():
     # should match the default values described in the botcode README file
@@ -10,47 +10,70 @@ def test_hyperparams():
     assert LAMBDA_2 == 0.6
     assert EPSILON == 0.001
 
-# users receiving retweets
-in_degrees = {
-    'user1': 0,
-    'leader1': 10.0,
-    'user2': 0,
-    'user3': 0,
-    'leader2': 6.0,
-    'user4': 0,
-    'user5': 0,
-    'leader3': 4.0,
-    'colead1': 12.0,
-    'colead2': 3.0,
-    'colead3': 10.0,
-    'colead4': 5.0
-}
+def compile_mock_rt_graph(edge_list):
+    """
+    Param edge_list (list of dict) like:
+        [
+            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
+            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
+            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
+        ]
+    """
+    graph = DiGraph()
+    for row in edge_list:
+        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
+    return graph
 
-# users doing the retweeting
-out_degrees = {
-    'user1': 8.0,
-    'leader1': 0,
-    'user2': 12.0,
-    'user3': 8.0,
-    'leader2': 0,
-    'user4': 4.0,
-    'user5': 8.0,
-    'leader3': 0,
-    'colead1': 3.0,
-    'colead2': 2.0,
-    'colead3': 1.0,
-    'colead4': 4.0
-}
+def test_sigmoid_nonactivation():
+    # if there aren't a sufficient number of retweets, given the hyperparams,
+    # ... the function shouldn't activate
+    # ... and the energies shouldn't be positive
+    mock_edges = [
+        # add some examples of users retweeting others:
+        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
+        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
+        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
+        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 2},
+        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 4},
+        # add some examples of users retweeting eachother:
+        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 3},
+        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 2},
+        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 1},
+        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 4}
+    ]
+    graph = compile_mock_rt_graph(mock_edges)
+    in_degrees = dict(graph.in_degree(weight="rt_count")) # users receiving retweets
+    out_degrees = dict(graph.out_degree(weight="rt_count")) # users doing the retweeting
+    assert in_degrees == {'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0, 'colead1': 2.0, 'colead2': 3.0, 'colead3': 4.0, 'colead4': 1.0}
+    assert out_degrees == {'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0, 'colead1': 3.0, 'colead2': 2.0, 'colead3': 1.0, 'colead4': 4.0}
 
-def test_bidirectional_energy():
-
-    link = ['colead1', 'colead2', True, True, 3.0, 2.0]
-    user1 = link[0] #> 'colead1'
-    user2 = link[1] #> 'colead2'
-    rt_count = link[4] #> 3.0
-
-    energy = compute_joint_energy(user1, user2, rt_count, in_degrees, out_degrees, alambda1=100, alambda2=100)
+    energy = compute_link_energy('colead1', 'colead2', 3.0, in_degrees, out_degrees, alambda1=100, alambda2=100)
+    assert energy == [0.0, 0.0, 0.0, 0.0]
     assert sum(energy) == 0
 
-    energy = compute_joint_energy(user1, user2, rt_count, in_degrees, out_degrees, alambda1=10, alambda2=10)
-    assert sum(energy) > 0 # right now this is failing.
+def test_sigmoid_activation():
+    # if there are a sufficient number of retweets, given the hyperparams,
+    # ... the function should activate
+    # ... and the energies should be positive
+    mock_edges = [
+        # add some examples of users retweeting others:
+        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 40},
+        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 60},
+        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 40},
+        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 20},
+        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 40},
+        # add some examples of users retweeting eachother:
+        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 30},
+        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 20},
+        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 10},
+        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40}
+    ]
+    graph = compile_mock_rt_graph(mock_edges)
+    in_degrees = dict(graph.in_degree(weight="rt_count")) # users receiving retweets
+    out_degrees = dict(graph.out_degree(weight="rt_count")) # users doing the retweeting
+    assert in_degrees == {'user1': 0, 'leader1': 100.0, 'user2': 0, 'user3': 0, 'leader2': 60.0, 'user4': 0, 'user5': 0, 'leader3': 40.0, 'colead1': 20.0, 'colead2': 30.0, 'colead3': 40.0, 'colead4': 10.0}
+    assert out_degrees == {'user1': 40.0, 'leader1': 0, 'user2': 60.0, 'user3': 40.0, 'leader2': 0, 'user4': 20.0, 'user5': 40.0, 'leader3': 0, 'colead1': 30.0, 'colead2': 20.0, 'colead3': 10.0, 'colead4': 40.0}
+
+    energy = compute_link_energy('colead1', 'colead2', 30.0, in_degrees, out_degrees, alambda1=100, alambda2=100)
+    assert energy == [27.94787803520006, 0.2794787803520006, 55.61655676882847, 27.94787803520006]
+    assert sum(energy) > 0
