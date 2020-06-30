@@ -7,7 +7,7 @@ from mpi4py import MPI
 import numpy as np
 from networkx import DiGraph
 
-#from start.botcode.networkClassifierHELPER import psi as compute_joint_energy
+from app.botcode import parse_bidirectional_links, compute_joint_energy
 
 # HYPERPARAMETERS
 
@@ -62,104 +62,6 @@ def mock_weighted_graph():
         graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
     return graph
 
-
-
-def parse_bidirectional_links(graph, weight_attr="rt_count"):
-    """
-    Computes the degree to which the users in each edge were retweeting eachother.
-
-    Params: graph (networkx.DiGraph) a retweet graph with edges like: ("user", "retweeted_user", rt_count=10)
-    """
-    edges = graph.edges(data=True)
-    #> OutEdgeDataView([('user1', 'leader1', {'rt_count': 4.0}), ('user2', 'leader1', {'rt_count': 6.0}), ('user3', 'leader2', {'rt_count': 4.0}), ('user4', 'leader2', {'rt_count': 2.0}), ('user5', 'leader3', {'rt_count': 4.0})])
-
-    weighted_edges = dict(((x,y), z[weight_attr]) for x, y, z in edges)
-    #> {('user1', 'leader1'): 4.0, ('user2', 'leader1'): 6.0, ('user3', 'leader2'): 4.0, ('user4', 'leader2'): 2.0, ('user5', 'leader3'): 4.0}
-
-    links = []
-    for k in weighted_edges:
-            user = k[0] #> 'user1'
-            retweeted_user = k[1] #> 'leader1'
-            edge_weight = weighted_edges[k] #> 4.0
-
-            reverse_edge_key = (retweeted_user, user)
-            if(reverse_edge_key in weighted_edges.keys()):
-                has_reverse_edge = True
-                reverse_edge_weight = weighted_edges[reverse_edge_key]
-            else:
-                has_reverse_edge = False
-                reverse_edge_weight = 0
-
-            link = [user, retweeted_user, True, has_reverse_edge, edge_weight, reverse_edge_weight]
-            #> ['user1', 'leader1', True, False, 4.0, 0] # TODO: prefer to assemble a dict here, for more explicit access later
-            links.append(link)
-    return links
-
-
-
-def compute_joint_energy(u1, u2, wlr, in_graph, out_graph, alpha, alambda1, alambda2, epsilon):
-    """
-    Compute joint energy potential between two users
-    This is an unchanged copy of a function from the botcode directory.
-
-	Params:
-        u1 (int) ID of user u1
-	    u2 (int) ID of user u2
-	    wlr (int) number of retweets from u1 to u2
-        out_graph (dict of ints) a graph that stores out degrees of accounts in retweet graph
-        in_graph (dict of ints) a graph that stores in degrees of accounts in retweet graph
-        alpha (list of floats) a list containing hyperparams mu, alpha1, alpha2
-        alambda1 (float) value of lambda11
-        alambda2 (float) value of lambda00
-        epsilon (int) exponent such that delta=10^(-espilon), where lambda01=lambda11+lambda00-1+delta
-	"""
-
-    #here alpha is a vector of length three, psi decays according to a logistic sigmoid function
-    val_00 = 0
-    val_01 = 0
-    val_10 = 0
-    val_11 = 0
-
-    if out_graph[u1]==0 or in_graph[u2]==0:
-        print("Relationship problem: "+str(u1)+" --> "+str(u2))
-
-    temp = alpha[1]/float(out_graph[u1])-1 + alpha[2]/float(in_graph[u2])-1
-    if temp <10:
-        val_01 =wlr*alpha[0]/(1+np.exp(temp))
-    else:
-        val_01=0
-
-    val_10 = (alambda2+alambda1-1+epsilon)*val_01
-    val_00 = alambda2*val_01
-    val_11 = alambda1*val_01
-
-    test2 = 0.5*val_11+0.25*(val_10-val_01)
-    test3 = 0.5*val_00+0.25*(val_10-val_01)
-    if(min(test2,test3)<0):
-        print('PB EDGE NEGATIVE')
-        val_00 = val_11 = 0.5*val_01
-
-    if(val_00+val_11>val_01+val_10):
-        print(u1,u2)
-        print('psi01',val_01)
-        print('psi11',val_11)
-        print('psi00',val_00)
-        print('psi10',val_10)
-        print("\n")
-
-    values = [val_00,val_01,val_10,val_11]
-    return values;
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
 
     # manager = ClusterManager()
@@ -191,18 +93,18 @@ if __name__ == "__main__":
     print("OUT-DEGREES", len(out_degrees))
     print(in_degrees)
 
-    ## IS THIS NECESSARY?
-    #print("----------------------")
-    #print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
-    #for node in weighted_graph.nodes():
-    #    if node not in in_degrees.keys():
-    #        print("ADDING NODE TO IN-DEGREES")
-    #        in_degrees[node] = 0
-    #    if node not in out_degrees.keys():
-    #        print("ADDING NODE TO OUT-DEGREES")
-    #        out_degrees[node] = 0
-    #print("IN-DEGREES", len(in_degrees))
-    #print("OUT-DEGREES", len(out_degrees))
+    # IS THIS NECESSARY?
+    print("----------------------")
+    print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
+    for node in weighted_graph.nodes():
+        if node not in in_degrees.keys():
+            print("ADDING NODE TO IN-DEGREES")
+            in_degrees[node] = 0
+        if node not in out_degrees.keys():
+            print("ADDING NODE TO OUT-DEGREES")
+            out_degrees[node] = 0
+    print("IN-DEGREES", len(in_degrees))
+    print("OUT-DEGREES", len(out_degrees))
 
     print("----------------------")
     print("GATHERING LINKS...")
@@ -234,9 +136,12 @@ exit()
 
 
 H, PL, user_data = computeH(G0, piBot, edgelist_data, graph_out, graph_in)
-print(rank, 'completed graph cut, send it to children')
-writeCSVFile('./'+db+'_subGraphs/PL_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'.csv',PL)
-writeCSVFile_H('./'+db+'_subGraphs/H_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_'+str(0)+'.csv',H)
+print(rank, 'Completed graph cut, send it to children')
+
+pl_filepath = './'+db+'_subGraphs/PL_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'.csv'
+h_filepath = './'+db+'_subGraphs/H_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_'+str(0)+'.csv'
+writeCSVFile(pl_fiepath, PL)
+writeCSVFile_H(h_filepath, H)
 
 ##send a flag to children processors to start computing local pibot
 for i in range(0,nproc-2):
