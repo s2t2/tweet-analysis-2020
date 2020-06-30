@@ -32,28 +32,17 @@ class ClusterManager:
     def is_main_node(self):
         return self.node_rank + 1 == self.cluster_size
 
-def mock_weighted_graph():
+def compile_mock_rt_graph(edge_list):
+    """
+    Param edge_list (list of dict) like:
+        [
+            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
+            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
+            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
+        ]
+    """
     graph = DiGraph()
-    rows = [
-        # add some examples of users retweeting others:
-        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 40},
-        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 60},
-        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 40},
-        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 20},
-        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 40},
-        # add some examples of users retweeting eachother:
-        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 30},
-        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 20},
-        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 10},
-        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40},
-        # and users tweeting them as well:
-        {"user_screen_name": "user1", "retweet_user_screen_name": "colead1", "retweet_count": 40},
-        {"user_screen_name": "user2", "retweet_user_screen_name": "colead1", "retweet_count": 60},
-        {"user_screen_name": "user3", "retweet_user_screen_name": "colead3", "retweet_count": 40},
-        {"user_screen_name": "user4", "retweet_user_screen_name": "colead3", "retweet_count": 20},
-        {"user_screen_name": "user5", "retweet_user_screen_name": "colead4", "retweet_count": 40},
-    ]
-    for row in rows:
+    for row in edge_list:
         graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
     return graph
 
@@ -66,50 +55,52 @@ if __name__ == "__main__":
     #     print("DOING STUFF HERE!")
     #     counter += 1
 
-    weighted_graph = mock_weighted_graph()
+    graph = compile_mock_rt_graph([
+        # add some examples of users retweeting others:
+        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 40},
+        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 60},
+        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 40},
+        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 20},
+        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 40},
+        # add some examples of users retweeting eachother:
+        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 30},
+        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 20},
+        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 10},
+        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40}
+    ])
+
+    # print("----------------------")
+    # nodes = list(graph.nodes) #> ["user1", "user2", "user3", etc.]
+    # bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
+    # print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
+    # print(bot_probabilities)
 
     print("----------------------")
-    nodes = list(weighted_graph.nodes) #> ["user1", "user2", "user3", etc.]
-    bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
-    print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
-    print(bot_probabilities)
+    in_degrees = dict(graph.in_degree(weight="rt_count")) # users receiving retweets
+    out_degrees = dict(graph.out_degree(weight="rt_count")) # users doing the retweeting
+    print("IN-DEGREES...")
+    pprint(in_degrees)
+    print("OUT-DEGREES...")
+    pprint(out_degrees)
 
-    print("----------------------")
-    in_degree = dict(weighted_graph.in_degree(weight="rt_count")) # sums by number of incoming RTs
-    #> InDegreeView({'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0})
-    in_degrees = dict(in_degree) # dict((k,v) for k,v in in_degree)
-    print("IN-DEGREES", len(in_degrees))
-    print(in_degrees)
-    #assert in_degrees == {'user1': 0, 'leader1': 10.0, 'user2': 0, 'user3': 0, 'leader2': 6.0, 'user4': 0, 'user5': 0, 'leader3': 4.0, 'colead1': 12.0, 'colead2': 3.0, 'colead3': 10.0, 'colead4': 5.0}
-    #assert len(in_degrees) == 12
-
-    print("----------------------")
-    out_degree = weighted_graph.out_degree(weight="rt_count") # sums by number of outgoing RTs
-    #> OutDegreeView({'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0})
-    out_degrees = dict(out_degree) # dict((k,v) for k,v in in_degree)
-    print("OUT-DEGREES", len(out_degrees))
-    print(out_degrees)
-    #assert out_degrees == {'user1': 8.0, 'leader1': 0, 'user2': 12.0, 'user3': 8.0, 'leader2': 0, 'user4': 4.0, 'user5': 8.0, 'leader3': 0, 'colead1': 3.0, 'colead2': 2.0, 'colead3': 1.0, 'colead4': 4.0}
-    #assert len(out_degrees) == 12
-
-    # IS THIS NECESSARY?
-    print("----------------------")
-    print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
-    for node in weighted_graph.nodes():
-        if node not in in_degrees.keys():
-            print("ADDING NODE TO IN-DEGREES")
-            in_degrees[node] = 0
-        if node not in out_degrees.keys():
-            print("ADDING NODE TO OUT-DEGREES")
-            out_degrees[node] = 0
-    print("IN-DEGREES:", len(in_degrees))
-    print("OUT-DEGREES:", len(out_degrees))
-    #assert len(in_degrees) == 12
-    #assert len(out_degrees) == 12
+    # # IS THIS NECESSARY?
+    # print("----------------------")
+    # print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
+    # for node in weighted_graph.nodes():
+    #     if node not in in_degrees.keys():
+    #         print("ADDING NODE TO IN-DEGREES")
+    #         in_degrees[node] = 0
+    #     if node not in out_degrees.keys():
+    #         print("ADDING NODE TO OUT-DEGREES")
+    #         out_degrees[node] = 0
+    # print("IN-DEGREES:", len(in_degrees))
+    # print("OUT-DEGREES:", len(out_degrees))
+    # #assert len(in_degrees) == 12
+    # #assert len(out_degrees) == 12
 
     print("----------------------")
     print("GATHERING LINKS...")
-    links = parse_bidirectional_links(weighted_graph)
+    links = parse_bidirectional_links(graph)
     pprint(links)
     #for link in links:
     #    print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
@@ -133,12 +124,9 @@ if __name__ == "__main__":
     print("----------------------")
     print("COMPUTING ENERGIES...")
 
-    energies = [(
-        link[0],
-        link[1],
-        compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)
-    ) for link in links]
-    pprint(energies)
+    energies = [(link[0], link[1], compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)) for link in links]
+    print(len(energies))
+    #pprint(energies)
     # assert energies == [
     #     ('user1', 'leader1', [0.0, 0, 0.0, 0.0]),
     #     ('user1', 'colead1', [0.0, 0, 0.0, 0.0]),
@@ -157,17 +145,13 @@ if __name__ == "__main__":
     # ]
 
     # ease computations by only keeping edges with non zero weight
-    print("----------------------")
-    weighty_energies = [e for e in energies if sum(e[2]) > 0]
-    print("ENERGIES WITH POSITIVE BIDIRECTIONAL WEIGHTS...")
-    print(len(weighty_energies))
-    pprint(weighty_energies)
-    #for we in weighty_energies:
-    #    print(we)
+    # print("----------------------")
+    positive_energies = [e for e in energies if sum(e[2]) > 0]
+    print("POSITIVE ENERGIES...")
+    print(len(positive_energies))
+    pprint(positive_energies)
 
     #breakpoint()
-
-    # TODO: update dataset to include some reverse RTs to get some energies to use at this point!
 
 exit()
 

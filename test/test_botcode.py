@@ -2,6 +2,7 @@
 from networkx import DiGraph
 
 from app.botcode import compute_link_energy, ALPHA, LAMBDA_1, LAMBDA_2, EPSILON
+from app.workers.investigate_botcode import compile_mock_rt_graph
 
 def test_hyperparams():
     # should match the default values described in the botcode README file
@@ -9,20 +10,6 @@ def test_hyperparams():
     assert LAMBDA_1 == 0.8
     assert LAMBDA_2 == 0.6
     assert EPSILON == 0.001
-
-def compile_mock_rt_graph(edge_list):
-    """
-    Param edge_list (list of dict) like:
-        [
-            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
-            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
-            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
-        ]
-    """
-    graph = DiGraph()
-    for row in edge_list:
-        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
-    return graph
 
 def test_sigmoid_activation():
 
