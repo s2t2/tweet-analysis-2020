@@ -8,7 +8,7 @@ from mpi4py import MPI
 import numpy as np
 from networkx import DiGraph
 
-from app.botcode import parse_bidirectional_links, compute_link_energy
+from app.botcode import parse_bidirectional_links, compute_link_energy, compile_energy_graph
 
 class ClusterManager:
     def __init__(self):
@@ -68,12 +68,6 @@ if __name__ == "__main__":
         {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 10},
         {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40}
     ])
-
-    # print("----------------------")
-    # nodes = list(graph.nodes) #> ["user1", "user2", "user3", etc.]
-    # bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
-    # print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
-    # print(bot_probabilities)
 
     print("----------------------")
     in_degrees = dict(graph.in_degree(weight="rt_count")) # users receiving retweets
@@ -151,7 +145,23 @@ if __name__ == "__main__":
     print(len(positive_energies))
     pprint(positive_energies)
 
-    #breakpoint()
+
+
+
+
+
+    print("----------------------")
+    nodes = list(graph.nodes) #> ["user1", "user2", "user3", etc.]
+    bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
+    print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
+    print(bot_probabilities)
+
+
+
+
+    energy_graph, pl, user_data = compile_energy_graph(graph, bot_probabilities, positive_energies, out_degrees, in_degrees)
+    breakpoint()
+
 
 exit()
 
