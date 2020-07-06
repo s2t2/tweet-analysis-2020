@@ -4,33 +4,10 @@
 import os
 from pprint import pprint
 
-from mpi4py import MPI
 import numpy as np
 from networkx import DiGraph
 
 from app.botcode import parse_bidirectional_links, compute_link_energy, compile_energy_graph
-
-class ClusterManager:
-    def __init__(self):
-        self.node_name = MPI.Get_processor_name()
-        self.intracomm = MPI.COMM_WORLD
-        self.node_rank = self.intracomm.Get_rank()
-        self.cluster_size = self.intracomm.Get_size()
-
-        print("----------------------")
-        print("CLUSTER MANAGER")
-        #print("----------------------")
-        #print(self.intracomm) #> <mpi4py.MPI.Intracomm object at 0x10ed94a70>
-        #print(dict(self.intracomm.info)) #> {'mpi_assert_no_any_source': 'false', 'mpi_assert_allow_overtaking': 'false'}
-        #print("----------------------")
-        print("   NODE NAME:", self.node_name) #> 'MJs-MacBook-Air.local'
-        print("   NODE RANK:", self.node_rank) #> 0
-        print("   CLUSTER SIZE:", self.cluster_size) #> 1
-        print("   MAIN NODE?:", self.is_main_node) #> True
-
-    @property
-    def is_main_node(self):
-        return self.node_rank + 1 == self.cluster_size
 
 def compile_mock_rt_graph(edge_list):
     """
@@ -47,13 +24,6 @@ def compile_mock_rt_graph(edge_list):
     return graph
 
 if __name__ == "__main__":
-
-    # manager = ClusterManager()
-
-    # counter = 0 # to be compared with N_ITERS
-    # while counter < N_ITERS:
-    #     print("DOING STUFF HERE!")
-    #     counter += 1
 
     graph = compile_mock_rt_graph([
         # add some examples of users retweeting others:
@@ -77,134 +47,97 @@ if __name__ == "__main__":
     print("OUT-DEGREES...")
     pprint(out_degrees)
 
-    # # IS THIS NECESSARY?
-    # print("----------------------")
-    # print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
-    # for node in weighted_graph.nodes():
-    #     if node not in in_degrees.keys():
-    #         print("ADDING NODE TO IN-DEGREES")
-    #         in_degrees[node] = 0
-    #     if node not in out_degrees.keys():
-    #         print("ADDING NODE TO OUT-DEGREES")
-    #         out_degrees[node] = 0
-    # print("IN-DEGREES:", len(in_degrees))
-    # print("OUT-DEGREES:", len(out_degrees))
-    # #assert len(in_degrees) == 12
-    # #assert len(out_degrees) == 12
+    print("----------------------")
+    print("ENSURING ALL NODES ARE REPRESENTED IN IN-DEGREE AND OUT-DEGREE VIEWS...")
+    for node in graph.nodes():
+        if node not in in_degrees.keys():
+            print("ADDING NODE TO IN-DEGREES")
+            in_degrees[node] = 0
+        if node not in out_degrees.keys():
+            print("ADDING NODE TO OUT-DEGREES")
+            out_degrees[node] = 0
+    print("IN-DEGREES:", len(in_degrees))
+    print("OUT-DEGREES:", len(out_degrees))
 
     print("----------------------")
     print("GATHERING LINKS...")
-    links = parse_bidirectional_links(graph)
-    pprint(links)
-    #for link in links:
-    #    print(link) #> ['user1', 'leader1', True, False, 4.0, 0]
-    #assert links == [
-    #    ['user1', 'leader1', True, False, 4.0, 0],
-    #    ['user1', 'colead1', True, False, 4.0, 0],
-    #    ['user2', 'leader1', True, False, 6.0, 0],
-    #    ['user2', 'colead1', True, False, 6.0, 0],
-    #    ['user3', 'leader2', True, False, 4.0, 0],
-    #    ['user3', 'colead3', True, False, 4.0, 0],
-    #    ['user4', 'leader2', True, False, 2.0, 0],
-    #    ['user4', 'colead3', True, False, 2.0, 0],
-    #    ['user5', 'leader3', True, False, 4.0, 0],
-    #    ['user5', 'colead4', True, False, 4.0, 0],
-    #    ['colead1', 'colead2', True, True, 3.0, 2.0],
-    #    ['colead2', 'colead1', True, True, 2.0, 3.0],
-    #    ['colead3', 'colead4', True, True, 1.0, 4.0],
-    #    ['colead4', 'colead3', True, True, 4.0, 1.0]
-    #]
+    links = parse_bidirectional_links(graph) #
+    pprint(links) #> list of links like ['user1', 'leader1', True, False, 4.0, 0]
 
     print("----------------------")
     print("COMPUTING ENERGIES...")
-
     energies = [(link[0], link[1], compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)) for link in links]
     print(len(energies))
-    #pprint(energies)
-    # assert energies == [
-    #     ('user1', 'leader1', [0.0, 0, 0.0, 0.0]),
-    #     ('user1', 'colead1', [0.0, 0, 0.0, 0.0]),
-    #     ('user2', 'leader1', [0.0, 0, 0.0, 0.0]),
-    #     ('user2', 'colead1', [0.0, 0, 0.0, 0.0]),
-    #     ('user3', 'leader2', [0.0, 0, 0.0, 0.0]),
-    #     ('user3', 'colead3', [0.0, 0, 0.0, 0.0]),
-    #     ('user4', 'leader2', [0.0, 0, 0.0, 0.0]),
-    #     ('user4', 'colead3', [0.0, 0, 0.0, 0.0]),
-    #     ('user5', 'leader3', [0.0, 0, 0.0, 0.0]),
-    #     ('user5', 'colead4', [0.0, 0, 0.0, 0.0]),
-    #     ('colead1', 'colead2', [0.0, 0, 0.0, 0.0]),
-    #     ('colead2', 'colead1', [0.0, 0, 0.0, 0.0]),
-    #     ('colead3', 'colead4', [0.0, 0, 0.0, 0.0]),
-    #     ('colead4', 'colead3', [0.0, 0, 0.0, 0.0])
-    # ]
+    #pprint(energies) #> list of tuples like... ('user1', 'leader1', [0.0, 0, 0.0, 0.0])
 
-    # ease computations by only keeping edges with non zero weight
-    # print("----------------------")
+    #print("----------------------")
     positive_energies = [e for e in energies if sum(e[2]) > 0]
     print("POSITIVE ENERGIES...")
     print(len(positive_energies))
     pprint(positive_energies)
 
-
-
-
-
-
     print("----------------------")
+    print("STARTING WITH DEFAULT BOT PROBABILITIES (PRIORS)")
     nodes = list(graph.nodes) #> ["user1", "user2", "user3", etc.]
     bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
-    print("BOT PROBABILITIES (PRIORS)") #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
-    print(bot_probabilities)
+    #print(bot_probabilities) #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
 
-
-
-
+    print("----------------------")
+    print("CONSTRUCTING RETWEET ENERGY GRAPH...")
     energy_graph, pl, user_data = compile_energy_graph(graph, bot_probabilities, positive_energies, out_degrees, in_degrees)
-    breakpoint()
+    print(type(energy_graph)) #> <class 'networkx.classes.digraph.DiGraph'>
+    print(len(pl)) #> 7
+    print(len(user_data)) #> 12
+    # assert list(energy_graph.nodes) == [
+    #     'user1', 'leader1', 'user2', 'user3', 'leader2', 'user4', 'user5', 'leader3',
+    #     'colead1', 'colead2', 'colead4', 'colead3', 0, 1 # what's up with the extra 0 and 1 in here?
+    # ]
+    #
+    # assert pl == ['user1', 'user4', 'colead4', 'user3', 'user5', 'colead1', 'user2'] # what does this list represent?
+    #
+    # assert user_data == {
+    #     'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'leader1': {'user_id': 'leader1', 'out': 0, 'in': 100.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'user2': {'user_id': 'user2', 'out': 60.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'user3': {'user_id': 'user3', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'leader2': {'user_id': 'leader2', 'out': 0, 'in': 60.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'user4': {'user_id': 'user4', 'out': 20.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'user5': {'user_id': 'user5', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'leader3': {'user_id': 'leader3', 'out': 0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'colead1': {'user_id': 'colead1', 'out': 30.0, 'in': 20.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'colead2': {'user_id': 'colead2', 'out': 20.0, 'in': 30.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+    #     'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0}
+    # }
+    #
+    # todo: write pl users list to csv (see writeCSVFile in ioHELPER)
+    # todo: write energy graph edges to CSV file (see writeCSVFile_H in ioHELPER)
 
+    print("----------------------")
+    print("COMPUTING BOT PROBABILITIES...")
 
-exit()
+    clustering = dict.fromkeys(list(user_data.keys()), 0)
+    for user in pl:
+        user_data[user]["clustering"] = 1
+        clustering[user] = 1
+    pprint(clustering)
+    assert clustering == {
+        'colead1': 1,
+        'colead2': 0, 'colead3': 0,
+        'colead4': 1,
+        'leader1': 0, 'leader2': 0, 'leader3': 0,
+        'user1': 1, 'user2': 1, 'user3': 1, 'user4': 1, 'user5': 1
+    }
 
+    exit()
 
-H, PL, user_data = computeH(G0, piBot, edgelist_data, graph_out, graph_in)
-print(rank, 'Completed graph cut, send it to children')
+    results=[]
+    for i in range(0, nproc - 1):
+        r = comm.recv(source=i)
+        results.append(r)
 
-pl_filepath = './'+db+'_subGraphs/PL_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'.csv'
-h_filepath = './'+db+'_subGraphs/H_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_'+str(0)+'.csv'
-writeCSVFile(pl_fiepath, PL)
-writeCSVFile_H(h_filepath, H)
+    bot_probabilities = {}
+    for user, probability in results:
+        bot_probabilities[user] = probability
 
-##send a flag to children processors to start computing local pibot
-for i in range(0,nproc-2):
-    comm.send(True, dest=i)
-
-comm.send(True, dest=nproc-2)
-
-##receive results from children and aggregate
-print(rank, 'ready to receive')
-gather=[]
-for i in range(0,nproc-1):
-    r = comm.recv(source=i)
-    gather.append(r)
-    print(rank, ' received from ', i)
-
-users = list(user_data.keys())
-
-clustering =dict.fromkeys(users,0)
-for user in PL:
-    user_data[user]['clustering'] = 1
-    clustering[user] = 1
-
-print(rank, ' received ', len(gather), ' local piBots')
-piBot = {}
-for d in gather:
-    for user in d:
-        piBot[user] = d[user]
-
-##write result of aggregation. Clustering= hard score, piBot= continuous score between 0 and 1 (pick threshold)
-writeCSVFile_piBot('./network_piBots_'+db+'/ntwk_piBot_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_iteration_'+str(countP)+'_SEED_'+str(SEED)+'.csv', piBot)
-#writeCSVFile_piBot('./network_piBots_'+db+'/ntwk_clustering_mu_'+str(mu)+'_alpha1_'+str(alpha1)+'_alpha2_'+str(alpha2)+'_lambda1_'+str(alambda1)+'_lambda2_'+str(alambda2)+'_epsilon_'+str(epsilon)+'_mode_'+mode+'_iteration_'+str(countP)+'.csv', clustering)
-countP += 1
-
-
-# MPI.Finalize()
+    # todo: write_bot_probabilities_to_csv(csv_filepath, bot_probabilities)

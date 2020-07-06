@@ -159,6 +159,8 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
 
     Then cuts the energy graph to classify.
 
+    Copied unchanged from the "computeH" function in the "networkClassifierHELPER" file.
+
 	Params:
 
 	    G (ntwkX graph)
@@ -246,3 +248,29 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
     PL.remove(1)
 
     return H, PL, user_data
+
+def write_edge_capacities_to_csv(csv_filepath, energy_graph):
+    """
+    Adapted from the "writeCSVFile_H" function in the "ioHELPER" file.
+
+    Params:
+
+        energy_graph (networkx.DiGraph) energy graph
+    """
+    with open(csv_filepath, "w") as f:
+        for edge in energy_graph.edges(data=True):
+            f.write(f"{edge[0]}; {edge[1]}; {edge[2]['capacity']}")
+            f.write("\n")
+
+def write_bot_probabilities_to_csv(csv_filepath, bot_probabilities):
+    """
+    Adapted from "writeCSVFile_piBot" function in "ioHELPER" file.
+
+    Params:
+
+        bot_probabilities (dict) like... {"user1":0, "user2": 0.5}
+    """
+    with open(csv_filepath, "w") as f:
+        for user, bot_probability in bot_probabilities.entries():
+            f.write(f"{user}; {bot_probability}")
+            f.write('\n')
