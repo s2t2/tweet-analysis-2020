@@ -109,7 +109,7 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
     temp_1 = alpha[1] / float(out_graph[u1]) - 1 #> 100 / 8 = 12.5
     temp_2 = alpha[2] / float(in_graph[u2]) - 1 #> 100 / 10 = 10.0
     temp =  temp_1 + temp_2
-    print("TEMP", temp) #> 20.5
+    #print("TEMP", temp) #> 20.5
 
     # what would get the temp to be less than 10? rt_count sufficiently high (>20) relative to ALPHA vals (100)
 
@@ -128,7 +128,7 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
         val_01 = rt_count * alpha[0] / (1 + np.exp(temp))
     else:
         val_01 = 0
-    print("VAL:", val_01) #> 0
+    #print("VAL:", val_01) #> 0
 
 
 

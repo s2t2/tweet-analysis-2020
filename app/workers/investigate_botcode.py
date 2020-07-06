@@ -79,22 +79,23 @@ if __name__ == "__main__":
     print("----------------------")
     print("STARTING WITH DEFAULT BOT PROBABILITIES (PRIORS)")
     nodes = list(graph.nodes) #> ["user1", "user2", "user3", etc.]
-    bot_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
-    #print(bot_probabilities) #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
+    prior_probabilities = dict.fromkeys(nodes, 0.5) # no priors, set all at 0.5!
+    #print(prior_probabilities) #> {'user1': 0.5, 'user2': 0.5, 'user3': 0.5}
 
     print("----------------------")
     print("CONSTRUCTING RETWEET ENERGY GRAPH...")
-    energy_graph, pl, user_data = compile_energy_graph(graph, bot_probabilities, positive_energies, out_degrees, in_degrees)
-    print(type(energy_graph)) #> <class 'networkx.classes.digraph.DiGraph'>
-    print(len(pl)) #> 7
-    print(len(user_data)) #> 12
+    energy_graph, pl, user_data = compile_energy_graph(graph, prior_probabilities, positive_energies, out_degrees, in_degrees)
+    print(type(energy_graph), len(pl), len(user_data)) #> <class 'networkx.classes.digraph.DiGraph'> 7 12
+    print("PL:", pl)
+    #pprint(user_data)
+    # todo: write pl users list to csv (see writeCSVFile in ioHELPER)
+    # todo: write energy graph edges to CSV file (see writeCSVFile_H in ioHELPER)
+
     # assert list(energy_graph.nodes) == [
     #     'user1', 'leader1', 'user2', 'user3', 'leader2', 'user4', 'user5', 'leader3',
     #     'colead1', 'colead2', 'colead4', 'colead3', 0, 1 # what's up with the extra 0 and 1 in here?
     # ]
-    #
     # assert pl == ['user1', 'user4', 'colead4', 'user3', 'user5', 'colead1', 'user2'] # what does this list represent?
-    #
     # assert user_data == {
     #     'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
     #     'leader1': {'user_id': 'leader1', 'out': 0, 'in': 100.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
@@ -109,35 +110,19 @@ if __name__ == "__main__":
     #     'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
     #     'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0}
     # }
-    #
-    # todo: write pl users list to csv (see writeCSVFile in ioHELPER)
-    # todo: write energy graph edges to CSV file (see writeCSVFile_H in ioHELPER)
 
     print("----------------------")
     print("COMPUTING BOT PROBABILITIES...")
 
-    clustering = dict.fromkeys(list(user_data.keys()), 0)
+    bot_probabilities = dict.fromkeys(list(user_data.keys()), 0) # start with defaults of 0 for each user
     for user in pl:
         user_data[user]["clustering"] = 1
-        clustering[user] = 1
-    pprint(clustering)
-    assert clustering == {
-        'colead1': 1,
-        'colead2': 0, 'colead3': 0,
-        'colead4': 1,
-        'leader1': 0, 'leader2': 0, 'leader3': 0,
-        'user1': 1, 'user2': 1, 'user3': 1, 'user4': 1, 'user5': 1
-    }
-
-    exit()
-
-    results=[]
-    for i in range(0, nproc - 1):
-        r = comm.recv(source=i)
-        results.append(r)
-
-    bot_probabilities = {}
-    for user, probability in results:
-        bot_probabilities[user] = probability
+        bot_probabilities[user] = 1
+    pprint(bot_probabilities)
+    # assert bot_probabilities == {
+    #     'colead1': 1, 'colead2': 0, 'colead3': 0, 'colead4': 1,
+    #     'leader1': 0, 'leader2': 0, 'leader3': 0,
+    #     'user1': 1, 'user2': 1, 'user3': 1, 'user4': 1, 'user5': 1
+    # }
 
     # todo: write_bot_probabilities_to_csv(csv_filepath, bot_probabilities)

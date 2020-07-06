@@ -12,9 +12,8 @@ class ClusterManager:
     def __init__(self):
         self.node_name = MPI.Get_processor_name()
         self.intracomm = MPI.COMM_WORLD
-        self.node_rank = self.intracomm.Get_rank()
-        self.cluster_size = self.intracomm.Get_size()
 
+    def inspect(self):
         print("----------------------")
         print("CLUSTER MANAGER")
         #print("----------------------")
@@ -27,10 +26,26 @@ class ClusterManager:
         print("   MAIN NODE?:", self.is_main_node) #> True
 
     @property
+    def node_rank(self):
+        return self.intracomm.Get_rank()
+
+    @property
+    def cluster_size(self):
+        return self.intracomm.Get_size()
+
+    @property
     def is_main_node(self):
         return self.node_rank + 1 == self.cluster_size
-
 
 if __name__ == "__main__":
 
     manager = ClusterManager()
+    manager.inspect()
+
+
+    # results = []
+    # for i in range(0, manager.cluster_size - 1): # this is a no-op because cluster size is 1 on the main node
+    # # for i in range(0, 3): # this just hangs if running only on one node?
+    #     result = manager.intracomm.recv(source=i)
+    #     results.append(result)
+    # print(results)
