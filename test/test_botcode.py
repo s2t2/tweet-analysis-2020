@@ -20,7 +20,7 @@ def test_mock_rt_graph(mock_rt_graph):
 
 def test_link_energy_nonactivation():
     #
-    # setup with small-ish rt graph
+    # setup
     #
     graph = compile_mock_rt_graph([
         # add some examples of users retweeting others:
@@ -41,16 +41,14 @@ def test_link_energy_nonactivation():
     assert out_degrees == {'user1': 4.0, 'leader1': 0, 'user2': 6.0, 'user3': 4.0, 'leader2': 0, 'user4': 2.0, 'user5': 4.0, 'leader3': 0, 'colead1': 3.0, 'colead2': 2.0, 'colead3': 1.0, 'colead4': 4.0}
 
     #
-    # w/o sufficient number of retweets, given default hyperparams,
-    # ... not enough to activate, energy should be zero
+    # w/o sufficient number of retweets, given default hyperparams, not enough to activate, energy is zero
     #
     energy = compute_link_energy('colead1', 'colead2', 3.0, in_degrees, out_degrees, alpha=[1,100,100])
     assert energy == [0.0, 0.0, 0.0, 0.0]
     assert sum(energy) == 0
 
     #
-    # w/ sufficient number of retweets, given different hyperparams,
-    # ... energies should be positive
+    # w/ sufficient number of retweets, given different hyperparams, energy is positive
     #
     energy = compute_link_energy('colead1', 'colead2', 3.0, in_degrees, out_degrees, alpha=[1,10,10])
     assert energy == [0.01676872682112003, 0.027947878035200054, 0.01120709909211522, 0.022358302428160046]
@@ -58,7 +56,7 @@ def test_link_energy_nonactivation():
 
 def test_link_energy(mock_rt_graph):
     #
-    # w/ sufficient number of retweets, given default hyperparams, energies should be positive
+    # w/ sufficient number of retweets, given default hyperparams, energy is positive
     #
     in_degrees = dict(mock_rt_graph.in_degree(weight="rt_count")) # users receiving retweets
     out_degrees = dict(mock_rt_graph.out_degree(weight="rt_count")) # users doing the retweeting
@@ -69,7 +67,7 @@ def test_link_energy(mock_rt_graph):
 def test_energy_grapher(mock_rt_graph):
 
     #
-    # setup
+    # setup and inspection
     #
 
     assert list(mock_rt_graph.edges(data=True)) == [
@@ -148,7 +146,7 @@ def test_energy_grapher(mock_rt_graph):
     ] # people doing the most retweeting
 
     #
-    # it should produce an energy graph and other important results:
+    # it produces an energy graph and other important results:
     #
 
     energy_graph, pl, user_data = compile_energy_graph(mock_rt_graph, prior_probabilities,
@@ -158,7 +156,7 @@ def test_energy_grapher(mock_rt_graph):
     assert list(energy_graph.nodes) == [
         'user1', 'leader1', 'user2', 'user3', 'leader2', 'user4', 'user5', 'leader3',
         'colead1', 'colead2', 'colead4', 'colead3', 0, 1
-    ] # should include all original graph nodes, as well as 0 and 1 (though not immediately clear why)
+    ] # includes all original graph nodes, as well as 0 and 1 (though not immediately clear why)
     assert list(energy_graph.edges(data=True)) == [
         ('user1', 'leader1', {'capacity': 0.0036485104761272424}),
         ('user1', 0, {'capacity': 2.519226673861572}),
@@ -200,7 +198,7 @@ def test_energy_grapher(mock_rt_graph):
         (1, 'colead4', {'capacity': 1.5463386390243716})
     ] # what's up with the extra 0s and 1s in here? for baseline comparisons? also, capacity for what?
 
-    assert sorted(pl) == ['colead1', 'colead4', 'user1', 'user2', 'user3', 'user4', 'user5'] # seems to represent the users who retweet but don't get retweeted
+    assert sorted(pl) == ['colead1', 'colead4', 'user1', 'user2', 'user3', 'user4', 'user5'] # seems to represent the users who retweet but don't get retweeted (a.k.a the bot list)
 
     assert user_data == {
         'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
@@ -216,3 +214,49 @@ def test_energy_grapher(mock_rt_graph):
         'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
         'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0}
     }
+
+def test_bot_probabilities(mock_rt_graph):
+
+    #
+    # setup
+    #
+
+    in_degrees = dict(mock_rt_graph.in_degree(weight="rt_count")) # users receiving retweets
+    out_degrees = dict(mock_rt_graph.out_degree(weight="rt_count")) # users doing the retweeting
+
+    links = parse_bidirectional_links(mock_rt_graph)
+    energies = [(link[0], link[1], compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)) for link in links]
+    positive_energies = [e for e in energies if sum(e[2]) > 0]
+
+    prior_probabilities = dict.fromkeys(list(mock_rt_graph.nodes), 0.5)
+    energy_graph, pl, user_data = compile_energy_graph(mock_rt_graph, prior_probabilities, positive_energies, out_degrees, in_degrees)
+
+    #
+    # it assigns bot probabilities to 1 if user is in bot list returned from energy grapher function
+    #
+
+    bot_probabilities = dict.fromkeys(list(user_data.keys()), 0) # start with defaults of 0 for each user
+    for user in pl:
+        user_data[user]["clustering"] = 1
+        bot_probabilities[user] = 1
+
+    assert bot_probabilities == {
+        'colead1': 1, 'colead2': 0, 'colead3': 0, 'colead4': 1,
+        'leader1': 0, 'leader2': 0, 'leader3': 0,
+        'user1': 1, 'user2': 1, 'user3': 1, 'user4': 1, 'user5': 1
+    }
+
+    assert user_data == {
+        'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader1': {'user_id': 'leader1', 'out': 0, 'in': 100.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'user2': {'user_id': 'user2', 'out': 60.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'user3': {'user_id': 'user3', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader2': {'user_id': 'leader2', 'out': 0, 'in': 60.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'user4': {'user_id': 'user4', 'out': 20.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'user5': {'user_id': 'user5', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader3': {'user_id': 'leader3', 'out': 0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead1': {'user_id': 'colead1', 'out': 30.0, 'in': 20.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'colead2': {'user_id': 'colead2', 'out': 20.0, 'in': 30.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1}
+     }
