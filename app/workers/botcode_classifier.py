@@ -25,11 +25,15 @@ if __name__ == "__main__":
     users_count = len(df)
     bot_count = len(df[df.bot_probability == 1])
     print("TOTAL USERS:", fmt_n(users_count))
-    print(f"BOTS: {fmt_n(users_count)} ({fmt_pct(bot_count / users_count)})")
+    print(f"BOTS: {fmt_n(bot_count)} ({fmt_pct(bot_count / users_count)})")
 
     print("--------------------")
     print("WRITING TO CSV...")
-    csv_filepath = os.path.join(manager.local_dirpath, "preds", "botcode_probabilities.csv")
+    predictions_dirpath = os.path.join(manager.local_dirpath, "preds")
+    if not os.path.isdir(predictions_dirpath):
+        os.mkdir(predictions_dirpath)
+
+    csv_filepath = os.path.join(predictions_dirpath, "botcode_probabilities.csv")
     df.to_csv(csv_filepath)
 
     # TODO: really we can generate multiple classifications, using different hyperparams

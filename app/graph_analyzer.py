@@ -58,7 +58,7 @@ class GraphAnalyzer():
         print("GRAPH:", type(self.graph))
         print("NODES:", fmt_n(len(self.graph.nodes)))
         print("EDGES:", fmt_n(len(self.graph.edges)))
-        print("SIZE:", fmt_n(self.graph.size()))
+        #print("SIZE:", fmt_n(self.graph.size())) # same as edges
 
 if __name__ == "__main__":
 
