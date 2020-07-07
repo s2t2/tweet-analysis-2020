@@ -178,6 +178,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConv
 
 ```
 
+
 #### Graph Analysis
 
 See how much memory it takes to load a given graph:
@@ -194,6 +195,25 @@ JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
 # neutral conversation retweet graph
 JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 ```
+
+
+#### Bot Classification
+
+Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
+
+```sh
+# neutral conversation retweet graph
+JOB_ID="2020-06-15-2141" python -m app.workers.botcode_classifier
+```
+
+This will download the graph from google cloud storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
+
+
+
+
+
+
+
 
 ## Testing
 
