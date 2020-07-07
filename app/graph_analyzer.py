@@ -29,6 +29,8 @@ class GraphAnalyzer():
         self.job_id = job_id
         self.job = BaseGrapher(job_id=self.job_id)
 
+        self.local_dirpath = self.job.local_dirpath
+
     def __repr__(self):
         return f"<GraphAnalyzer {self.job_id}>"
 
@@ -39,15 +41,15 @@ class GraphAnalyzer():
 
     @profile
     def load_graph(self):
-        if self.storage_mode == "local":
+        if not os.path.isdir(self.job.local_dirpath):
+            print("PREPARING LOCAL DOWNLOAD DIR...")
+            os.mkdir(self.job.local_dirpath)
+
+        if self.storage_mode == "local" or os.path.isfile(self.job.local_graph_filepath):
             print("LOADING GRAPH FROM LOCAL FILE...")
             return read_gpickle(self.job.local_graph_filepath)
 
         elif self.storage_mode == "remote":
-            print("PREPARING LOCAL DOWNLOAD DIR...")
-            if not os.path.isdir(self.job.local_dirpath):
-                os.mkdir(self.job.local_dirpath)
-
             print("LOADING GRAPH FROM REMOTE STORAGE...")
             self.job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
