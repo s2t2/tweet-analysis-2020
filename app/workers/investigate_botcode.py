@@ -8,6 +8,7 @@ import numpy as np
 from networkx import DiGraph
 
 from app.botcode import parse_bidirectional_links, compute_link_energy, compile_energy_graph
+from app.workers import fmt_n
 
 def compile_mock_rt_graph(edge_list):
     """
@@ -25,7 +26,7 @@ def compile_mock_rt_graph(edge_list):
 
 def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
     """
-    Given a retweet graph, computes bot probabilities. One function to rule them all! :-D
+    Given a retweet graph, computes bot probabilities, in a single function!
 
     Params:
 
@@ -37,13 +38,18 @@ def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
 
     in_degrees = dict(rt_graph.in_degree(weight=weight_attr)) # users receiving retweets
     out_degrees = dict(rt_graph.out_degree(weight=weight_attr)) # users doing the retweeting
+    print("IN-DEGREES:", fmt_n(len(in_degrees)))
+    print("OUT-DEGREES:", fmt_n(len(out_degrees)))
 
     links = parse_bidirectional_links(rt_graph)
     energies = [(link[0], link[1], compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)) for link in links]
+    print("ENERGIES:", fmt_n(len(energies)))
     positive_energies = [e for e in energies if sum(e[2]) > 0]
+    print("POSITIVE ENERGIES:", fmt_n(len(positive_energies)))
 
     prior_probabilities = dict.fromkeys(list(rt_graph.nodes), 0.5)
     energy_graph, pl, user_data = compile_energy_graph(rt_graph, prior_probabilities, positive_energies, out_degrees, in_degrees)
+    print("ENERGIES GRAPHED...") # this is the step that takes the longest
 
     bot_probabilities = dict.fromkeys(list(user_data.keys()), 0) # start with defaults of 0 for each user
     for user in pl:

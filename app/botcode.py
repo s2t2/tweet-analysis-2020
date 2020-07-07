@@ -241,8 +241,8 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
             break;
 
     cut_value, mc = minimum_cut(H,1,0)
-    print(mc) #> ({1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2'}, {0, 'colead3', 'leader1', 'leader3', 'colead2', 'leader2'})
-    print(cut_value) #> 22.769643094754716
+    #print(mc) #> ({1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2'}, {0, 'colead3', 'leader1', 'leader3', 'colead2', 'leader2'})
+    print("MIN CUT VALUE:", cut_value) #> 22.769643094754716 ... or 479357.85220684315 ... or whatever, depending on the graph
 
     PL = list(mc[0]) #the other way around
     #print(PL) #> [1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2']
@@ -253,28 +253,29 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
 
     return H, PL, user_data
 
-def write_edge_capacities_to_csv(csv_filepath, energy_graph):
-    """
-    Adapted from the "writeCSVFile_H" function in the "ioHELPER" file.
-
-    Params:
-
-        energy_graph (networkx.DiGraph) energy graph
-    """
-    with open(csv_filepath, "w") as f:
-        for edge in energy_graph.edges(data=True):
-            f.write(f"{edge[0]}; {edge[1]}; {edge[2]['capacity']}")
-            f.write("\n")
-
-def write_bot_probabilities_to_csv(csv_filepath, bot_probabilities):
-    """
-    Adapted from "writeCSVFile_piBot" function in "ioHELPER" file.
-
-    Params:
-
-        bot_probabilities (dict) like... {"user1":0, "user2": 0.5}
-    """
-    with open(csv_filepath, "w") as f:
-        for user, bot_probability in bot_probabilities.entries():
-            f.write(f"{user}; {bot_probability}")
-            f.write('\n')
+#def write_edge_capacities_to_csv(csv_filepath, energy_graph):
+#    """
+#    Adapted from the "writeCSVFile_H" function in the "ioHELPER" file.
+#
+#    Params:
+#
+#        energy_graph (networkx.DiGraph) energy graph
+#    """
+#    with open(csv_filepath, "w") as f:
+#        for edge in energy_graph.edges(data=True):
+#            f.write(f"{edge[0]}; {edge[1]}; {edge[2]['capacity']}")
+#            f.write("\n")
+#
+#def write_bot_probabilities_to_csv(csv_filepath, bot_probabilities):
+#    """
+#    Adapted from "writeCSVFile_piBot" function in "ioHELPER" file.
+#
+#    Params:
+#
+#        bot_probabilities (dict) like... {"user1":0, "user2": 0.5}
+#    """
+#    with open(csv_filepath, "w") as f:
+#        for user, bot_probability in bot_probabilities.entries():
+#            f.write(f"{user}; {bot_probability}")
+#            f.write('\n')
+#

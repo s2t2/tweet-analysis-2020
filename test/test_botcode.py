@@ -284,5 +284,4 @@ def test_bot_probabilities(mock_rt_graph):
      }
 
     # now test the bridge function does the same thing:
-
     assert classify_bot_probabilities(mock_rt_graph) == expected_bot_probabilities
