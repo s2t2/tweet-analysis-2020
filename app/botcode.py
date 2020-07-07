@@ -241,7 +241,11 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
             break;
 
     cut_value, mc = minimum_cut(H,1,0)
+    print(mc) #> ({1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2'}, {0, 'colead3', 'leader1', 'leader3', 'colead2', 'leader2'})
+    print(cut_value) #> 22.769643094754716
+
     PL = list(mc[0]) #the other way around
+    #print(PL) #> [1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2']
     if 1 not in PL:
         print("Double check")
         PL = list(mc[1])

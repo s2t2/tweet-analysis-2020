@@ -23,6 +23,35 @@ def compile_mock_rt_graph(edge_list):
         graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
     return graph
 
+def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
+    """
+    Given a retweet graph, computes bot probabilities. One function to rule them all! :-D
+
+    Params:
+
+        rt_graph (networkx.DiGraph) representing a retweet graph, with weights stored in the weight_attr param
+
+        weight_attr (str) the attribute in the edge data where the weights are.
+            in the rt graph, this represents number of times user a has retweeted user b
+    """
+
+    in_degrees = dict(rt_graph.in_degree(weight=weight_attr)) # users receiving retweets
+    out_degrees = dict(rt_graph.out_degree(weight=weight_attr)) # users doing the retweeting
+
+    links = parse_bidirectional_links(rt_graph)
+    energies = [(link[0], link[1], compute_link_energy(link[0], link[1], link[4], in_degrees, out_degrees)) for link in links]
+    positive_energies = [e for e in energies if sum(e[2]) > 0]
+
+    prior_probabilities = dict.fromkeys(list(rt_graph.nodes), 0.5)
+    energy_graph, pl, user_data = compile_energy_graph(rt_graph, prior_probabilities, positive_energies, out_degrees, in_degrees)
+
+    bot_probabilities = dict.fromkeys(list(user_data.keys()), 0) # start with defaults of 0 for each user
+    for user in pl:
+        user_data[user]["clustering"] = 1
+        bot_probabilities[user] = 1
+
+    return bot_probabilities
+
 if __name__ == "__main__":
 
     graph = compile_mock_rt_graph([

@@ -2,7 +2,8 @@
 from networkx import DiGraph
 
 from app.botcode import (ALPHA, LAMBDA_1, LAMBDA_2, EPSILON,
-                        compute_link_energy, compile_energy_graph, parse_bidirectional_links)
+    compute_link_energy, compile_energy_graph, parse_bidirectional_links)
+from app.workers.investigate_botcode import classify_bot_probabilities
 from conftest import compile_mock_rt_graph
 
 def test_default_hyperparams():
@@ -11,12 +12,6 @@ def test_default_hyperparams():
     assert LAMBDA_1 == 0.8
     assert LAMBDA_2 == 0.6
     assert EPSILON == 0.001
-
-def test_mock_rt_graph(mock_rt_graph):
-    in_degrees = dict(mock_rt_graph.in_degree(weight="rt_count")) # users receiving retweets
-    out_degrees = dict(mock_rt_graph.out_degree(weight="rt_count")) # users doing the retweeting
-    assert in_degrees == {'user1': 0, 'leader1': 100.0, 'user2': 0, 'user3': 0, 'leader2': 60.0, 'user4': 0, 'user5': 0, 'leader3': 40.0, 'colead1': 20.0, 'colead2': 30.0, 'colead3': 40.0, 'colead4': 10.0}
-    assert out_degrees == {'user1': 40.0, 'leader1': 0, 'user2': 60.0, 'user3': 40.0, 'leader2': 0, 'user4': 20.0, 'user5': 40.0, 'leader3': 0, 'colead1': 30.0, 'colead2': 20.0, 'colead3': 10.0, 'colead4': 40.0}
 
 def test_link_energy_nonactivation():
     #
@@ -54,6 +49,18 @@ def test_link_energy_nonactivation():
     assert energy == [0.01676872682112003, 0.027947878035200054, 0.01120709909211522, 0.022358302428160046]
     assert sum(energy) > 0
 
+
+
+#
+# Use the Mock RT Graph (see conftest.py)
+#
+
+def test_mock_rt_graph(mock_rt_graph):
+    in_degrees = dict(mock_rt_graph.in_degree(weight="rt_count")) # users receiving retweets
+    out_degrees = dict(mock_rt_graph.out_degree(weight="rt_count")) # users doing the retweeting
+    assert in_degrees == {'user1': 0, 'leader1': 100.0, 'user2': 0, 'user3': 0, 'leader2': 60.0, 'user4': 0, 'user5': 0, 'leader3': 40.0, 'colead1': 20.0, 'colead2': 30.0, 'colead3': 40.0, 'colead4': 10.0}
+    assert out_degrees == {'user1': 40.0, 'leader1': 0, 'user2': 60.0, 'user3': 40.0, 'leader2': 0, 'user4': 20.0, 'user5': 40.0, 'leader3': 0, 'colead1': 30.0, 'colead2': 20.0, 'colead3': 10.0, 'colead4': 40.0}
+
 def test_link_energy(mock_rt_graph):
     #
     # w/ sufficient number of retweets, given default hyperparams, energy is positive
@@ -87,13 +94,6 @@ def test_energy_grapher(mock_rt_graph):
         'user1', 'user2', 'user3', 'user4', 'user5'
     ]
 
-    prior_probabilities = dict.fromkeys(list(mock_rt_graph.nodes), 0.5)
-    assert prior_probabilities == {
-        'user1': 0.5, 'leader1': 0.5, 'user2': 0.5, 'user3': 0.5,
-        'leader2': 0.5, 'user4': 0.5, 'user5': 0.5, 'leader3': 0.5,
-        'colead1': 0.5, 'colead2': 0.5, 'colead3': 0.5, 'colead4': 0.5
-    }
-
     in_degrees = dict(mock_rt_graph.in_degree(weight="rt_count")) # users receiving retweets
     out_degrees = dict(mock_rt_graph.out_degree(weight="rt_count")) # users doing the retweeting
     assert in_degrees == {
@@ -106,6 +106,11 @@ def test_energy_grapher(mock_rt_graph):
         'leader2': 0, 'user4': 20.0, 'user5': 40.0, 'leader3': 0,
         'colead1': 30.0, 'colead2': 20.0, 'colead3': 10.0, 'colead4': 40.0
     }
+
+    # this was an original intention in the original function, for all graph nodes to be represented in both in and out degrees
+    for node in mock_rt_graph.nodes():
+        assert node in in_degrees.keys()
+        assert node in out_degrees.keys()
 
     links = parse_bidirectional_links(mock_rt_graph)
     assert links == [
@@ -144,6 +149,13 @@ def test_energy_grapher(mock_rt_graph):
         ('colead2', 'colead1',[0.004024201565597737, 0.006707002609329562, 0.0026895080463411537, 0.00536560208746365]),
         ('colead4', 'colead3', [1.1382209562616026, 1.8970349271026712, 0.760711005768171, 1.517627941682137])
     ] # people doing the most retweeting
+
+    prior_probabilities = dict.fromkeys(list(mock_rt_graph.nodes), 0.5)
+    assert prior_probabilities == {
+        'user1': 0.5, 'leader1': 0.5, 'user2': 0.5, 'user3': 0.5,
+        'leader2': 0.5, 'user4': 0.5, 'user5': 0.5, 'leader3': 0.5,
+        'colead1': 0.5, 'colead2': 0.5, 'colead3': 0.5, 'colead4': 0.5
+    }
 
     #
     # it produces an energy graph and other important results:
@@ -217,6 +229,21 @@ def test_energy_grapher(mock_rt_graph):
 
 def test_bot_probabilities(mock_rt_graph):
 
+    expected_bot_probabilities = {
+        'colead1': 1,
+        'colead2': 0,
+        'colead3': 0,
+        'colead4': 1,
+        'leader1': 0,
+        'leader2': 0,
+        'leader3': 0,
+        'user1': 1,
+        'user2': 1,
+        'user3': 1,
+        'user4': 1,
+        'user5': 1
+    }
+
     #
     # setup
     #
@@ -239,12 +266,7 @@ def test_bot_probabilities(mock_rt_graph):
     for user in pl:
         user_data[user]["clustering"] = 1
         bot_probabilities[user] = 1
-
-    assert bot_probabilities == {
-        'colead1': 1, 'colead2': 0, 'colead3': 0, 'colead4': 1,
-        'leader1': 0, 'leader2': 0, 'leader3': 0,
-        'user1': 1, 'user2': 1, 'user3': 1, 'user4': 1, 'user5': 1
-    }
+    assert bot_probabilities == expected_bot_probabilities
 
     assert user_data == {
         'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
@@ -260,3 +282,7 @@ def test_bot_probabilities(mock_rt_graph):
         'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
         'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1}
      }
+
+    # now test the bridge function does the same thing:
+
+    assert classify_bot_probabilities(mock_rt_graph) == expected_bot_probabilities
