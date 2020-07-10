@@ -43,8 +43,6 @@ def parse_bidirectional_links(graph, weight_attr="rt_count"):
             the fourth boolean indicates whether or not the second retweeted the first,
             the fifth float indicates the strength or number of times the first user retweeted the second,
             the sixth float indicates the strength or number of times the second user retweeted the first
-
-    TODO: prefer to return data in dictionary format, as long as the performance isn't affected
     """
     edges = graph.edges(data=True)
     #> OutEdgeDataView([('user1', 'leader1', {'rt_count': 4.0}), ('user2', 'leader1', {'rt_count': 6.0}), ('user3', 'leader2', {'rt_count': 4.0}), ('user4', 'leader2', {'rt_count': 2.0}), ('user5', 'leader3', {'rt_count': 4.0})])
@@ -54,21 +52,21 @@ def parse_bidirectional_links(graph, weight_attr="rt_count"):
 
     links = []
     for k in weighted_edges:
-            user = k[0] #> 'user1'
-            retweeted_user = k[1] #> 'leader1'
-            edge_weight = weighted_edges[k] #> 4.0
+        user = k[0] #> 'user1'
+        retweeted_user = k[1] #> 'leader1'
+        edge_weight = weighted_edges[k] #> 4.0
 
-            reverse_edge_key = (retweeted_user, user)
-            if(reverse_edge_key in weighted_edges.keys()):
-                has_reverse_edge = True
-                reverse_edge_weight = weighted_edges[reverse_edge_key]
-            else:
-                has_reverse_edge = False
-                reverse_edge_weight = 0
+        reverse_edge_key = (retweeted_user, user)
+        if reverse_edge_key in weighted_edges.keys():
+            has_reverse_edge = True
+            reverse_edge_weight = weighted_edges[reverse_edge_key]
+        else:
+            has_reverse_edge = False
+            reverse_edge_weight = 0
 
-            link = [user, retweeted_user, True, has_reverse_edge, edge_weight, reverse_edge_weight]
-            #> ['user1', 'leader1', True, False, 4.0, 0] # TODO: prefer to assemble a dict here, for more explicit access later
-            links.append(link)
+        link = [user, retweeted_user, True, has_reverse_edge, edge_weight, reverse_edge_weight]
+        #> ['user1', 'leader1', True, False, 4.0, 0] # TODO: prefer to assemble a dict here, for more explicit access later
+        links.append(link)
     return links
 
 def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alambda1=LAMBDA_1, alambda2=LAMBDA_2, epsilon=EPSILON):
