@@ -77,10 +77,10 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
 
     Copied unchanged from the "psi" function in the "networkClassifierHELPER" file.
 
-	Params:
+    Params:
         u1 (int or str) unique identifier for user 1
-	    u2 (int or str) unique identifier for user 2
-	    rt_count (int) number of retweets from u1 to u2
+        u2 (int or str) unique identifier for user 2
+        rt_count (int) number of retweets from u1 to u2
         out_graph (dict of ints) a graph that stores out degrees of accounts in retweet graph
         in_graph (dict of ints) a graph that stores in degrees of accounts in retweet graph
 
@@ -88,7 +88,7 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
         alambda1 (float) value of lambda11
         alambda2 (float) value of lambda00
         epsilon (int) exponent such that delta=10^(-espilon), where lambda01=lambda11+lambda00-1+delta
-	"""
+    """
 
     hyperparam_const = (alambda2 + alambda1 - 1 + epsilon) #> 0.4009999999999999
 
@@ -161,26 +161,26 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
 
     Copied unchanged from the "computeH" function in the "networkClassifierHELPER" file.
 
-	Params:
+    Params:
 
-	    G (ntwkX graph)
-		    the Retweet Graph from buildRTGraph
+        G (ntwkX graph)
+            the Retweet Graph from buildRTGraph
 
         piBot (dict of floats)
-		    a dictionnary with prior on bot probabilities.
+            a dictionnary with prior on bot probabilities.
             Keys are users_ids, values are prior bot scores.
 
         edgelist_data (list of  tuples)
-		    information about edges to build energy graph.
-		    This list comes in part from the getLinkDataRestrained method
+            information about edges to build energy graph.
+            This list comes in part from the getLinkDataRestrained method
 
         graph_out (dict of ints)
-		    a graph that stores out degrees of accounts in retweet graph
+            a graph that stores out degrees of accounts in retweet graph
 
         graph_in (dict of ints)
-		    a graph that stores in degrees of accounts in retweet graph
+            a graph that stores in degrees of accounts in retweet graph
 
-	"""
+    """
     H = DiGraph()
     user_data={i:{
                 'user_id':i,
