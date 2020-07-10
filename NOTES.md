@@ -595,3 +595,9 @@ Constructing Retweet Graphs:
   "conversation": {"users_limit": 50000, "topic": "impeach", "start_at": "2020-01-01", "end_at": "2020-01-30"}
 }
 ```
+
+Investigating MPI:
+
+```sh
+python -m app.workers.investigate_mpi
+```

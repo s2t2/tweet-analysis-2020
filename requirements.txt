@@ -13,8 +13,9 @@ networkx
 psycopg2
 sqlalchemy
 
+mpi4py
+numpy
+
 # formerly known as dev dependencies:
 pytest
 memory_profiler
-
-# mpi4py # see: https://mpi4py.readthedocs.io/en/stable/install.html

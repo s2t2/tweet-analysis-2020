@@ -29,6 +29,8 @@ class GraphAnalyzer():
         self.job_id = job_id
         self.job = BaseGrapher(job_id=self.job_id)
 
+        self.local_dirpath = self.job.local_dirpath
+
     def __repr__(self):
         return f"<GraphAnalyzer {self.job_id}>"
 
@@ -37,17 +39,17 @@ class GraphAnalyzer():
     def graph(self):
         return self.load_graph()
 
-    @profile
+    #@profile
     def load_graph(self):
-        if self.storage_mode == "local":
+        if not os.path.isdir(self.job.local_dirpath):
+            print("PREPARING LOCAL DOWNLOAD DIR...")
+            os.mkdir(self.job.local_dirpath)
+
+        if self.storage_mode == "local" or os.path.isfile(self.job.local_graph_filepath):
             print("LOADING GRAPH FROM LOCAL FILE...")
             return read_gpickle(self.job.local_graph_filepath)
 
         elif self.storage_mode == "remote":
-            print("PREPARING LOCAL DOWNLOAD DIR...")
-            if not os.path.isdir(self.job.local_dirpath):
-                os.mkdir(self.job.local_dirpath)
-
             print("LOADING GRAPH FROM REMOTE STORAGE...")
             self.job.gcs_service.download(self.job.gcs_graph_filepath, self.job.local_graph_filepath)
             return read_gpickle(self.job.local_graph_filepath)
@@ -56,7 +58,7 @@ class GraphAnalyzer():
         print("GRAPH:", type(self.graph))
         print("NODES:", fmt_n(len(self.graph.nodes)))
         print("EDGES:", fmt_n(len(self.graph.edges)))
-        print("SIZE:", fmt_n(self.graph.size()))
+        #print("SIZE:", fmt_n(self.graph.size())) # same as edges
 
 if __name__ == "__main__":
 
