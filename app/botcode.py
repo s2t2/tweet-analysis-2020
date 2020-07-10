@@ -15,9 +15,9 @@ ALPHA_1 = float(os.getenv("ALPHA_1", default="100"))
 ALPHA_2 = float(os.getenv("ALPHA_2", default="100"))
 ALPHA = [MU, ALPHA_1, ALPHA_2]
 
-N_ITERS = int(os.getenv("N_ITERS", default="1"))
-DIRNAME = os.getenv("DIRNAME", default="impeachment-dev")
-PRIORS_MODE = os.getenv("PRIORS_MODE", default="normal") # should be one of ["boto", "random_unif", "random_gaus"]
+#N_ITERS = int(os.getenv("N_ITERS", default="1"))
+#DIRNAME = os.getenv("DIRNAME", default="impeachment-dev")
+#PRIORS_MODE = os.getenv("PRIORS_MODE", default="normal") # should be one of ["boto", "random_unif", "random_gaus"]
 
 LAMBDA_1 = float(os.getenv("LAMBDA_1", default="0.8")) # called "lamba11" in the paper
 LAMBDA_2 = float(os.getenv("LAMBDA_2", default="0.6")) # called "lambda00" in the paper
@@ -157,7 +157,7 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
     """
     Takes as input the RT graph and builds the energy graph.
 
-    Then cuts the energy graph to classify.
+    Then cuts the energy graph to classify the bots.
 
     Copied unchanged from the "computeH" function in the "networkClassifierHELPER" file.
 
@@ -241,8 +241,11 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
             break;
 
     cut_value, mc = minimum_cut(H,1,0)
-    #print(mc) #> ({1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2'}, {0, 'colead3', 'leader1', 'leader3', 'colead2', 'leader2'})
     print("MIN CUT VALUE:", cut_value) #> 22.769643094754716 ... or 479357.85220684315 ... or whatever, depending on the graph
+    #print(mc) #> (
+    #> {1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2'},
+    #> {0, 'colead3', 'leader1', 'leader3', 'colead2', 'leader2'}
+    #> )
 
     PL = list(mc[0]) #the other way around
     #print(PL) #> [1, 'user3', 'colead4', 'user4', 'user1', 'user5', 'colead1', 'user2']
