@@ -39,7 +39,7 @@ class GraphAnalyzer():
     def graph(self):
         return self.load_graph()
 
-    @profile
+    #@profile
     def load_graph(self):
         if not os.path.isdir(self.job.local_dirpath):
             print("PREPARING LOCAL DOWNLOAD DIR...")

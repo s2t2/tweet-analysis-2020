@@ -244,6 +244,21 @@ def test_bot_probabilities(mock_rt_graph):
         'user5': 1
     }
 
+    expected_user_data = {
+        'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader1': {'user_id': 'leader1', 'out': 0, 'in': 100.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'user2': {'user_id': 'user2', 'out': 60.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'user3': {'user_id': 'user3', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader2': {'user_id': 'leader2', 'out': 0, 'in': 60.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'user4': {'user_id': 'user4', 'out': 20.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'user5': {'user_id': 'user5', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'leader3': {'user_id': 'leader3', 'out': 0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead1': {'user_id': 'colead1', 'out': 30.0, 'in': 20.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
+        'colead2': {'user_id': 'colead2', 'out': 20.0, 'in': 30.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
+        'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1}
+     }
+
     #
     # setup
     #
@@ -267,21 +282,12 @@ def test_bot_probabilities(mock_rt_graph):
         user_data[user]["clustering"] = 1
         bot_probabilities[user] = 1
     assert bot_probabilities == expected_bot_probabilities
+    assert user_data == expected_user_data
 
-    assert user_data == {
-        'user1': {'user_id': 'user1', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'leader1': {'user_id': 'leader1', 'out': 0, 'in': 100.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
-        'user2': {'user_id': 'user2', 'out': 60.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'user3': {'user_id': 'user3', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'leader2': {'user_id': 'leader2', 'out': 0, 'in': 60.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
-        'user4': {'user_id': 'user4', 'out': 20.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'user5': {'user_id': 'user5', 'out': 40.0, 'in': 0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'leader3': {'user_id': 'leader3', 'out': 0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
-        'colead1': {'user_id': 'colead1', 'out': 30.0, 'in': 20.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1},
-        'colead2': {'user_id': 'colead2', 'out': 20.0, 'in': 30.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
-        'colead3': {'user_id': 'colead3', 'out': 10.0, 'in': 40.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 0},
-        'colead4': {'user_id': 'colead4', 'out': 40.0, 'in': 10.0, 'old_prob': 0.5, 'phi_0': 0.6931471805599453, 'phi_1': 0.6931471805599453, 'prob': 0, 'clustering': 1}
-     }
+    #
+    # now test the bridge function does the same thing!
+    #
 
-    # now test the bridge function does the same thing:
-    assert classify_bot_probabilities(mock_rt_graph) == expected_bot_probabilities
+    bot_probabilities, user_data = classify_bot_probabilities(mock_rt_graph)
+    assert bot_probabilities == expected_bot_probabilities
+    assert user_data == expected_user_data

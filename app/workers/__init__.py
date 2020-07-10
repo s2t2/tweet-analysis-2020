@@ -38,4 +38,4 @@ def fmt_pct(decimal_number):
 
     Returns (str) like '95.5%'
     """
-    return f"{decimal_number:.2f}%"
+    return f"{(decimal_number * 100):.2f}%"

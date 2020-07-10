@@ -56,7 +56,7 @@ def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
         user_data[user]["clustering"] = 1
         bot_probabilities[user] = 1
 
-    return bot_probabilities
+    return bot_probabilities, user_data
 
 if __name__ == "__main__":
 
