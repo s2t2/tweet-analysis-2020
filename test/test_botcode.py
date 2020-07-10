@@ -168,7 +168,7 @@ def test_energy_grapher(mock_rt_graph):
     assert list(energy_graph.nodes) == [
         'user1', 'leader1', 'user2', 'user3', 'leader2', 'user4', 'user5', 'leader3',
         'colead1', 'colead2', 'colead4', 'colead3', 0, 1
-    ] # includes all original graph nodes, as well as 0 and 1 (though not immediately clear why)
+    ] # includes all original graph nodes, as well as 0 and 1
     assert list(energy_graph.edges(data=True)) == [
         ('user1', 'leader1', {'capacity': 0.0036485104761272424}),
         ('user1', 0, {'capacity': 2.519226673861572}),
@@ -208,7 +208,7 @@ def test_energy_grapher(mock_rt_graph):
         (1, 'colead2', {'capacity': 0.7381553417313793}),
         (1, 'colead3', {'capacity': 0.9781766783571215}),
         (1, 'colead4', {'capacity': 1.5463386390243716})
-    ] # what's up with the extra 0s and 1s in here? for baseline comparisons? also, capacity for what?
+    ] # the extra 1s and 0s seem to be for baseline comparisons when
 
     assert sorted(pl) == ['colead1', 'colead4', 'user1', 'user2', 'user3', 'user4', 'user5'] # seems to represent the users who retweet but don't get retweeted (a.k.a the bot list)
 
