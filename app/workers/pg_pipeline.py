@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from app import APP_ENV
 from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts, fmt_n
 from app.bq_service import BigQueryService
-from app.models import UserFriend, BoundSession, db
+from app.models import BoundSession, db, UserFriend, UserDetail
 
 load_dotenv()
 
@@ -32,7 +32,7 @@ class Pipeline():
         print("  BATCH SIZE:", self.batch_size)
         #print("  BQ SERVICE:", type(self.bq_service))
         #print("  PG SESSION:", type(self.pg_session))
-        print("  PG DESTRUCTIVE:", type(self.pg_destructive))
+        print("  PG DESTRUCTIVE:", self.pg_destructive)
 
     def perform(self):
         self.start_at = time.perf_counter()
@@ -59,6 +59,58 @@ class Pipeline():
             if len(self.batch) >= self.batch_size:
                 print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(UserFriend, self.batch)
+                self.pg_session.commit()
+                self.batch = []
+
+        print("ETL COMPLETE!")
+        self.end_at = time.perf_counter()
+        self.pg_session.close()
+
+    def download_user_details(self):
+        self.start_at = time.perf_counter()
+        self.batch = []
+        self.counter = 0
+
+        if self.pg_destructive:
+            UserDetail.__table__.drop(self.pg_engine)
+
+        if not UserDetail.__table__.exists():
+            print("CREATING THE USER DETAILS TABLE!")
+            UserDetail.__table__.create(pg_engine)
+
+        print(fmt_ts(), "DATA FLOWING LIKE WATER...")
+        for row in self.bq_service.fetch_user_details_in_batches(limit=self.users_limit):
+            self.batch.append({
+                "user_id": row['user_id'],
+
+                "screen_name": row['screen_name'],
+                "name": row['name'],
+                "description": row['description'],
+                "location": row['location'],
+                "verified": row['verified'],
+                "created_at": row['created_at'],
+
+                "screen_name_count": row['_screen_name_count'],
+                "name_count": row['_name_count'],
+                "description_count": row['_description_count'],
+                "location_count": row['_location_count'],
+                "verified_count": row['_verified_count'],
+                "created_count": row['_created_at_count'],
+
+                "screen_names": row['_screen_names'],
+                "names": row['_names'],
+                "descriptions": row['_descriptions'],
+                "locations": row['_locations'],
+                "verifieds": row['verifieds'],
+                "create_ats": row['created_ats']
+            })
+
+            self.batch.append(row)
+            self.counter+=1
+
+            if len(self.batch) >= self.batch_size:
+                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
+                self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
                 self.pg_session.commit()
                 self.batch = []
 

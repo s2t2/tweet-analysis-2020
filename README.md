@@ -98,8 +98,12 @@ python -m app.models
 After migrating the local database, you can load the data from BigQuery:
 
 ```sh
-python -m app.workers.pg_pipeline
-BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
+#python -m app.workers.pg_pipeline
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline
+```
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=300  python -m app.workers.pg_pipeline_user_details
 ```
 
 #### Remote File Storage

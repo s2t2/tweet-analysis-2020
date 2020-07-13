@@ -484,7 +484,7 @@ SELECT count(DISTINCT status_id)
 FROM impeachment_production.retweets;
 ```
 
-Of the 67M tweets, 55M are retweets.
+Of the 67M tweets, 55.9M are retweets.
 
 Let's count how many times each user retweeted another, in a new table called "retweet_counts":
 
@@ -592,12 +592,122 @@ Constructing Retweet Graphs:
   "destructive": false,
   "verbose": false,
   "retweeters": true,
-  "conversation": {"users_limit": 50000, "topic": "impeach", "start_at": "2020-01-01", "end_at": "2020-01-30"}
+  "conversation":
+
+  {"users_limit": 50000, "topic": "impeach", "start_at": "2020-01-01", "end_at": "2020-01-30"}
 }
 ```
 
-Investigating MPI:
+
+## User Analysis
+
+User Details:
 
 ```sh
-python -m app.workers.investigate_mpi
+DROP TABLE IF EXISTS impeachment_production.user_details;
+CREATE TABLE impeachment_production.user_details as (
+  SELECT
+    user_id
+
+    ,count(DISTINCT upper(user_screen_name)) as _screen_name_count
+    ,ARRAY_AGG(DISTINCT upper(user_screen_name) IGNORE NULLS) as _screen_names
+    ,ANY_VALUE(user_screen_name) as screen_name
+
+    ,count(DISTINCT upper(user_name)) as _name_count
+    ,ARRAY_AGG(DISTINCT upper(user_name) IGNORE NULLS) as _names
+    ,ANY_VALUE(user_name) as name
+
+    ,count(DISTINCT upper(user_description)) as _description_count
+    ,ARRAY_AGG(DISTINCT upper(user_description) IGNORE NULLS) as _descriptions
+    ,ANY_VALUE(user_description) as description
+
+    ,count(DISTINCT upper(user_location))	 as _location_count
+    ,ARRAY_AGG(DISTINCT upper(user_location) IGNORE NULLS) as _locations
+    ,ANY_VALUE(user_location) as location
+
+    ,count(DISTINCT user_verified)	as _verified_count #>  1
+    ,ARRAY_AGG(DISTINCT user_verified IGNORE NULLS) as _verifieds
+    ,ANY_VALUE(user_verified) as verified
+
+    ,count(DISTINCT user_created_at) _created_at_count #>  1
+    ,ARRAY_AGG(DISTINCT user_created_at IGNORE NULLS) as _created_ats
+    ,ANY_VALUE(user_created_at) as created_at
+
+  FROM impeachment_production.tweets
+  GROUP BY user_id
+
+);
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Sham Trial
+
+Create some tables for exploratory analysis.
+
+Retweets about "#ShamTrial" (15,180):
+
+```sql
+CREATE TABLE impeachment_production.retweets_shamtrial as (
+SELECT
+  rt.status_id
+  ,rt.user_id
+  ,rt.user_screen_name
+  ,rt.retweet_user_screen_name
+  ,rt.status_text
+  ,rt.created_at
+FROM impeachment_production.retweets rt
+WHERE upper(rt.status_text) LIKE '%#SHAMTRIAL%'
+  -- AND (created_at BETWEEN "" AND "")
+  AND rt.user_screen_name <> rt.retweet_user_screen_name -- exclude people retweeting themselves
+);
+```
+
+
+
+
+
+
+Users (should have done it this way with more columns to begin with):
+
+```sql
+
+```
+
+Users retweeting about "#ShamTrial" (11,564):
+
+```sql
 ```

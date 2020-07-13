@@ -1,7 +1,7 @@
 
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, BigInteger, String, ARRAY, TIMESTAMP
+from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Boolean, DateTime, ARRAY #TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -10,6 +10,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
 USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
+USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
 
 db = create_engine(DATABASE_URL)
 Base = declarative_base()
@@ -30,8 +31,37 @@ class UserFriend(Base):
     screen_name = Column(String(128))
     friend_count = Column(Integer)
     friend_names = Column(ARRAY(String(128)))
-    #start_at = Column(TIMESTAMP)
-    #end_at = Column(TIMESTAMP)
+
+class UserDetail(Base):
+    __tablename__ = USER_DETAILS_TABLE_NAME
+    user_id = Column(BigInteger, primary_key=True)
+
+    screen_name = Column(String(128))
+    name        = Column(String(128))
+    description = Column(String(128))
+    location    = Column(String(128))
+    verified    = Column(Boolean)
+    created_at  = Column(DateTime)
+
+    screen_name_count = Column(Integer)
+    name_count        = Column(Integer)
+    description_count = Column(Integer)
+    location_count    = Column(Integer)
+    verified_count    = Column(Integer)
+    created_count     = Column(Integer)
+
+    screen_names  = Column(ARRAY(String(128)))
+    names         = Column(ARRAY(String(128)))
+    descriptions  = Column(ARRAY(String(128)))
+    locations     = Column(ARRAY(String(128)))
+    verifieds     = Column(ARRAY(Boolean))
+    created_ats   = Column(ARRAY(DateTime))
+
+
+
+
+
+
 
 if __name__ == "__main__":
 
@@ -57,12 +87,19 @@ if __name__ == "__main__":
     for book in books:
         print("...", book.id, "|", book.title, "|", book.author, "|", book.readers)
 
-
     print("-------")
     print("USER FRIENDS:")
     results = db.execute(f"SELECT count(DISTINCT screen_name) as row_count FROM {USER_FRIENDS_TABLE_NAME};")
     #print(results.keys()) #> ["row_count"]
     #print(results.rowcount) #> 1
     print("...", results.fetchone()[0]) #TODO: row factory ... results.fetchone()["row_count"]
+
+    print("-------")
+    print("USER DETAILS:")
+    results = db.execute(f"SELECT count(DISTINCT screen_name) as row_count FROM {USER_DETAILS_TABLE_NAME};")
+    #print(results.keys()) #> ["row_count"]
+    #print(results.rowcount) #> 1
+    print("...", results.fetchone()[0]) #TODO: row factory ... results.fetchone()["row_count"]
+
 
     session.close()

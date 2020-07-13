@@ -120,6 +120,52 @@ class BigQueryService():
         return list(results)
 
 
+
+    def fetch_user_details_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id
+                ,screen_name
+                ,name
+                ,description
+                ,location
+                ,verified
+                ,created_at
+
+                ,_screen_name_count
+                ,_name_count
+                ,_description_count
+                ,_location_count
+                ,_verified_count
+                ,_created_at_count
+
+                ,_screen_names
+                ,_names
+                ,_descriptions
+                ,_locations
+                ,_verifieds
+                ,_created_ats
+
+            FROM `{self.dataset_address}.user_details`
+        """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+
+        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
+        job_config = bigquery.QueryJobConfig(
+            priority=bigquery.QueryPriority.BATCH,
+            allow_large_results=True,
+            destination=f"{self.dataset_address}.user_details_temp_{job_name}"
+        )
+
+        job = self.client.query(sql, job_config=job_config)
+        print("JOB (FETCH USER DETAILS):", type(job), job.job_id, job.state, job.location)
+        return job
+
+
+
+
+
     #
     # COLLECTING USER FRIENDS
     #
