@@ -34,7 +34,7 @@ class Pipeline():
         #print("  PG SESSION:", type(self.pg_session))
         print("  PG DESTRUCTIVE:", self.pg_destructive)
 
-    def perform(self):
+    def download_user_friends(self):
         self.start_at = time.perf_counter()
         self.batch = []
         self.counter = 0
@@ -113,15 +113,15 @@ class Pipeline():
             self.batch.append(item)
             self.counter+=1
 
-            record = UserDetail(**item)
-            self.pg_session.add(record)
-            self.pg_session.commit()
-
+            # temporarily testing individual inserts...
+            #record = UserDetail(**item)
+            #self.pg_session.add(record)
+            #self.pg_session.commit()
 
             if len(self.batch) >= self.batch_size:
                 print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
-                #self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
-                #self.pg_session.commit()
+                self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
+                self.pg_session.commit()
                 self.batch = []
 
         print("ETL COMPLETE!")
@@ -135,7 +135,7 @@ class Pipeline():
 if __name__ == "__main__":
 
     pipeline = Pipeline()
-    pipeline.perform()
+    pipeline.download_user_friends()
     pipeline.report()
 
     if APP_ENV == "production":

@@ -41,7 +41,7 @@ class UserDetail(Base):
     description = Column(String(250))
     location    = Column(String(150))
     verified    = Column(Boolean)
-    created_at  = Column(TIMESTAMP) #Column(String(128)) # Column(DateTime)
+    created_at  = Column(TIMESTAMP)
 
     screen_name_count = Column(Integer)
     name_count        = Column(Integer)
@@ -55,8 +55,7 @@ class UserDetail(Base):
     descriptions  = Column(ARRAY(String(250)))
     locations     = Column(ARRAY(String(150)))
     verifieds     = Column(ARRAY(Boolean))
-    created_ats   = Column(ARRAY(TIMESTAMP)) #Column(ARRAY(String(128))) # Column(ARRAY(DateTime))
-    # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.DatatypeMismatch) column "created_ats" is of type timestamp without time zone[] but expression is of type text[]
+    created_ats   = Column(ARRAY(TIMESTAMP))
 
 
 
