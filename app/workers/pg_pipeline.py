@@ -40,11 +40,14 @@ class Pipeline():
         self.counter = 0
 
         if self.pg_destructive:
+            print("DROPPING THE USER FRIENDS TABLE!")
             UserFriend.__table__.drop(self.pg_engine)
+            self.pg_session.commit()
 
         if not UserFriend.__table__.exists():
             print("CREATING THE USER FRIENDS TABLE!")
-            UserFriend.__table__.create(pg_engine)
+            UserFriend.__table__.create(self.pg_engine)
+            self.pg_session.commit()
 
         print(fmt_ts(), "DATA FLOWING...")
         for row in self.bq_service.fetch_user_friends_in_batches(limit=self.users_limit):
@@ -72,15 +75,18 @@ class Pipeline():
         self.counter = 0
 
         if self.pg_destructive:
+            print("DROPPING THE USER DETAILS TABLE!")
             UserDetail.__table__.drop(self.pg_engine)
+            self.pg_session.commit()
 
         if not UserDetail.__table__.exists():
             print("CREATING THE USER DETAILS TABLE!")
-            UserDetail.__table__.create(pg_engine)
+            UserDetail.__table__.create(self.pg_engine)
+            self.pg_session.commit()
 
         print(fmt_ts(), "DATA FLOWING LIKE WATER...")
         for row in self.bq_service.fetch_user_details_in_batches(limit=self.users_limit):
-            self.batch.append({
+            item = {
                 "user_id": row['user_id'],
 
                 "screen_name": row['screen_name'],
@@ -88,7 +94,7 @@ class Pipeline():
                 "description": row['description'],
                 "location": row['location'],
                 "verified": row['verified'],
-                "created_at": row['created_at'],
+                "created_at": row['created_at'].strftime("%Y-%m-%d %H:%M:%S"),
 
                 "screen_name_count": row['_screen_name_count'],
                 "name_count": row['_name_count'],
@@ -101,17 +107,21 @@ class Pipeline():
                 "names": row['_names'],
                 "descriptions": row['_descriptions'],
                 "locations": row['_locations'],
-                "verifieds": row['verifieds'],
-                "create_ats": row['created_ats']
-            })
-
-            self.batch.append(row)
+                "verifieds": row['_verifieds'],
+                "created_ats": [dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
+            }
+            self.batch.append(item)
             self.counter+=1
+
+            record = UserDetail(**item)
+            self.pg_session.add(record)
+            self.pg_session.commit()
+
 
             if len(self.batch) >= self.batch_size:
                 print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
-                self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
-                self.pg_session.commit()
+                #self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
+                #self.pg_session.commit()
                 self.batch = []
 
         print("ETL COMPLETE!")
