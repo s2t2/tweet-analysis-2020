@@ -103,7 +103,8 @@ BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.wor
 ```
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=300  python -m app.workers.pg_pipeline_user_details
+# in development:
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_user_details
 ```
 
 #### Remote File Storage

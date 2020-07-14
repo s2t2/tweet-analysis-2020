@@ -635,11 +635,20 @@ CREATE TABLE impeachment_production.user_details as (
 
   FROM impeachment_production.tweets
   GROUP BY user_id
-
 );
 ```
 
 
+Get max character lengths for defining the user details table in PG:
+
+```sql
+select
+  max(CHAR_LENGTH(user_screen_name)) -- 18
+  ,max(CHAR_LENGTH(user_name)) -- 50
+  ,max(CHAR_LENGTH(user_description)) -- 244
+  ,max(CHAR_LENGTH(user_location)) -- 150
+from impeachment_production.tweets
+```
 
 
 

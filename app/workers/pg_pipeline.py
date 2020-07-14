@@ -94,7 +94,7 @@ class Pipeline():
                 "description": row['description'],
                 "location": row['location'],
                 "verified": row['verified'],
-                "created_at": row['created_at'].strftime("%Y-%m-%d %H:%M:%S"),
+                "created_at": row['created_at'], #.strftime("%Y-%m-%d %H:%M:%S"),
 
                 "screen_name_count": row['_screen_name_count'],
                 "name_count": row['_name_count'],
@@ -108,7 +108,7 @@ class Pipeline():
                 "descriptions": row['_descriptions'],
                 "locations": row['_locations'],
                 "verifieds": row['_verifieds'],
-                "created_ats": [dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
+                "created_ats": row['_created_ats'] #[dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
             }
             self.batch.append(item)
             self.counter+=1

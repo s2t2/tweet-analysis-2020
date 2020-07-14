@@ -1,7 +1,7 @@
 
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Boolean, DateTime, ARRAY #TIMESTAMP
+from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Boolean, DateTime, ARRAY, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -36,12 +36,12 @@ class UserDetail(Base):
     __tablename__ = USER_DETAILS_TABLE_NAME
     user_id = Column(BigInteger, primary_key=True)
 
-    screen_name = Column(String(128))
-    name        = Column(String(128))
-    description = Column(String(256))
-    location    = Column(String(128))
+    screen_name = Column(String(20))
+    name        = Column(String(50))
+    description = Column(String(250))
+    location    = Column(String(150))
     verified    = Column(Boolean)
-    created_at  = Column(String(128)) # Column(DateTime)
+    created_at  = Column(TIMESTAMP) #Column(String(128)) # Column(DateTime)
 
     screen_name_count = Column(Integer)
     name_count        = Column(Integer)
@@ -50,12 +50,12 @@ class UserDetail(Base):
     verified_count    = Column(Integer)
     created_count     = Column(Integer)
 
-    screen_names  = Column(ARRAY(String(128)))
-    names         = Column(ARRAY(String(128)))
-    descriptions  = Column(ARRAY(String(256)))
-    locations     = Column(ARRAY(String(128)))
+    screen_names  = Column(ARRAY(String(20)))
+    names         = Column(ARRAY(String(50)))
+    descriptions  = Column(ARRAY(String(250)))
+    locations     = Column(ARRAY(String(150)))
     verifieds     = Column(ARRAY(Boolean))
-    created_ats   = Column(ARRAY(String(128))) # Column(ARRAY(DateTime))
+    created_ats   = Column(ARRAY(TIMESTAMP)) #Column(ARRAY(String(128))) # Column(ARRAY(DateTime))
     # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.DatatypeMismatch) column "created_ats" is of type timestamp without time zone[] but expression is of type text[]
 
 
