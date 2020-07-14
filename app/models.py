@@ -36,8 +36,8 @@ class UserDetail(Base):
     __tablename__ = USER_DETAILS_TABLE_NAME
     user_id = Column(BigInteger, primary_key=True)
 
-    screen_name = Column(String(20))
-    name        = Column(String(50))
+    screen_name = Column(String(50))
+    name        = Column(String(150))
     description = Column(String(250))
     location    = Column(String(150))
     verified    = Column(Boolean)
@@ -50,8 +50,8 @@ class UserDetail(Base):
     verified_count    = Column(Integer)
     created_count     = Column(Integer)
 
-    screen_names  = Column(ARRAY(String(20)))
-    names         = Column(ARRAY(String(50)))
+    screen_names  = Column(ARRAY(String(50)))
+    names         = Column(ARRAY(String(150)))
     descriptions  = Column(ARRAY(String(250)))
     locations     = Column(ARRAY(String(150)))
     verifieds     = Column(ARRAY(Boolean))
