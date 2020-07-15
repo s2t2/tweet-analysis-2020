@@ -107,3 +107,4 @@ Big PG Data:
 ## General Tools
 
   + https://tabstospaces.com/
+  + https://www.fileformat.info/info/unicode/char/0fffd/index.htm

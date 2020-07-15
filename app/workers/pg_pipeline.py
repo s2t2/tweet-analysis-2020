@@ -12,6 +12,16 @@ load_dotenv()
 
 PG_DESTRUCTIVE = (os.getenv("PG_DESTRUCTIVE", default="false") == "true")
 
+def clean_string(dirty):
+    """
+    It doesn't feel good from a performance standpoint to put multiple strings per row through this function. It keeps getting more complex. Oy.
+    """
+    if dirty:
+        clean = dirty.replace("\x00", "\uFFFD") # fixes "ValueError: A string literal cannot contain NUL (0x00) characters."
+    else:
+        clean = None #> AttributeError: 'NoneType' object has no attribute 'replace'
+    return clean
+
 class Pipeline():
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE,
                         pg_destructive=PG_DESTRUCTIVE, bq_service=None):
@@ -89,10 +99,10 @@ class Pipeline():
             item = {
                 "user_id": row['user_id'],
 
-                "screen_name": row['screen_name'],
-                "name": row['name'],
-                "description": row['description'],
-                "location": row['location'],
+                "screen_name": clean_string(row['screen_name']),
+                "name": clean_string(row['name']),
+                "description": clean_string(row['description']),
+                "location": clean_string(row['location']),
                 "verified": row['verified'],
                 "created_at": row['created_at'], #.strftime("%Y-%m-%d %H:%M:%S"),
 
@@ -103,10 +113,10 @@ class Pipeline():
                 "verified_count": row['_verified_count'],
                 "created_count": row['_created_at_count'],
 
-                "screen_names": row['_screen_names'],
-                "names": row['_names'],
-                "descriptions": row['_descriptions'],
-                "locations": row['_locations'],
+                "screen_names": [clean_string(s) for s in row['_screen_names']],
+                "names": [clean_string(s) for s in row['_names']],
+                "descriptions": [clean_string(s) for s in row['_descriptions']],
+                "locations": [clean_string(s) for s in row['_locations']],
                 "verifieds": row['_verifieds'],
                 "created_ats": row['_created_ats'] #[dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
             }
