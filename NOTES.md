@@ -725,7 +725,7 @@ WHERE screen_name_count > 1 -- 31165
 
 Exporting this exploratory dataset of 128,410 users as "expore_users.csv". Importing data into Tableau...
 
-IMAGE HERE
+![](/workbooks/explore_users_by_month_created.png)
 
 Let's do a more comprehensive job of clustering users into communities, first using conversation topic-specific communities. Adding topic counts to the "user_details" query, re-creating the table, re-downloading it to local PG. Importing into Tableau...
 

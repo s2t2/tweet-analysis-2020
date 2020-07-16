@@ -110,7 +110,7 @@ Then download the "user_details" table, for user and retweeter analysis:
 # in development:
 #BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_user_details
 
-BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=1000 python -m app.workers.pg_pipeline_user_details
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_user_details
 ```
 
 #### Remote File Storage
