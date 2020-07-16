@@ -772,11 +772,11 @@ CREATE TABLE `impeachment_production.user_details` as (
 
         -- FRIEND / FOLLOWER DETAILS
 
-        ,f.friend_count
+        ,max(f.friend_count) as friend_count
 
     FROM `impeachment_production.tweets` t
     JOIN `impeachment_production.user_friends` f ON t.user_id = f.user_id
-    GROUP BY t.user_id, f.friend_count
+    GROUP BY t.user_id
 );
 ```
 
