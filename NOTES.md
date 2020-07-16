@@ -603,7 +603,7 @@ Constructing Retweet Graphs:
 
 User Details:
 
-```sh
+```sql
 DROP TABLE IF EXISTS impeachment_production.user_details;
 CREATE TABLE impeachment_production.user_details as (
   SELECT
@@ -652,71 +652,132 @@ from impeachment_production.tweets
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### Sham Trial
-
-Create some tables for exploratory analysis.
-
-Retweets about "#ShamTrial" (15,180):
+Local queries to setup a Tableau workbook:
 
 ```sql
-CREATE TABLE impeachment_production.retweets_shamtrial as (
 SELECT
-  rt.status_id
-  ,rt.user_id
-  ,rt.user_screen_name
-  ,rt.retweet_user_screen_name
-  ,rt.status_text
-  ,rt.created_at
-FROM impeachment_production.retweets rt
-WHERE upper(rt.status_text) LIKE '%#SHAMTRIAL%'
-  -- AND (created_at BETWEEN "" AND "")
-  AND rt.user_screen_name <> rt.retweet_user_screen_name -- exclude people retweeting themselves
+  d.user_id
+FROM user_details d
+LEFT JOIN user_friends f ON d.user_id = f.user_id
+WHERE f.friend_count is null
+-- 16 rows don't have a friends count:
+-- [230445365,884098078025826306,2950024043,765688750433308673,1216006276171423745,289782531,840065711590453251,507389727,1537305158,857227225116135424,16517574,792427950,1117910067846766597,2909713302,2847944058,2901662253]
+```
+
+
+For tableau workbooks, let's start with building and contrasting two example communities, to build and demonstrate analysis capabilities before we come back with an updated bot classification methodology.
+
+For an example community to represent non-bots, let's use the 28,000 twitter-verified users:
+
+```sql
+select count(distinct user_id) as user_count
+from user_details
+where verified = true -- 28297
+```
+
+For an example community to represent bots, let's use the 31,000 who have used more than one screen name during the collection period:
+
+```sql
+select count(distinct user_id) as user_count
+from user_details
+where screen_name_count > 1 -- 31165
+```
+
+
+And maybe we'll also throw in a group of users in neither category, with a decent amount of people they follow:
+
+```sql
+select count(distinct d.user_id) as user_count
+from user_details d
+JOIN user_friends f ON d.user_id = f.user_id
+where
+  -- f.friend_count >= 2000 -- 339,775
+  -- f.friend_count BETWEEN 1800 and 1900 -- 22720
+  f.friend_count BETWEEN 1750 and 1900 -- 34,805
+```
+
+Assigning the users to communities:
+
+```sql
+SELECT
+  d.user_id, d.screen_name, d.name, d.description, d.location, d.verified, d.created_at
+
+  ,f.friend_count
+
+  ,d.screen_name_count, d.name_count, d.description_count, d.location_count, d.verified_count, d.created_count
+
+  ,CASE
+      -- for 24 who are both verified and >1 screen name, assign to verified category
+      WHEN d.verified = true THEN 'VERIFIED'
+      WHEN d.screen_name_count > 1 THEN 'SCREEN_NAME_UPDATER'
+      WHEN f.friend_count BETWEEN 1750 and 1900 THEN 'MANY_FRIENDS'
+    END community_assignment
+
+  ,d.screen_names, d.names, d.descriptions, d.locations
+
+FROM user_details d
+JOIN user_friends f ON d.user_id = f.user_id
+WHERE screen_name_count > 1 -- 31165
+      or verified = true -- 28297
+      or f.friend_count BETWEEN 1750 and 1900
+```
+
+
+Exporting this exploratory dataset of 128,410 users as "expore_users.csv". Importing data into Tableau...
+
+IMAGE HERE
+
+Let's do a more comprehensive job of clustering users into communities, first using conversation topic-specific communities. Adding topic counts to the "user_details" query, re-creating the table, re-downloading it to local PG. Importing into Tableau...
+
+```sql
+DROP TABLE IF EXISTS `impeachment_production.user_details`;
+CREATE TABLE `impeachment_production.user_details` as (
+    SELECT
+        t.user_id
+
+        -- USER DETAILS
+
+        ,count(DISTINCT upper(t.user_screen_name)) as screen_name_count
+        ,count(DISTINCT upper(t.user_name)) as name_count
+        ,count(DISTINCT upper(t.user_description)) as description_count
+        ,count(DISTINCT upper(t.user_location))	 as location_count
+        ,count(DISTINCT t.user_verified)	as verified_count
+        ,count(DISTINCT t.user_created_at) created_at_count
+
+        ,ARRAY_AGG(DISTINCT upper(t.user_screen_name) IGNORE NULLS) as screen_names
+        ,ARRAY_AGG(DISTINCT upper(t.user_name) IGNORE NULLS) as names
+        ,ARRAY_AGG(DISTINCT upper(t.user_description) IGNORE NULLS) as descriptions
+        ,ARRAY_AGG(DISTINCT upper(t.user_location) IGNORE NULLS) as locations
+        ,ARRAY_AGG(DISTINCT t.user_verified IGNORE NULLS) as verifieds
+        ,ARRAY_AGG(DISTINCT t.user_created_at IGNORE NULLS) as created_ats
+
+        ,ANY_VALUE(t.user_screen_name) as screen_name
+        ,ANY_VALUE(t.user_name) as name
+        ,ANY_VALUE(t.user_description) as description
+        ,ANY_VALUE(t.user_location) as location
+        ,ANY_VALUE(t.user_verified) as verified
+        ,ANY_VALUE(t.user_created_at) as created_at
+
+        -- TWEET / CONVERSATION TOPIC DETAILS
+
+        ,count(distinct t.status_id) as status_count
+        ,count(distinct t.retweet_status_id) as retweet_count
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#IMPEACHANDCONVICT') then status_id end) as impeach_and_convict
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#SENATEHEARING') then status_id end) as senate_hearing
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#IGHEARING') then status_id end) as ig_hearing
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#FACTSMATTER') then status_id end) as facts_matter
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#SHAMTRIAL') then status_id end) as sham_trial
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#MAGA') then status_id end) as maga
+        ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), '#ACQUITTEDFOREVER') then status_id end) as acquitted_forever
+
+        -- FRIEND / FOLLOWER DETAILS
+
+        ,f.friend_count
+
+    FROM `impeachment_production.tweets` t
+    JOIN `impeachment_production.user_friends` f ON t.user_id = f.user_id
+    GROUP BY t.user_id, f.friend_count
 );
 ```
 
-
-
-
-
-
-Users (should have done it this way with more columns to begin with):
-
-```sql
-
-```
-
-Users retweeting about "#ShamTrial" (11,564):
-
-```sql
-```
+IMAGES HERE

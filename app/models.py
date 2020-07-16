@@ -57,8 +57,19 @@ class UserDetail(Base):
     verifieds     = Column(ARRAY(Boolean))
     created_ats   = Column(ARRAY(TIMESTAMP))
 
+    friend_count            = Column(Integer)
 
+    status_count            = Column(Integer)
+    retweet_count           = Column(Integer)
 
+    # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+    impeach_and_convict     = Column(Integer)
+    senate_hearing          = Column(Integer)
+    ig_hearing              = Column(Integer)
+    facts_matter            = Column(Integer)
+    sham_trial              = Column(Integer)
+    maga                    = Column(Integer)
+    acquitted_forever       = Column(Integer)
 
 
 

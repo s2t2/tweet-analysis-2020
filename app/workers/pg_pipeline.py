@@ -106,19 +106,34 @@ class Pipeline():
                 "verified": row['verified'],
                 "created_at": row['created_at'], #.strftime("%Y-%m-%d %H:%M:%S"),
 
-                "screen_name_count": row['_screen_name_count'],
-                "name_count": row['_name_count'],
-                "description_count": row['_description_count'],
-                "location_count": row['_location_count'],
-                "verified_count": row['_verified_count'],
-                "created_count": row['_created_at_count'],
+                "screen_name_count": row['screen_name_count'],
+                "name_count": row['name_count'],
+                "description_count": row['description_count'],
+                "location_count": row['location_count'],
+                "verified_count": row['verified_count'],
+                "created_count": row['created_at_count'],
 
-                "screen_names": [clean_string(s) for s in row['_screen_names']],
-                "names": [clean_string(s) for s in row['_names']],
-                "descriptions": [clean_string(s) for s in row['_descriptions']],
-                "locations": [clean_string(s) for s in row['_locations']],
-                "verifieds": row['_verifieds'],
-                "created_ats": row['_created_ats'] #[dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
+                "screen_names": [clean_string(s) for s in row['screen_names']],
+                "names": [clean_string(s) for s in row['names']],
+                "descriptions": [clean_string(s) for s in row['descriptions']],
+                "locations": [clean_string(s) for s in row['locations']],
+                "verifieds": row['verifieds'],
+                "created_ats": row['created_ats'], #[dt.strftime("%Y-%m-%d %H:%M:%S") for dt in row['_created_ats']]
+
+                "friend_count":        row["friend_count"],
+
+                "status_count":        row["status_count"],
+                "retweet_count":       row["retweet_count"],
+
+                # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                "impeach_and_convict": row["impeach_and_convict"],
+                "senate_hearing":      row["senate_hearing"],
+                "ig_hearing":          row["ig_hearing"],
+                "facts_matter":        row["facts_matter"],
+                "sham_trial":          row["sham_trial"],
+                "maga":                row["maga"],
+                "acquitted_forever":   row["acquitted_forever"],
+
             }
             self.batch.append(item)
             self.counter+=1

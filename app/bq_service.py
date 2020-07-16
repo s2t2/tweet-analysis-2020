@@ -132,19 +132,33 @@ class BigQueryService():
                 ,verified
                 ,created_at
 
-                ,_screen_name_count
-                ,_name_count
-                ,_description_count
-                ,_location_count
-                ,_verified_count
-                ,_created_at_count
+                ,screen_name_count
+                ,name_count
+                ,description_count
+                ,location_count
+                ,verified_count
+                ,created_at_count
 
-                ,_screen_names
-                ,_names
-                ,_descriptions
-                ,_locations
-                ,_verifieds
-                ,_created_ats
+                ,screen_names
+                ,names
+                ,descriptions
+                ,locations
+                ,verifieds
+                ,created_ats
+
+                ,friend_count
+
+                ,status_count
+                ,retweet_count
+
+                -- these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                ,impeach_and_convict
+                ,senate_hearing
+                ,ig_hearing
+                ,facts_matter
+                ,sham_trial
+                ,maga
+                ,acquitted_forever
 
             FROM `{self.dataset_address}.user_details`
         """
