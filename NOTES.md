@@ -90,9 +90,11 @@ impeachment	            | 2019-12-17 17:48:23 UTC
 
 <hr>
 
-## Friend Collection - Preparation
+## Network Analysis
 
-### Partitioning Users
+### Friend Collection
+
+#### Partitioning Users
 
 Will be running friend collection in a distributed way, so fetching buckets of users to assign to each server at one time or another.
 
@@ -125,9 +127,9 @@ partition_id    | user_count	| min_id	            | max_id
 10	            | 360054	    | 1154556513031266304	| 1242523027058769920
 
 
-### Benchmarks, Targets, and Constraints
+#### Benchmarks, Targets, and Constraints
 
-#### Clock Time
+##### Clock Time
 
 With 3.6M users, processing 360K users per day would take ten days. Ten days would be ideal, but even up to a month would be fine.
 
@@ -144,13 +146,13 @@ Users per Day (Target) | Duration Days (Projected)
 108,000 | 33
 86,400 | 42
 
-#### Twitter API
+##### Twitter API
 
 Currently Twitter API restricts to [15 requests per 15 minutes](https://developer.twitter.com/en/docs/basics/rate-limits), which is like 1 user per minute. So we need to use a custom scraper approach.
 
 Using the custom scraper takes around 40 seconds for a user who has 2000 friends (our current max). So we need to leverage concurrent (i.e. a multi-threaded) processing approach.
 
-#### Servers and Costs
+##### Servers and Costs
 
 Target budget for this process is around $100, but can go up to around $200.
 
@@ -229,7 +231,7 @@ Dynos | Type | USERS LIMIT | BATCH SIZE | MAX THREADS | Worker | Status | Start 
 Not all timed trials have been successful. Some continue to run threads but stop storing results in the database. Increasing the thread count has diminishing returns, and when increased significantly, seems to cease storing results in the database. So we're going with multiple smaller servers.
 
 
-## Friend Collection - Results
+#### Friend Collection Results
 
 Verifying users have been bucketed properly:
 
@@ -311,7 +313,14 @@ server-10 | 360,054 | 217 | 25
 Interesting to see that newer users (the ones with greater / later ids) have less friends on average, and therefore took less time to parse. Again note we have capped max friends at 2000, which skews the avg friend count.
 
 
-## Network Graph Construction - Preparation
+
+
+
+
+
+
+
+### Friend Graph Construction
 
 Transferring 10K users from BigQuery development database to a local PostgreSQL database, to make subsequent analysis easier (prevent unnecessary future network requests):
 
@@ -402,7 +411,7 @@ CREATE INDEX tenkay_sn ON user_friends_10k USING btree(screen_name);
 -- CREATE INDEX hunkay_sn ON user_friends_100k USING btree(screen_name);
 ```
 
-## Network Graph Construction - Results
+#### Friend Graph Construction Results
 
 Initial attempts to assemble graph object for production dataset (3.6M users) ends up crashing due to memory issues.
 
@@ -412,7 +421,7 @@ These memory constraints require us to either further optimize memory usage, get
 
 In the future, we'll probably construct separate graph objects for different topics of conversation across different periods of time (e.g. the graph for discussion of the topic ABC during the week of XYZ), and perform the same analyses on each.
 
-### Custom Conversation Graphs
+#### Custom Conversation Graphs
 
 Assembled right-leaning graph (job `2020-06-07-2049`):
 
@@ -599,6 +608,22 @@ Constructing Retweet Graphs:
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## User Analysis
 
 User Details:
@@ -725,7 +750,7 @@ WHERE screen_name_count > 1 -- 31165
 
 Exporting this exploratory dataset of 128,410 users as "expore_users.csv". Importing data into Tableau...
 
-![](/workbooks/explore_users_by_month_created.png)
+![](/workbooks/explore_users/users_created.png)
 
 Let's do a more comprehensive job of clustering users into communities, first using conversation topic-specific communities. Adding topic counts to the "user_details" query, re-creating the table, re-downloading it to local PG. Importing into Tableau...
 
@@ -780,4 +805,74 @@ CREATE TABLE `impeachment_production.user_details` as (
 );
 ```
 
-IMAGES HERE
+```sql
+ -- select user_id, screen_name, status_count, retweet_count, screen_name_count, created_at, created_count from user_details where created_at < '2000-01-01' -- 5 users created at '1969-12-31 19:00:00' who account for 8 tweets (7 of them retweets)
+
+
+-- select * from user_details where created_count > 1  -- no rows
+
+-- select * from user_details where verified_count > 1 -- no rows
+
+ select
+   user_id
+   ,location
+   ,verified
+   ,created_at
+   ,screen_name_count ,name_count ,description_count ,location_count --, verified_count, created_count
+   ,friend_count
+   ,status_count as tweet_count
+   ,retweet_count
+   ,impeach_and_convict ,senate_hearing ,ig_hearing ,facts_matter ,sham_trial ,maga ,acquitted_forever
+ from user_details where created_at > '1970-01-01' -- filter out 5 rows with weird creation on new years 1969-12-31 19:00:00'
+```
+
+![](/workbooks/user_details/users_created.png)
+![](/workbooks/user_details/users_created_verified.png)
+![](/workbooks/user_details/users_created_screen_name_changers.png)
+![](/workbooks/user_details/users_created_retweeters.png)
+
+By topic:
+
+![](/workbooks/user_details/users_created_topic_impeach_and_convict.png)
+![](/workbooks/user_details/users_created_topic_maga.png)
+![](/workbooks/user_details/users_created_topic_sham_trial.png)
+
+
+## Retweeter Analysis
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.retweeter_details;
+CREATE TABLE IF NOT EXISTS impeachment_production.retweeter_details as (
+  SELECT
+    rt.user_id
+    -- ,any_value(user_screen_name) as screen_name
+    --,status_text
+    -- ,created_at
+    --,retweet_user_screen_name
+    --,d.screen_name
+    --,d.name
+    --,d.description
+    -- ,d.location
+    ,d.created_at
+    ,d.screen_name_count
+    ,d.name_count
+
+    ,count(distinct rt.status_id) as retweet_count
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGREPORT') then rt.status_id end) as ig_report
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGHEARING') then rt.status_id end) as ig_hearing
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SENATEHEARING') then rt.status_id end) as senate_hearing
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#NOTABOVETHELAW') then rt.status_id end) as not_above_the_law
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDCONVICT') then rt.status_id end) as impeach_and_convict
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDREMOVE') then rt.status_id end) as impeach_and_remove
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#FACTSMATTER') then rt.status_id end) as facts_matter
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SHAMTRIAL') then rt.status_id end) as sham_trial
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#MAGA') then rt.status_id end) as maga
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#ACQUITTEDFOREVER') then rt.status_id end) as acquitted_forever
+    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#COUNTRY_OVER_PARTY') then rt.status_id end) as country_over_party
+  FROM impeachment_production.retweets rt
+  LEFT JOIN impeachment_production.user_details d ON d.user_id = rt.user_id
+  WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- exclude people retweeting themselves!
+  GROUP BY rt.user_id
+  -- ORDER BY retweet_count desc
+)
+```
