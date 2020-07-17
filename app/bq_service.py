@@ -413,6 +413,7 @@ class BigQueryService():
             SELECT
                 user_id
 
+                ,verified
                 ,created_at
                 ,screen_name_count
                 ,name_count

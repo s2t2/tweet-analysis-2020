@@ -852,6 +852,7 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweeter_details as (
     ,d.created_at
     ,d.screen_name_count
     ,d.name_count
+    ,d.verified
   FROM (
     SELECT
       rt.user_id

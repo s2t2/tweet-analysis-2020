@@ -173,6 +173,7 @@ class Pipeline():
             item = {
                 "user_id": row['user_id'],
 
+                "verified":            row["verified"],
                 "created_at":          row["created_at"],
                 "screen_name_count":   row["screen_name_count"],
                 "name_count":          row["name_count"],
