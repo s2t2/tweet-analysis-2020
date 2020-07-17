@@ -880,3 +880,22 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweeter_details as (
   JOIN impeachment_production.user_details d ON d.user_id = subq.user_id
 )
 ```
+
+![](workbooks/retweeter_details/users_created.png)
+
+![](workbooks/retweeter_details/users_created_screen_name_changers.png)
+
+![](workbooks/retweeter_details/users_created_name_changers.png)
+
+By topic:
+
+![](workbooks/retweeter_details/users_created_topic_acquitted_forever.png)
+![](workbooks/retweeter_details/users_created_topic_facts_matter.png)
+![](workbooks/retweeter_details/users_created_topic_ig_hearing.png)
+![](workbooks/retweeter_details/users_created_topic_ig_report.png)
+![](workbooks/retweeter_details/users_created_topic_impeach_and_convict.png)
+![](workbooks/retweeter_details/users_created_topic_impeach_and_remove.png)
+![](workbooks/retweeter_details/users_created_topic_maga.png)
+![](workbooks/retweeter_details/users_created_topic_not_above_the_law.png)
+![](workbooks/retweeter_details/users_created_topic_senate_hearing.png)
+![](workbooks/retweeter_details/users_created_topic_sham_trial.png)
