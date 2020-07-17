@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from app import APP_ENV
 from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts, fmt_n
 from app.bq_service import BigQueryService
-from app.models import BoundSession, db, UserFriend, UserDetail
+from app.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ class Pipeline():
         self.batch = []
         self.counter = 0
 
-        if self.pg_destructive:
+        if self.pg_destructive and UserFriend.__table__.exists():
             print("DROPPING THE USER FRIENDS TABLE!")
             UserFriend.__table__.drop(self.pg_engine)
             self.pg_session.commit()
@@ -84,7 +84,7 @@ class Pipeline():
         self.batch = []
         self.counter = 0
 
-        if self.pg_destructive:
+        if self.pg_destructive and UserDetail.__table__.exists():
             print("DROPPING THE USER DETAILS TABLE!")
             UserDetail.__table__.drop(self.pg_engine)
             self.pg_session.commit()
@@ -146,6 +146,63 @@ class Pipeline():
             if len(self.batch) >= self.batch_size:
                 print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
+                self.pg_session.commit()
+                self.batch = []
+
+        print("ETL COMPLETE!")
+        self.end_at = time.perf_counter()
+        self.pg_session.close()
+
+    def download_retweeter_details(self):
+        self.start_at = time.perf_counter()
+        self.batch = []
+        self.counter = 0
+
+        if self.pg_destructive and RetweeterDetail.__table__.exists():
+            print("DROPPING THE RETWEETER DETAILS TABLE!")
+            RetweeterDetail.__table__.drop(self.pg_engine)
+            self.pg_session.commit()
+
+        if not RetweeterDetail.__table__.exists():
+            print("CREATING THE RETWEETER DETAILS TABLE!")
+            RetweeterDetail.__table__.create(self.pg_engine)
+            self.pg_session.commit()
+
+        print(fmt_ts(), "DATA FLOWING LIKE WATER...")
+        for row in self.bq_service.fetch_retweeter_details_in_batches(limit=self.users_limit):
+            item = {
+                "user_id": row['user_id'],
+
+                "created_at":          row["created_at"],
+                "screen_name_count":   row["screen_name_count"],
+                "name_count":          row["name_count"],
+
+                "retweet_count":       row["retweet_count"],
+                # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                "ig_report":           row["ig_report"],
+                "ig_hearing":          row["ig_hearing"],
+                "senate_hearing":      row["senate_hearing"],
+                "not_above_the_law":   row["not_above_the_law"],
+                "impeach_and_convict": row["impeach_and_convict"],
+                "impeach_and_remove":  row["impeach_and_remove"],
+                "facts_matter":        row["facts_matter"],
+                "sham_trial":          row["sham_trial"],
+                "maga":                row["maga"],
+                "acquitted_forever":   row["acquitted_forever"],
+                "country_over_party":  row["country_over_party"],
+
+            }
+            self.batch.append(item)
+            self.counter+=1
+
+            # temporarily testing individual inserts...
+            #record = RetweeterDetail(**item)
+            #self.pg_session.add(record)
+            #self.pg_session.commit()
+
+            if len(self.batch) >= self.batch_size:
+                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
+                self.pg_session.bulk_insert_mappings(RetweeterDetail, self.batch)
                 self.pg_session.commit()
                 self.batch = []
 

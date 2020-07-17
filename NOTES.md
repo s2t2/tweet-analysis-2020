@@ -844,11 +844,7 @@ By topic:
 DROP TABLE IF EXISTS impeachment_production.retweeter_details;
 CREATE TABLE IF NOT EXISTS impeachment_production.retweeter_details as (
   SELECT
-    rt.user_id
-    -- ,any_value(user_screen_name) as screen_name
-    --,status_text
-    -- ,created_at
-    --,retweet_user_screen_name
+    subq.*
     --,d.screen_name
     --,d.name
     --,d.description
@@ -856,23 +852,30 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweeter_details as (
     ,d.created_at
     ,d.screen_name_count
     ,d.name_count
-
-    ,count(distinct rt.status_id) as retweet_count
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGREPORT') then rt.status_id end) as ig_report
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGHEARING') then rt.status_id end) as ig_hearing
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SENATEHEARING') then rt.status_id end) as senate_hearing
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#NOTABOVETHELAW') then rt.status_id end) as not_above_the_law
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDCONVICT') then rt.status_id end) as impeach_and_convict
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDREMOVE') then rt.status_id end) as impeach_and_remove
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#FACTSMATTER') then rt.status_id end) as facts_matter
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SHAMTRIAL') then rt.status_id end) as sham_trial
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#MAGA') then rt.status_id end) as maga
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#ACQUITTEDFOREVER') then rt.status_id end) as acquitted_forever
-    ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#COUNTRY_OVER_PARTY') then rt.status_id end) as country_over_party
-  FROM impeachment_production.retweets rt
-  LEFT JOIN impeachment_production.user_details d ON d.user_id = rt.user_id
-  WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- exclude people retweeting themselves!
-  GROUP BY rt.user_id
-  -- ORDER BY retweet_count desc
+  FROM (
+    SELECT
+      rt.user_id
+      -- ,any_value(user_screen_name) as screen_name
+      --,status_text
+      -- ,created_at
+      --,retweet_user_screen_name
+      ,count(distinct rt.status_id) as retweet_count
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGREPORT') then rt.status_id end) as ig_report
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IGHEARING') then rt.status_id end) as ig_hearing
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SENATEHEARING') then rt.status_id end) as senate_hearing
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#NOTABOVETHELAW') then rt.status_id end) as not_above_the_law
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDCONVICT') then rt.status_id end) as impeach_and_convict
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDREMOVE') then rt.status_id end) as impeach_and_remove
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#FACTSMATTER') then rt.status_id end) as facts_matter
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#SHAMTRIAL') then rt.status_id end) as sham_trial
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#MAGA') then rt.status_id end) as maga
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#ACQUITTEDFOREVER') then rt.status_id end) as acquitted_forever
+      ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '#COUNTRY_OVER_PARTY') then rt.status_id end) as country_over_party
+    FROM impeachment_production.retweets rt
+    WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- exclude people retweeting themselves!
+    GROUP BY rt.user_id
+    -- ORDER BY retweet_count desc
+  ) subq
+  JOIN impeachment_production.user_details d ON d.user_id = subq.user_id
 )
 ```

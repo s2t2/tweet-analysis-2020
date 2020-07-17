@@ -119,67 +119,6 @@ class BigQueryService():
         results = self.execute_query(sql)
         return list(results)
 
-
-
-    def fetch_user_details_in_batches(self, limit=None):
-        sql = f"""
-            SELECT
-                user_id
-                ,screen_name
-                ,name
-                ,description
-                ,location
-                ,verified
-                ,created_at
-
-                ,screen_name_count
-                ,name_count
-                ,description_count
-                ,location_count
-                ,verified_count
-                ,created_at_count
-
-                ,screen_names
-                ,names
-                ,descriptions
-                ,locations
-                ,verifieds
-                ,created_ats
-
-                ,friend_count
-
-                ,status_count
-                ,retweet_count
-
-                -- these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-                ,impeach_and_convict
-                ,senate_hearing
-                ,ig_hearing
-                ,facts_matter
-                ,sham_trial
-                ,maga
-                ,acquitted_forever
-
-            FROM `{self.dataset_address}.user_details`
-        """
-        if limit:
-            sql += f"LIMIT {int(limit)};"
-
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=f"{self.dataset_address}.user_details_temp_{job_name}"
-        )
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH USER DETAILS):", type(job), job.job_id, job.state, job.location)
-        return job
-
-
-
-
-
     #
     # COLLECTING USER FRIENDS
     #
@@ -409,6 +348,100 @@ class BigQueryService():
             ORDER BY 2,3
         """
         return self.execute_query(sql)
+
+    #
+    # LOCAL ANALYSIS
+    #
+
+    def fetch_user_details_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id
+                ,screen_name
+                ,name
+                ,description
+                ,location
+                ,verified
+                ,created_at
+
+                ,screen_name_count
+                ,name_count
+                ,description_count
+                ,location_count
+                ,verified_count
+                ,created_at_count
+
+                ,screen_names
+                ,names
+                ,descriptions
+                ,locations
+                ,verifieds
+                ,created_ats
+
+                ,friend_count
+
+                ,status_count
+                ,retweet_count
+
+                -- these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                ,impeach_and_convict
+                ,senate_hearing
+                ,ig_hearing
+                ,facts_matter
+                ,sham_trial
+                ,maga
+                ,acquitted_forever
+
+            FROM `{self.dataset_address}.user_details`
+        """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+
+        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
+        job_config = bigquery.QueryJobConfig(
+            priority=bigquery.QueryPriority.BATCH,
+            allow_large_results=True,
+            destination=f"{self.dataset_address}.user_details_temp_{job_name}"
+        )
+
+        job = self.client.query(sql, job_config=job_config)
+        print("JOB (FETCH USER DETAILS):", type(job), job.job_id, job.state, job.location)
+        return job
+
+    def fetch_retweeter_details_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id
+
+                ,created_at
+                ,screen_name_count
+                ,name_count
+
+                ,retweet_count
+                ,ig_report
+                ,ig_hearing
+                ,senate_hearing
+                ,not_above_the_law
+                ,impeach_and_convict
+                ,impeach_and_remove
+                ,facts_matter
+                ,sham_trial
+                ,maga
+                ,acquitted_forever
+                ,country_over_party
+
+            FROM `{self.dataset_address}.retweeter_details`
+        """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+
+        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
+        temp_table_name = f"{self.dataset_address}.retweeter_details_temp_{job_name}" # todo: delete me!
+        job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=temp_table_name)
+
+        job = self.client.query(sql, job_config=job_config)
+        print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
+        return job
 
 if __name__ == "__main__":
 

@@ -11,6 +11,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
 USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
 USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
+RETWEETER_DETAILS_TABLE_NAME = os.getenv("RETWEETER_DETAILS_TABLE_NAME", default="retweeter_details")
 
 db = create_engine(DATABASE_URL)
 Base = declarative_base()
@@ -70,6 +71,30 @@ class UserDetail(Base):
     sham_trial              = Column(Integer)
     maga                    = Column(Integer)
     acquitted_forever       = Column(Integer)
+
+
+class RetweeterDetail(Base):
+    __tablename__ = RETWEETER_DETAILS_TABLE_NAME
+    user_id = Column(BigInteger, primary_key=True)
+
+    created_at = Column(TIMESTAMP)
+    screen_name_count = Column(Integer)
+    name_count = Column(Integer)
+
+    retweet_count           = Column(Integer)
+    # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+    ig_report               = Column(Integer)
+    ig_hearing              = Column(Integer)
+    senate_hearing          = Column(Integer)
+    not_above_the_law       = Column(Integer)
+    impeach_and_convict     = Column(Integer)
+    impeach_and_remove      = Column(Integer)
+    facts_matter            = Column(Integer)
+    sham_trial              = Column(Integer)
+    maga                    = Column(Integer)
+    acquitted_forever       = Column(Integer)
+    country_over_party      = Column(Integer)
+
 
 
 
