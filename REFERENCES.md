@@ -111,7 +111,9 @@ Big PG Data:
   + https://tabstospaces.com/
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
 
-## Scipy
+## Numpy and Scipy
+
+  + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
 
 ### K-S Tests
 
