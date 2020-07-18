@@ -1,13 +1,16 @@
 
 # Tweet Analysis (Python)
 
-So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic. Now it's time to analyze them.
+So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic (see [Dataset Exploration Notes](/notes/dataset-exploration.md)). Now it's time to analyze them.
 
 This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
-## [Reproducibility Notes](NOTES.md)
-
 ## Installation
+
+Dependencies:
+
+  + Python 3.7
+  + PostgreSQL
 
 Clone this repo onto your local machine and navigate there from the command-line:
 
@@ -28,83 +31,116 @@ Install package dependencies:
 pip install -r requirements.txt # (first time only)
 ```
 
-## Configuration
+## Setup
 
-Create a new file in the root directory of this repo called ".env", and set your environment variables there. See the example and instructions below for more details.
+### Google BigQuery and API Credentials
+
+The tweets are stored in a Google BigQuery database, so we'll need BigQuery credentials to access the data. From the Google Cloud console, enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
+
+#### Google Cloud Storage
+
+The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run various graph construction scripts on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Create a new bucket or gain access to an existing bucket ("impeachment-analysis-2020"), and set the `GCS_BUCKET_NAME` environment variable accordingly (see environment variable setup below).
+
+> FYI: in the existing bucket, there also exist some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
+
+### Local Database Setup
+
+We'll be downloading some of the data from BigQuery to a local database, for faster processing. So first create a local PostgreSQL database called "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
+
+### Environment Variables
+
+Create a new file in the root directory of this repo called ".env", and set your environment variables there, as necessary:
 
 ```sh
 # example .env file
 
-# JOB CONFIG
-#MIN_USER_ID="________"
-#MAX_USER_ID="_______"
-USERS_LIMIT=10000
-BATCH_SIZE=20
-MAX_THREADS=10
-
+#
 # GOOGLE APIs
-GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
+#
+
+GOOGLE_APPLICATION_CREDENTIALS="/path/to/tweet-analysis-py/credentials.json"
 BIGQUERY_PROJECT_NAME="tweet-collector-py"
 BIGQUERY_DATASET_NAME="impeachment_development"
+# GCS_BUCKET_NAME="impeachment-analysis-2020"
+
+#
+# LOCAL PG DATABASE
+#
+
+# DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost/impeachment_analysis"
+
+#
+# EMAIL
+#
+
+SENDGRID_API_KEY="__________"
+MY_EMAIL_ADDRESS="hello@example.com"
+
+#
+# JOB CONFIG VARS
+#
+
+# MIN_USER_ID="________"
+# MAX_USER_ID="_______"
+# USERS_LIMIT=10000
+# BATCH_SIZE=20
+# MAX_THREADS=10
 ```
-
-### Google API Credentials
-
-From the Google Cloud console, enable the BigQuery API, then generate and download the corresponding service account credentials (for example into the root directory of this repo as "credentials.json") and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly.
 
 ## Usage
 
-### Friend Collection
-
-Since we already have a list of Twitter users who have tweeted about a given topic, we'll start by fetching the names of other Twitter users each user follows (i.e. the user's "friends").
-
-First test out the Twitter scraper:
-
-```sh
-python -m app.twitter_scraper
-SCREEN_NAME="s2t2" python -m app.twitter_scraper
-MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
-```
-
-Then test the connection to the BigQuery database where the users are stored:
+Testing the Google BigQuery connection:
 
 ```sh
 python -m app.bq_service
 # DESTRUCTIVE_MIGRATIONS="true" python -m app.bq_service
 ```
 
-If both of those scripts work, you can collect the friend graphs, which will be stored in a new table on BigQuery called "user_friends":
+Testing out the Twitter scraper (doesn't need credentials):
+
+```sh
+python -m app.twitter_scraper
+# SCREEN_NAME="s2t2" python -m app.twitter_scraper
+# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
+```
+
+Testing the Google Cloud Storage connection, saving some mock files in the specified bucket:
+
+```sh
+python -m app.gcs_service
+```
+
+### Friend Collection
+
+> STATUS: COMPLETED. SEE: [Friend Collection Notes](/notes/friend-collection.md).
+
+Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
 
 ```sh
 python -m app.workers.friend_batch_collector
 # USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.friend_batch_collector
 ```
 
-### Network Graph Construction
+### Local Database Migration
 
-#### Local Database Setup
+> STATUS: COMPLETED
 
-To download / ETL the completed "user_friends" table from BigQuery to a local PostgreSQL database: first create a local database called "impeachment_analysis", then set the `DATABASE_URL` environment variable, then run the database migration script:
+After setting up the local database (see setup instructions above)...
 
-```sh
-# .env file
-DATABASE_URL = "postgresql://USER:PASSWORD@localhost/impeachment_analysis"
-```
+Testing the local database connection:
 
 ```sh
 python -m app.models
 ```
 
-After migrating the local database, you can load the data from BigQuery.
-
-First download the "user_friends" table, for making local network graphs:
+Downloading the "user_friends" table:
 
 ```sh
-#python -m app.workers.pg_pipeline
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline
+#python -m app.workers.pg_pipeline_user_friends
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline_user_friends
 ```
 
-Then download the "user_details" table, for local user analysis:
+Download the "user_details" table:
 
 ```sh
 # in development:
@@ -113,7 +149,7 @@ Then download the "user_details" table, for local user analysis:
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_user_details
 ```
 
-Then download the "retweeter_details" table, for local retweeter analysis:
+Then download the "retweeter_details" table:
 
 ```sh
 
@@ -122,24 +158,9 @@ BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
 ```
 
-#### Remote File Storage
+### Friend Graph Construction
 
-The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run the graph construction script on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Configure the bucket name as an environment variable:
-
-```sh
-# .env
-GCS_BUCKET_NAME="impeachment-analysis-2020"
-```
-
-In this bucket, there also exists some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
-
-Test the connection to the storage bucket, saving some mock files there:
-
-```sh
-python -m app.gcs_service
-```
-
-#### Graph Object Construction
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [Friend Graph Notes](/notes/friend-graphs.md).
 
 In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
 
@@ -155,7 +176,7 @@ python -m app.workers.bq_list_grapher
 BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.workers.bq_list_grapher
 ```
 
-However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" instructions above. After the database is ready, you can try to assemble the network graph object from the PostgreSQL data:
+However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" and "Local Database Migration" instructions above. After the database is ready, you can try to assemble the network graph object from the PostgreSQL data:
 
 ```sh
 # incremental graph construction (uses more incremental memory):
@@ -173,8 +194,6 @@ USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
-#### Conversation Graphs
-
 The graphs are very large, so how about we create a few different smaller topic-specific graphs:
 
 ```sh
@@ -185,9 +204,11 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
 ```
 
-#### Conversation Retweet Graphs
+### Retweet Graph Construction
 
-The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that:
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [Retweet Graph Notes](/notes/retweet-graphs.md).
+
+The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that (need to circle back on this later):
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
@@ -195,11 +216,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" 
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
 
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
-
 ```
-
-
-#### Graph Analysis
 
 See how much memory it takes to load a given graph:
 
@@ -217,7 +234,9 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 ```
 
 
-#### Bot Classification
+### Bot Classification
+
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [User Analysis Notes](/notes/user-details.md).
 
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
@@ -227,6 +246,48 @@ JOB_ID="2020-06-15-2141" python -m app.workers.botcode_classifier
 ```
 
 This will download the graph from google cloud storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
