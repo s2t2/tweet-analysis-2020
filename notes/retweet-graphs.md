@@ -1,5 +1,5 @@
 
-## Retweet Graph Notes
+# Retweet Graph Notes
 
 Migrate and populate a few tables which we'll use to construct mention graphs.
 
