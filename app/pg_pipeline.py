@@ -217,12 +217,18 @@ class Pipeline():
         self.duration_seconds = round(self.end_at - self.start_at, 2)
         print(f"PROCESSED {self.counter} USERS IN {self.duration_seconds} SECONDS")
 
+    def sleep(self):
+        """
+        Delays a job re-start, if running on production,
+        for hopefully enough time for someone to shut off the server,
+        to prevent the server from doing unnecessary work.
+        """
+        if APP_ENV == "production":
+            print("SLEEPING...")
+            time.sleep(12 * 60 * 60) # twelve hours
+
 if __name__ == "__main__":
 
     pipeline = Pipeline()
-    pipeline.download_user_friends()
-    pipeline.report()
 
-    if APP_ENV == "production":
-        print("SLEEPING...")
-        time.sleep(12 * 60 * 60) # twelve hours
+    print(dir(pipeline))
