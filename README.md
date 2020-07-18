@@ -5,12 +5,12 @@ So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of 
 
 This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
-## Installation
-
 Dependencies:
 
   + Python 3.7
   + PostgreSQL
+
+## Installation
 
 Clone this repo onto your local machine and navigate there from the command-line:
 
@@ -35,13 +35,13 @@ pip install -r requirements.txt # (first time only)
 
 ### Google BigQuery and API Credentials
 
-The tweets are stored in a Google BigQuery database, so we'll need BigQuery credentials to access the data. From the Google Cloud console, enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
+The tweets are stored in a Google BigQuery database, so we'll need BigQuery credentials to access the data. From the [Google Cloud console](https://console.cloud.google.com/), enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
 
 #### Google Cloud Storage
 
-The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run various graph construction scripts on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Create a new bucket or gain access to an existing bucket ("impeachment-analysis-2020"), and set the `GCS_BUCKET_NAME` environment variable accordingly (see environment variable setup below).
+The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run various graph construction scripts on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Create a new bucket or gain access to an existing bucket, and set the `GCS_BUCKET_NAME` environment variable accordingly (see environment variable setup below).
 
-> FYI: in the existing bucket, there also exist some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
+FYI: in the bucket, there will also exist some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
 
 ### Local Database Setup
 
@@ -96,23 +96,29 @@ python -m app.bq_service
 # DESTRUCTIVE_MIGRATIONS="true" python -m app.bq_service
 ```
 
-Testing out the Twitter scraper (doesn't need credentials):
-
-```sh
-python -m app.twitter_scraper
-# SCREEN_NAME="s2t2" python -m app.twitter_scraper
-# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
-```
-
 Testing the Google Cloud Storage connection, saving some mock files in the specified bucket:
 
 ```sh
 python -m app.gcs_service
 ```
 
+Testing the local PostgreSQL database connection:
+
+```sh
+python -m app.models
+```
+
 ### Friend Collection
 
-> STATUS: COMPLETED. SEE: [Friend Collection Notes](/notes/friend-collection.md).
+> STATUS: COMPLETED. See: [Friend Collection Notes](/notes/friend-collection.md).
+
+Testing the Twitter scraper (doesn't need credentials):
+
+```sh
+python -m app.twitter_scraper
+# SCREEN_NAME="s2t2" python -m app.twitter_scraper
+# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
+```
 
 Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
 
@@ -123,16 +129,6 @@ python -m app.workers.friend_batch_collector
 
 ### Local Database Migration
 
-> STATUS: COMPLETED
-
-After setting up the local database (see setup instructions above)...
-
-Testing the local database connection:
-
-```sh
-python -m app.models
-```
-
 Downloading the "user_friends" table:
 
 ```sh
@@ -140,27 +136,24 @@ Downloading the "user_friends" table:
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline_user_friends
 ```
 
-Download the "user_details" table:
+Downloading the "user_details" table:
 
 ```sh
-# in development:
 #BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_user_details
-
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_user_details
 ```
 
-Then download the "retweeter_details" table:
+Downloading the "retweeter_details" table:
 
 ```sh
 
-BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_retweeter_details
-
+# BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_retweeter_details
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
 ```
 
 ### Friend Graph Construction
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [Friend Graph Notes](/notes/friend-graphs.md).
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [Friend Graph Notes](/notes/friend-graphs.md).
 
 In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
 
@@ -206,7 +199,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 
 ### Retweet Graph Construction
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [Retweet Graph Notes](/notes/retweet-graphs.md).
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [Retweet Graph Notes](/notes/retweet-graphs.md).
 
 The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that (need to circle back on this later):
 
@@ -236,7 +229,7 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 
 ### Bot Classification
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). SEE: [User Analysis Notes](/notes/user-details.md).
+> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [User Analysis Notes](/notes/user-details.md).
 
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
