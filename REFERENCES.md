@@ -110,3 +110,10 @@ Big PG Data:
 
   + https://tabstospaces.com/
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
+
+## Scipy
+
+### K-S Tests
+
+  + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
+  + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html

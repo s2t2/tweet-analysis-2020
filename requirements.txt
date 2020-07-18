@@ -15,6 +15,7 @@ sqlalchemy
 
 mpi4py
 numpy
+scipy
 
 # formerly known as dev dependencies:
 pytest
