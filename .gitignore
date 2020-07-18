@@ -13,5 +13,8 @@ data/*.gpickle
 data/*/*.json
 data/*/*.csv
 data/*/*.gpickle
-
 data/*/preds/*.csv
+
+workbooks/*.twbx
+workbooks/*.twbr
+workbooks/*.csv

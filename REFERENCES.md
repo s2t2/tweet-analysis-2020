@@ -10,9 +10,11 @@ Working with BigQuery:
 
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/operators
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/conversion_rules
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/aggregate_functions
   + https://cloud.google.com/dataprep/docs/html/DATEDIF-Function_57344707
   + https://towardsdatascience.com/google-bigquery-sql-dates-and-times-cheat-sheet-805b5502c7f0
-  + https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
   + https://cloud.google.com/bigquery/docs/running-queries#batch
   + https://cloud.google.com/bigquery/docs/paging-results
   + https://stackoverflow.com/a/27158310/670433
@@ -107,3 +109,4 @@ Big PG Data:
 ## General Tools
 
   + https://tabstospaces.com/
+  + https://www.fileformat.info/info/unicode/char/0fffd/index.htm

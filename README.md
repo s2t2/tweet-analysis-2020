@@ -95,11 +95,31 @@ DATABASE_URL = "postgresql://USER:PASSWORD@localhost/impeachment_analysis"
 python -m app.models
 ```
 
-After migrating the local database, you can load the data from BigQuery:
+After migrating the local database, you can load the data from BigQuery.
+
+First download the "user_friends" table, for making local network graphs:
 
 ```sh
-python -m app.workers.pg_pipeline
-BATCH_SIZE=1000 DATASET_NAME="impeachment_production" python -m app.workers.pg_pipeline
+#python -m app.workers.pg_pipeline
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline
+```
+
+Then download the "user_details" table, for local user analysis:
+
+```sh
+# in development:
+#BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_user_details
+
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_user_details
+```
+
+Then download the "retweeter_details" table, for local retweeter analysis:
+
+```sh
+
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_retweeter_details
+
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
 ```
 
 #### Remote File Storage
