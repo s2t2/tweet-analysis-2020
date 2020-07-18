@@ -1,5 +1,5 @@
 
-from datetime import datetime as dt
+#from datetime import datetime as dt
 
 import numpy as np
 from scipy.stats import kstest, ks_2samp
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     sql = f"""
         SELECT user_id, screen_name, created_at
         FROM {USER_DETAILS_TABLE_NAME}
-        -- LIMIT 100000
+        LIMIT 10
     """
     results = db.execute(sql)
 
@@ -43,5 +43,10 @@ if __name__ == "__main__":
 
     # maybe a little less of an initial hang, then seems to loop alright without any noticeable memory bumps...
     rows = results.fetchall()
-    for row in rows:
-        print("...", row.user_id, "|", row.screen_name, "|", row.created_at)
+    #for row in rows:
+    #    print("...", row.user_id, "|", row.screen_name)
+    #    print(row.created_at) #> datetime.datetime(2009, 2, 21, 17, 56, 6)
+    #    print(int(row.created_at.timestamp())) #> 1235256966
+
+    timestamps = [int(row.created_at.timestamp()) for row in rows]
+    print(min(timestamps), max(timestamps))
