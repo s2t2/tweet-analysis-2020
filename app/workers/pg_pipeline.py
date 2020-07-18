@@ -14,12 +14,14 @@ PG_DESTRUCTIVE = (os.getenv("PG_DESTRUCTIVE", default="false") == "true")
 
 def clean_string(dirty):
     """
-    It doesn't feel good from a performance standpoint to put multiple strings per row through this function. It keeps getting more complex. Oy.
+    Cleans a string so it can be stored in PG without raising an error.
+
+    Param: dirty (string or None) the string to be cleaned.
     """
     if dirty:
         clean = dirty.replace("\x00", "\uFFFD") # fixes "ValueError: A string literal cannot contain NUL (0x00) characters."
     else:
-        clean = None #> AttributeError: 'NoneType' object has no attribute 'replace'
+        clean = None
     return clean
 
 class Pipeline():

@@ -899,3 +899,40 @@ By topic:
 ![](workbooks/retweeter_details/users_created_topic_not_above_the_law.png)
 ![](workbooks/retweeter_details/users_created_topic_senate_hearing.png)
 ![](workbooks/retweeter_details/users_created_topic_sham_trial.png)
+
+## Retweet Beneficiaries Analysis
+
+Right-leaning topic beneficiaries:
+
+```sql
+SELECT
+  retweet_user_screen_name
+  ,count(distinct status_id) as retweet_count
+  ,count(distinct user_id) as retweeter_count
+FROM impeachment_production.retweets rt
+WHERE REGEXP_CONTAINS(upper(rt.status_text), '#MAGA')
+   OR REGEXP_CONTAINS(upper(rt.status_text), '#SHAMTRIAL')
+   OR REGEXP_CONTAINS(upper(rt.status_text), '#ACQUITTEDFOREVER')
+   -- () AND user_screen_name <> retweet_user_screen_name
+GROUP BY retweet_user_screen_name
+ORDER BY retweet_count DESC
+LIMIT 100
+```
+
+Left-leaning topic beneficiaries:
+
+
+```sql
+SELECT
+  retweet_user_screen_name
+  ,count(distinct status_id) as retweet_count
+  ,count(distinct user_id) as retweeter_count
+FROM impeachment_production.retweets rt
+WHERE REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDREMOVE')
+   OR REGEXP_CONTAINS(upper(rt.status_text), '#IMPEACHANDCONVICT')
+   OR REGEXP_CONTAINS(upper(rt.status_text), '#NOTABOVETHELAW')
+   -- () AND user_screen_name <> retweet_user_screen_name
+GROUP BY retweet_user_screen_name
+ORDER BY retweet_count DESC
+LIMIT 100
+```
