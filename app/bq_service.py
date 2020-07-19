@@ -244,10 +244,9 @@ class BigQueryService():
 
             end_at (str) a date string for the latest tweet
 
-        See NOTES.md for more background about the timeline and topics collected.
         """
         sql = f"""
-            SELECT DISTINCT user_id, user_screen_name
+            SELECT DISTINCT user_id, user_screen_name, user_created_at
             FROM `{self.dataset_address}.tweets`
             WHERE upper(status_text) LIKE '%{topic.upper()}%' AND (created_at BETWEEN '{start_at}' AND '{end_at}')
             ORDER BY rand()

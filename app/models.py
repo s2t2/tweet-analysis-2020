@@ -72,7 +72,6 @@ class UserDetail(Base):
     maga                    = Column(Integer)
     acquitted_forever       = Column(Integer)
 
-
 class RetweeterDetail(Base):
     __tablename__ = RETWEETER_DETAILS_TABLE_NAME
     user_id = Column(BigInteger, primary_key=True)

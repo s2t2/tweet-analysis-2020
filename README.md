@@ -289,6 +289,14 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 
 
+### User Analysis
+
+```sh
+python -m app.workers.bq_analyze_tweeters_by_topic
+# BIGQUERY_DATASET_NAME="impeachment_production" python -m app.workers.bq_analyze_tweeters_by_topic
+# BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="abc" Y_TOPIC="def" python -m app.workers.bq_analyze_tweeters_by_topic
+```
+
 ## Testing
 
 Run tests:
