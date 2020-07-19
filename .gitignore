@@ -18,3 +18,4 @@ data/*/preds/*.csv
 workbooks/*.twbx
 workbooks/*.twbr
 workbooks/*.csv
+workbooks/*.png
