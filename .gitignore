@@ -19,3 +19,7 @@ workbooks/*.twbx
 workbooks/*.twbr
 workbooks/*.csv
 workbooks/*.png
+workbooks/*/*.twbx
+workbooks/*/*.twbr
+workbooks/*/*.csv
+workbooks/*/*.png
