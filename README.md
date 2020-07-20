@@ -1,6 +1,8 @@
 
 # Tweet Analysis (Python)
 
+This app analyzes a dataset of tweets which have been stored in a Google BigQuery table.
+
 So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic (see [Dataset Exploration Notes](/notes/dataset-exploration.md)). Now it's time to analyze them.
 
 This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).

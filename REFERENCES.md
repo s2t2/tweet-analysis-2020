@@ -110,6 +110,7 @@ Big PG Data:
 
   + https://tabstospaces.com/
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
+  + https://botometer.iuni.iu.edu
 
 ## Numpy and Scipy
 
