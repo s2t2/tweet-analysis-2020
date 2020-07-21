@@ -169,6 +169,7 @@ count(distinct t.user_id) as user_count
 
 -- TAGS
 
+,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('#MAGA')) then status_id end) as tag_maga
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('#MoscowMitch')) then status_id end) as tag_moscow_mitch
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('#FactsMatter')) then status_id end) as tag_facts_matter
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('#TrumpImpeachment')) then status_id end) as tag_trump_impeachment
