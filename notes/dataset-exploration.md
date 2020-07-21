@@ -213,7 +213,7 @@ count(distinct t.user_id) as user_count
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('Vindman')) then status_id end) as topic_vindman
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('Volker')) then status_id end) as topic_volker
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('Sondland')) then status_id end) as topic_sondland
-,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('AMIGOS')) then status_id end) as topic_amigos
+--,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('AMIGOS')) then status_id end) as topic_amigos
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('Fiona Hill')) then status_id end) as topic_fiona
 --,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('George Kent')) then status_id end) as ________________
 -- ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('William Taylor')) then status_id end) as ________________
@@ -228,7 +228,7 @@ count(distinct t.user_id) as user_count
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@SenSchumer')) then status_id end) as mention_schumer
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@JoeBiden')) then status_id end) as mention_biden
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@GOP')) then status_id end) as mention_gop
-,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@Dems')) then status_id end) as mention_dems
+,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@TheDemocrats')) then status_id end) as mention_dems
 
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@nytimes')) then status_id end) as mention_nytimes
 ,count(distinct case when REGEXP_CONTAINS(upper(t.status_text), upper('@WSJ')) then status_id end) as mention_wsj
