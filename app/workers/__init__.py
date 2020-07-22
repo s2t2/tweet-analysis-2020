@@ -14,6 +14,7 @@ def generate_timestamp():
     """Formats datetime for performance logging"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+# todo: rename as fmt_ts_now()
 def fmt_ts():
     """
     Formats current timestamp, for printing and logging.

@@ -291,12 +291,13 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 
 
-### User Analysis
+### User Creation Data Analysis
+
+Compare the distribution of user creation dates for users talking about two different topics:
 
 ```sh
-python -m app.workers.bq_analyze_tweeters_by_topic
-# BIGQUERY_DATASET_NAME="impeachment_production" python -m app.workers.bq_analyze_tweeters_by_topic
-# BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="abc" Y_TOPIC="def" python -m app.workers.bq_analyze_tweeters_by_topic
+python -m app.analyzers.bq_retweeter_creation_two_topics
+# BIGQUERY_DATASET_NAME="impeachment_production" TOPIC_X="abc" TOPIC_Y="def" python -m app.analyzers.bq_retweeter_creation_two_topics
 ```
 
 ## Testing

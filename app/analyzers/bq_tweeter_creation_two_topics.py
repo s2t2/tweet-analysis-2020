@@ -1,6 +1,5 @@
 
 import os
-from datetime import datetime
 from pprint import pprint
 
 import numpy as np

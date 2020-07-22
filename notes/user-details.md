@@ -311,3 +311,54 @@ GROUP BY retweet_user_screen_name
 ORDER BY retweet_count DESC
 LIMIT 100
 ```
+
+
+## Retweeter Creation Dates
+
+
+```sql
+/*
+select
+   count(distinct CASE WHEN d.maga >= 1 THEN user_id END) x_count -- 34,236
+   ,count(distinct CASE WHEN d.impeach_and_remove >= 1 THEN user_id END) y_count -- 22,768
+from retweeter_details d
+*/
+
+/*
+select
+   count(distinct CASE WHEN d.maga > 0 and d.impeach_and_remove > 0 THEN user_id END) both_count
+   ,count(distinct CASE WHEN d.maga = 0 and d.impeach_and_remove = 0 THEN user_id END) neither_count
+      ,count(distinct CASE WHEN d.maga > 0 and d.impeach_and_remove = 0 THEN user_id END) x_count
+   ,count(distinct CASE WHEN d.maga = 0 AND d.impeach_and_remove > 0 THEN user_id END) y_count
+from retweeter_details d
+-- 4476	2702472	29760	18292
+*/
+
+/*
+select
+   count(distinct CASE WHEN d.sham_trial > 0 and d.not_above_the_law > 0 THEN user_id END) both_count
+   ,count(distinct CASE WHEN d.sham_trial = 0 and d.not_above_the_law = 0 THEN user_id END) neither_count
+   ,count(distinct CASE WHEN d.sham_trial > 0 and d.not_above_the_law = 0 THEN user_id END) x_count
+   ,count(distinct CASE WHEN d.sham_trial = 0 AND d.not_above_the_law > 0 THEN user_id END) y_count
+from retweeter_details d
+-- 1145	2737845	10245	5765
+*/
+
+/*
+select
+   count(distinct CASE WHEN d.sham_trial > 0 and d.country_over_party > 0 THEN user_id END) both_count
+   ,count(distinct CASE WHEN d.sham_trial = 0 and d.country_over_party = 0 THEN user_id END) neither_count
+   ,count(distinct CASE WHEN d.sham_trial > 0 and d.country_over_party = 0 THEN user_id END) x_count
+   ,count(distinct CASE WHEN d.sham_trial = 0 AND d.country_over_party > 0 THEN user_id END) y_count
+from retweeter_details d
+--  0	2743610	11390	0
+*/
+
+select
+   count(distinct CASE WHEN d.acquitted_forever > 0 and d.not_above_the_law > 0 THEN user_id END) both_count
+   ,count(distinct CASE WHEN d.acquitted_forever = 0 and d.not_above_the_law = 0 THEN user_id END) neither_count
+   ,count(distinct CASE WHEN d.acquitted_forever > 0 and d.not_above_the_law = 0 THEN user_id END) x_count
+   ,count(distinct CASE WHEN d.acquitted_forever = 0 AND d.not_above_the_law > 0 THEN user_id END) y_count
+from retweeter_details d
+--  17	2744356	3734	6893
+```

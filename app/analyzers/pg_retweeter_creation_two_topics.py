@@ -18,10 +18,10 @@ Y_COL = os.getenv("Y_COL", default="impeach_and_remove") # an attribute name of 
 
 class Analyzer:
 
-    def __init__(self, x_col=X_COL, y_col=Y_COL):
+    def __init__(self, pg=None, x_col=X_COL, y_col=Y_COL):
+        self.cursor = pg or db # consider using a row factory for dictionary-like results
         self.x_col = x_col
         self.y_col = y_col
-
         print("--------------------------------------")
         print("RETWEETER CREATION DATE ANALYZER...")
         print(f"TWO TOPICS: '{x_col.upper()}' | '{y_col.upper()}'")
@@ -35,14 +35,12 @@ class Analyzer:
                 ,count(distinct CASE WHEN d.{self.x_col} = 0 AND d.{self.y_col} > 0 THEN user_id END) y_count
             FROM retweeter_details d
         """
-        return db.execute(sql)
+        return self.cursor.execute(sql)
 
 if __name__ == "__main__":
 
 
     analyzer = Analyzer()
-
-    #session = BoundSession()
 
     results = analyzer.comparison_counts().fetchone()
     print("BOTH:", fmt_n(results[0]))
@@ -52,4 +50,4 @@ if __name__ == "__main__":
 
 
 
-    breakpoint()
+    #breakpoint()

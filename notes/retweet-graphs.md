@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS impeachment_production.retweets;
 CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
   SELECT
     user_id
+    ,user_created_at
     ,user_screen_name
     ,split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)] as retweet_user_screen_name
     ,status_id
