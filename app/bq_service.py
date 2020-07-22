@@ -443,6 +443,35 @@ class BigQueryService():
         print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
         return job
 
+    def fetch_retweeters_by_topic_exclusive(self, x_topic, y_topic):
+        """
+        Get the users retweeting about topic x and not y (and vice versa).
+        For each user, determines how many times they were talking about topic x and y.
+        Only returns users who were talking about one or the other, so we can perform a two-sample KS-test on them.
+        """
+        x_topic = x_topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        y_topic = y_topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        sql = f"""
+            -- TOPICS: '{x_topic}' | '{y_topic}'
+            SELECT
+                rt.user_id
+                ,rt.user_created_at
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}') then rt.status_id end) as x_count
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}') then rt.status_id end) as y_count
+            FROM {self.bq.dataset_address}.retweets rt
+            WHERE REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}')
+                OR REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}')
+            GROUP BY 1,2
+            HAVING (x_count > 0 and y_count = 0) OR (x_count = 0 and y_count > 0) -- mutually exclusive populations
+        """
+        if self.verbose:
+            print(sql.strip())
+
+        return self.execute_query(sql)
+
+
+
+
 if __name__ == "__main__":
 
     service = BigQueryService.cautiously_initialized()

@@ -14,12 +14,13 @@ def generate_timestamp():
     """Formats datetime for performance logging"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# todo: rename as fmt_ts_now()
+# todo: rename as logstamp()
 def fmt_ts():
     """
     Formats current timestamp, for printing and logging.
     """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 def fmt_n(large_number):
     """
@@ -47,6 +48,8 @@ def to_ts(my_dt):
 
     Param: dt (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
 
+    Returns: (float) like ... 1469270315.6363637
+
     Should be inverse of to_dt()
     """
     return int(my_dt.timestamp())
@@ -55,9 +58,9 @@ def to_dt(ts):
     """
     Converts timestamp (seconds since epoch) to datetime object.
 
-    Param: dti (int) like ... 1469270315.6363637
+    Param: ts (float) seconds sicne epoch like ... 1469270315.6363637
 
-    Returns: _______
+    Returns: (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
 
     Should be inverse of to_ts()
     """
