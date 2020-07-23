@@ -41,27 +41,3 @@ def fmt_pct(decimal_number):
     Returns (str) like '95.5%'
     """
     return f"{(decimal_number * 100):.2f}%"
-
-def to_ts(my_dt):
-    """
-    Converts datetime object to timestamp (seconds since epoch).
-
-    Param: dt (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
-
-    Returns: (float) like ... 1469270315.6363637
-
-    Should be inverse of to_dt()
-    """
-    return int(my_dt.timestamp())
-
-def to_dt(ts):
-    """
-    Converts timestamp (seconds since epoch) to datetime object.
-
-    Param: ts (float) seconds sicne epoch like ... 1469270315.6363637
-
-    Returns: (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
-
-    Should be inverse of to_ts()
-    """
-    return datetime.utcfromtimestamp(ts)

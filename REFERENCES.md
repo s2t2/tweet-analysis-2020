@@ -112,14 +112,16 @@ Big PG Data:
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
   + https://botometer.iuni.iu.edu
 
-## Numpy and Scipy
+## Numpy
 
   + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
 
-### K-S Tests
+## Scipy and K-S Tests
 
   + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
   + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
+  + https://towardsdatascience.com/when-to-use-the-kolmogorov-smirnov-test-dd0b2c8a8f61
+  + https://towardsdatascience.com/kolmogorov-smirnov-test-84c92fb4158d
 
 ## Dates and Times
 

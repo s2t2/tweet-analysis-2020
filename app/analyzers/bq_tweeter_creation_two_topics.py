@@ -7,7 +7,7 @@ from scipy.stats import kstest, ks_2samp
 from dotenv import load_dotenv
 
 from app.bq_service import BigQueryService
-from app.workers import to_dt, to_ts
+from app.ks_test_helper import to_dt, to_ts
 
 load_dotenv()
 np.random.seed(2020)

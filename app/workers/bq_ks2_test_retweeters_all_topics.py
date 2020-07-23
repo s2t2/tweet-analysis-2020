@@ -53,24 +53,25 @@ if __name__ == "__main__":
         "#CountryOverParty",
 
         # TERMS
-        # 'sham',
-        # 'hoax',
-        # 'witch',
-        # 'Trump',
-        # 'Pelosi',
-        # 'Schumer',
-        # 'Schiff',
-        # 'Nadler',
-        # 'Yovanovitch',
-        # 'Vindman',
-        # 'Volker',
-        # 'Sondland',
-        # 'amigos',
-        # 'Fiona Hill',
-        # 'George Kent',
-        # 'William Taylor',
-        # 'Bolton',
-        # 'Zelensk',
+        ## 'sham',
+        ## 'hoax',
+        ## 'witch', -- could be witchhunt or witch-hunt or just witch
+        #'Trump',
+        #'Pelosi',
+        #'Schumer',
+        #'Schiff',
+        #'Nadler',
+        ##'Yovanovitch', # low sample size
+        #'Vindman',
+        ##'Volker', # low sample size
+        #'Sondland',
+        ## 'amigos', # low sample size
+        #'Bolton',
+        #'Zelensk',
+        #'Fiona', # 'Fiona Hill',
+        #'Kent', # 'George Kent',
+        #'Taylor' # 'William Taylor',
+
 
         # MENTIONS
         #'@realDonaldTrump',

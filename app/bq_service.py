@@ -443,9 +443,25 @@ class BigQueryService():
         print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
         return job
 
-    def fetch_retweeters_by_topic_exclusive(self, x_topic, y_topic):
+    def fetch_retweeters_by_topic_exclusive(self, topic):
         """
-        Get the users retweeting about topic x and not y (and vice versa).
+        Get the retweeters talking about topic x and those not, so we can perform a two-sample KS-test on them.
+        """
+        topic = topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        sql = f"""
+            -- TOPIC: '{topic}'
+            SELECT
+                rt.user_id
+                ,rt.user_created_at
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{topic}') then rt.status_id end) as count
+            FROM {self.dataset_address}.retweets rt
+            GROUP BY 1,2
+        """
+        return self.execute_query(sql)
+
+    def fetch_retweeters_by_topics_exclusive(self, x_topic, y_topic):
+        """
+        Get the retweeters talking about topic x and not y (and vice versa).
         For each user, determines how many times they were talking about topic x and y.
         Only returns users who were talking about one or the other, so we can perform a two-sample KS-test on them.
         """
