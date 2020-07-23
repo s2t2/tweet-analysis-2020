@@ -4,6 +4,7 @@ from pprint import pprint
 import json
 from functools import lru_cache
 
+
 from dotenv import load_dotenv
 import numpy as np
 from pandas import DataFrame, read_csv, concat
@@ -18,34 +19,31 @@ np.random.seed(2020)
 
 X_TOPIC = os.getenv("X_TOPIC", default="#MAGA")
 Y_TOPIC = os.getenv("Y_TOPIC", default="#ImpeachAndRemove")
-PVAL_MAX = float(os.getenv("PVAL_MAX", default="0.01"))
+PVAL_MAX = float(os.getenv("PVAL_MAX", default="0.01")) # the maximum pvalue under which to reject the ks test null hypothesis
 
-# KS_RESULTS_DIR = os.path.join(DATA_DIR, "ks_tests")
+RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "retweeter_age_two_topic_ks_test_results.csv")
 
 def ts_to_date(my_ts):
     return to_dt(my_ts).strftime("%Y-%m-%d")
 
-def interpret_ks(ks_test_results, pval_max=0.01):
+def interpret_ks(result, pval_max=0.01):
     """
-    A utility function to interpret the results of a two-sample KS test.
-    Indicates whether or not to reject the null hypothesis.
-
-    Params:
-        ks_test_results (scipy.stats.stats.KstestResult)
-        pval_max (float) the maximum pvalue threshold under which to reject the null hypothesis
+    Interprets the results of a two-sample KS test, indicates whether or not to reject the null hypothesis.
+    "Under the null hypothesis, the two distributions are identical."
+    "If the KS statistic is small or the p-value is high, then we cannot reject the null hypothesis."
 
     See:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
 
-    Methodology Notes / Docs:
-        Under the null hypothesis, the two distributions are identical.
-        If the KS statistic is small or the p-value is high, then we cannot reject the null hypothesis.
+    Params:
+        result (scipy.stats.stats.KstestResult)
+        pval_max (float) the maximum pvalue threshold under which to reject the null hypothesis
+
     """
-    if ks_test_results.pvalue <= pval_max:
+    interpretation = "ACCEPT (SAME)"
+    if result.pvalue <= pval_max:
         interpretation = "REJECT (DIFF)"
-    else:
-        interpretation = "ACCEPT (SAME)"
     return interpretation
 
 class Analyzer:
@@ -53,15 +51,15 @@ class Analyzer:
     Performs two-sample KS test on two independent populations of users talking about two different topics.
     """
 
-    def __init__(self, bq=None, x_topic=X_TOPIC, y_topic=Y_TOPIC, pval_max=PVAL_MAX):
+    def __init__(self, bq=None, x_topic=X_TOPIC, y_topic=Y_TOPIC, pval_max=PVAL_MAX, results_csv_filepath=RESULTS_CSV_FILEPATH):
         self.bq = bq or BigQueryService.cautiously_initialized()
         self.x_topic = x_topic
         self.y_topic = y_topic
         self.pval_max = pval_max
+        self.results_csv_filepath = results_csv_filepath
+
         self.x = []
         self.y = []
-        self.results_csv_filepath = os.path.join(DATA_DIR, "ks2_results.csv")
-
 
     def fetch_xy(self):
         print("-----------------------------")
@@ -76,13 +74,12 @@ class Analyzer:
     @property
     @lru_cache(maxsize=None)
     def xy_result(self):
-        if not self.x and not self.y:
-            self.fetch_xy()
+        if not self.x and not self.y: self.fetch_xy() # make sure data is fetched before trying to test it
         print("-----------------------------")
         print("TWO-SAMPLE KS TEST...")
-        results = ks_2samp(self.x, self.y)
-        print(type(results))
-        return results #> <class 'scipy.stats.stats.KstestResult'>
+        result = ks_2samp(self.x, self.y)
+        print(type(result))
+        return result #> <class 'scipy.stats.stats.KstestResult'>
 
     @property
     @lru_cache(maxsize=None)
@@ -99,6 +96,12 @@ class Analyzer:
             "ks_pval": self.xy_result.pvalue,
             "ks_inter": interpret_ks(self.xy_result, self.pval_max)
         }
+
+    @property
+    def topics_id(self):
+        """should be unique for each pair of topics, and able to be used in file names"""
+        sorted_topics = sorted([self.x_topic.lower().replace(" ",""), self.y_topic.lower().replace(" ","")])
+        return "_".join(sorted_topics) #> "#sometag_#othertag"
 
     @property
     def x_size(self):
@@ -124,12 +127,6 @@ class Analyzer:
     def y_avg_date(self):
         return ts_to_date(self.y_avg) #> date string
 
-    @property
-    def topics_id(self):
-        """should be unique for each pair of topics, and able to be used in file names"""
-        sorted_topics = sorted([self.x_topic.lower().replace(" ",""), self.y_topic.lower().replace(" ","")])
-        return "_".join(sorted_topics)
-
     def append_results_to_csv(self, csv_filepath=None):
         csv_filepath = csv_filepath or self.results_csv_filepath
         print("WRITING TO FILE...", csv_filepath)
@@ -148,8 +145,5 @@ class Analyzer:
 if __name__ == "__main__":
 
     analyzer = Analyzer()
-
-    report = analyzer.report
-    pprint(report)
-
+    pprint(analyzer.report)
     analyzer.append_results_to_csv()

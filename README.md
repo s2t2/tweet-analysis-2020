@@ -291,14 +291,24 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 
 
-### User Creation Data Analysis
+### Retweeter Age Analysis by Topic
 
 Compare the distribution of user creation dates for users talking about two different topics:
 
 ```sh
-python -m app.analyzers.bq_retweeter_creation_two_topics
-# BIGQUERY_DATASET_NAME="impeachment_production" TOPIC_X="abc" TOPIC_Y="def" python -m app.analyzers.bq_retweeter_creation_two_topics
+python -m app.analyzers.bq_ks_test_retweeter_ages_two_topics
+
+# BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#MAGA" Y_TOPIC="#AcquittedForever" python -m app.workers.bq_ks_test_retweeter_ages_two_topics
 ```
+
+For each combination of two topics in a given list:
+
+```sh
+python -m app.analyzers.bq_ks_test_retweeter_ages_all_topics
+
+# BIGQUERY_DATASET_NAME="impeachment_production" TOPICS_FILENAME="ks_test_topics.csv" python -m app.workers.bq_ks_test_retweeter_ages_all_topics
+```
+
 
 ## Testing
 
