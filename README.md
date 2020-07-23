@@ -298,7 +298,7 @@ Compare the distribution of user creation dates for users talking about two diff
 ```sh
 python -m app.analyzers.bq_ks_test_retweeter_ages_two_topics
 
-# BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#MAGA" Y_TOPIC="#AcquittedForever" python -m app.workers.bq_ks_test_retweeter_ages_two_topics
+# BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#MAGA" Y_TOPIC="#AcquittedForever" python -m app.workers.bq_ks2_test_retweeters_two_topics
 ```
 
 For each combination of two topics in a given list:
@@ -306,7 +306,7 @@ For each combination of two topics in a given list:
 ```sh
 python -m app.analyzers.bq_ks_test_retweeter_ages_all_topics
 
-# BIGQUERY_DATASET_NAME="impeachment_production" TOPICS_FILENAME="ks_test_topics.csv" python -m app.workers.bq_ks_test_retweeter_ages_all_topics
+# BIGQUERY_DATASET_NAME="impeachment_production" "APP_ENV"="production" python -m app.workers.bq_ks2_test_retweeters_all_topics
 ```
 
 

@@ -21,7 +21,7 @@ X_TOPIC = os.getenv("X_TOPIC", default="#MAGA")
 Y_TOPIC = os.getenv("Y_TOPIC", default="#ImpeachAndRemove")
 PVAL_MAX = float(os.getenv("PVAL_MAX", default="0.01")) # the maximum pvalue under which to reject the ks test null hypothesis
 
-RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "retweeter_age_two_topic_ks_test_results.csv")
+RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "retweeter_ks2_test_results.csv")
 
 def ts_to_date(my_ts):
     return to_dt(my_ts).strftime("%Y-%m-%d")
