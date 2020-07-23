@@ -8,12 +8,11 @@ __pycache__
 credentials.json
 
 data/*.csv
-data/*.gpickle
 
-data/*/*.json
-data/*/*.csv
-data/*/*.gpickle
-data/*/preds/*.csv
+data/graphs/*/*.json
+data/graphs/*/*.csv
+data/graphs/*/*.gpickle
+data/graphs/*/preds/*.csv
 
 workbooks/*.twbx
 workbooks/*.twbr

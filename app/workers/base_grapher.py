@@ -58,7 +58,7 @@ class BaseGrapher():
         else:
             self.users_limit = None
 
-        self.local_dirpath = os.path.join(DATA_DIR, self.job_id)
+        self.local_dirpath = os.path.join(DATA_DIR, "graphs", self.job_id)
         self.local_metadata_filepath = os.path.join(self.local_dirpath, "metadata.json")
         self.local_results_filepath = os.path.join(self.local_dirpath, "results.csv")
         self.local_edges_filepath = os.path.join(self.local_dirpath, "edges.gpickle")
