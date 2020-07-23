@@ -54,7 +54,7 @@ class BigQueryService():
             if input("CONTINUE? (Y/N): ").upper() != "Y":
                 print("EXITING...")
                 exit()
-        service.init_tables()
+        # service.init_tables() # do this manually with future datasets, but comment out now to prevent accidental table deletions
         return service
 
     def init_tables(self):
@@ -458,15 +458,12 @@ class BigQueryService():
                 ,rt.user_created_at
                 ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}') then rt.status_id end) as x_count
                 ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}') then rt.status_id end) as y_count
-            FROM {self.bq.dataset_address}.retweets rt
+            FROM {self.dataset_address}.retweets rt
             WHERE REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}')
                 OR REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}')
             GROUP BY 1,2
             HAVING (x_count > 0 and y_count = 0) OR (x_count = 0 and y_count > 0) -- mutually exclusive populations
         """
-        if self.verbose:
-            print(sql.strip())
-
         return self.execute_query(sql)
 
 
