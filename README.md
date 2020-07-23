@@ -291,23 +291,42 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 
 
-### Retweeter Age Analysis by Topic
+### Retweeter Creation Date Distributions
 
-Compare the distribution of user creation dates for users talking about two different topics:
+#### By Topic
+
+Compare the distribution of user creation dates for retweeters talking about a given topic, vs those not:
 
 ```sh
-python -m app.analyzers.bq_ks_test_retweeter_ages_two_topics
+python -m app.workers.bq_ks_test_retweeters_by_topic
+# BIGQUERY_DATASET_NAME="impeachment_production" TOPIC="#MAGA" python -m app.workers.bq_ks_test_retweeters_by_topic
+```
 
+... or for each topic in a given list:
+
+```sh
+python -m app.workers.bq_ks_test_retweeters_all_topics
+# BIGQUERY_DATASET_NAME="impeachment_production" python -m app.workers.bq_ks_test_retweeters_all_topics
+```
+
+#### By Topic Pair
+
+Compare the distribution of user creation dates for retweeters talking about two different topics:
+
+```sh
+python -m app.analyzers.bq_ks2_test_retweeters_by_topic
 # BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#MAGA" Y_TOPIC="#AcquittedForever" python -m app.workers.bq_ks2_test_retweeters_two_topics
 ```
 
-For each combination of two topics in a given list:
+... or for each combination of two topics in a given list:
 
 ```sh
-python -m app.analyzers.bq_ks_test_retweeter_ages_all_topics
-
+python -m app.analyzers.bq_ks2_test_retweeters_all_topics
 # BIGQUERY_DATASET_NAME="impeachment_production" "APP_ENV"="production" python -m app.workers.bq_ks2_test_retweeters_all_topics
 ```
+
+
+
 
 
 ## Testing

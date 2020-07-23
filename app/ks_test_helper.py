@@ -1,10 +1,18 @@
 
 
-
 import os
+from datetime import datetime
+from functools import lru_cache
+
 from dotenv import load_dotenv
+import numpy as np
+from scipy.stats import kstest, ks_2samp
+from pandas import DataFrame, read_csv, concat
+
+from app.bq_service import BigQueryService
 
 load_dotenv()
+np.random.seed(2020)
 
 TOPIC = os.getenv("TOPIC", default="#MAGA")
 PVAL_MAX = float(os.getenv("PVAL_MAX", default="0.01")) # the maximum pvalue under which to reject the ks test null hypothesis
@@ -62,23 +70,15 @@ def interpret_ks(result, pval_max=0.01):
 class Analyzer:
     """
     Performs two-sample KS test on two independent populations of users: those retweeting about a topic vs those not.
-    Fetching strategy fetch_xy() can be customized in child classes.
+    Fetching strategy fetch_xy() can be customized in child classes to compare different independent user populations.
     """
 
     def __init__(self, bq=None, topic=TOPIC, pval_max=PVAL_MAX):
         self.bq = bq or BigQueryService()
         self.topic = topic
         self.pval_max = pval_max
-
         self.x = []
         self.y = []
-
-    #def fetch_xy(self):
-    #    """
-    #    To be implemented in child class: populate self.x and self.y with two independent samples from a continuous distribution.
-    #    For example, fetch the created at date for each user and use the to_ts() function to convert it into seconds since epoch.
-    #    """
-    #    raise NotImplementedError
 
     def fetch_xy(self):
         print("FETCHING RETWEETERS...")
