@@ -33,24 +33,24 @@ if __name__ == "__main__":
 
         # TAGS
         # "#IGHearing", -- very small sample size
-        #"#ImpeachAndConvict",
-        #"#TrumpImpeachment",
-        #"#IGReport",
-        #"#SenateHearing",
-        #"#FactsMatter",
-        #"#ImpeachmentRally",
-        #"#ImpeachmentEve",
-        #"#ImpeachAndRemove",
-        #"#trumpletter",
-        #"#NotAboveTheLaw",
-        #"#25thAmendmentNow",
-        #"#ShamTrial",
-        #"#GOPCoverup",
-        #"#MitchMcCoverup",
-        #"#AquittedForever",
-        #"#CoverUpGOP",
-        #"#MoscowMitch",
-        #"#CountryOverParty,
+        "#ImpeachAndConvict",
+        "#TrumpImpeachment",
+        "#IGReport",
+        "#SenateHearing",
+        "#FactsMatter",
+        "#ImpeachmentRally",
+        "#ImpeachmentEve",
+        "#ImpeachAndRemove",
+        "#trumpletter",
+        "#NotAboveTheLaw",
+        "#25thAmendmentNow",
+        "#ShamTrial",
+        "#GOPCoverup",
+        "#MitchMcCoverup",
+        "#AquittedForever",
+        "#CoverUpGOP",
+        "#MoscowMitch",
+        "#CountryOverParty",
 
         # TERMS
         # 'sham',
@@ -73,21 +73,21 @@ if __name__ == "__main__":
         # 'Zelensk',
 
         # MENTIONS
-        '@realDonaldTrump',
-        '@senatemajldr',
-        '@SpeakerPelosi',
-        '@SenSchumer',
-        '@JoeBiden',
-        '@GOP',
-        '@TheDemocrats',
-        '@nytimes',
-        '@WSJ',
-        '@CNN',
-        '@MSNBC',
-        '@NBCNews',
-        '@abcnews',
-        '@thehill',
-        '@politico',
+        #'@realDonaldTrump',
+        #'@senatemajldr',
+        #'@SpeakerPelosi',
+        #'@SenSchumer',
+        #'@JoeBiden',
+        #'@GOP',
+        #'@TheDemocrats',
+        #'@nytimes',
+        #'@WSJ',
+        #'@CNN',
+        #'@MSNBC',
+        #'@NBCNews',
+        #'@abcnews',
+        #'@thehill',
+        #'@politico',
 
     ]
     print(f"DETECTED {len(topics)} TOPICS...")
@@ -98,7 +98,9 @@ if __name__ == "__main__":
     analyzers = [Analyzer(x_topic=xt, y_topic=yt) for xt, yt in pairs]
     analyzers = [analyzer for analyzer in analyzers if analyzer.topics_id not in existing_ids]
 
-    print(f"({len(analyzers)} UNTESTED)..." )
-    for analyzer in analyzers:
+    print(f"{len(analyzers)} TOPIC PAIRS NEED TESTING..." )
+    for i, analyzer in enumerate(analyzers):
+        print("-----------------------------")
+        print(f"TESTING TOPIC PAIR {i+1} OF {len(analyzers)} - {analyzer.topics_id.upper()}")
         pprint(analyzer.report)
         analyzer.append_results_to_csv()

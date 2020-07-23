@@ -62,7 +62,7 @@ class Analyzer:
         self.y = []
 
     def fetch_xy(self):
-        print("-----------------------------")
+        #print("-----------------------------")
         print("FETCHING RETWEETERS...")
         for row in self.bq.fetch_retweeters_by_topic_exclusive(self.x_topic, self.y_topic):
             ts = to_ts(row.user_created_at)
