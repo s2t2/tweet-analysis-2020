@@ -6,7 +6,7 @@ from pprint import pprint
 
 from pandas import read_csv
 
-from app.workers.bq_ks2_test_retweeters_two_topics import Analyzer
+from app.workers.bq_ks2_test_retweeters_two_topics import Analyzer, RESULTS_CSV_FILEPATH
 
 #load_dotenv()
 
@@ -24,6 +24,9 @@ class Manager:
         pass
 
 if __name__ == "__main__":
+
+    df = read_csv(RESULTS_CSV_FILEPATH)
+    existing_ids = df["topics_id"].tolist()
 
     # todo: allow customization of topics list via CSV file
     topics = [
@@ -92,13 +95,10 @@ if __name__ == "__main__":
     pairs = list(combinations(topics, 2))
     print(f"ASSEMBLED {len(pairs)} TOPIC PAIRS...")
 
-    for x_topic, y_topic in pairs:
-        #print(x_topic, y_topic)
+    analyzers = [Analyzer(x_topic=xt, y_topic=yt) for xt, yt in pairs]
+    analyzers = [analyzer for analyzer in analyzers if analyzer.topics_id not in existing_ids]
 
-        analyzer = Analyzer(x_topic=x_topic, y_topic=y_topic)
-
-        # todo: only analyze if the topic pair is not already in the csv file! (IDEMPOTENCE CHECK)
-        if True:
-            pprint(analyzer.report)
-            analyzer.append_results_to_csv()
-            print("\n\n\n-------------\n\n\n")
+    print(f"({len(analyzers)} UNTESTED)..." )
+    for analyzer in analyzers:
+        pprint(analyzer.report)
+        analyzer.append_results_to_csv()
