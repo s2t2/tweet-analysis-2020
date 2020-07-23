@@ -33,9 +33,9 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
-        #self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
-        if init_tables == True:
-            self.init_tables()
+        # did this originally, but commenting out now to prevent accidental table deletions
+        # if init_tables == True:
+        #     self.init_tables()
 
     @property
     def metadata(self):
@@ -44,17 +44,17 @@ class BigQueryService():
     @classmethod
     def cautiously_initialized(cls):
         service = BigQueryService()
-        print("-------------------------")
-        print("BIGQUERY CONFIG...")
-        print("  DATASET ADDRESS:", service.dataset_address.upper())
-        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
-        print("  VERBOSE QUERIES:", service.verbose)
-        print("-------------------------")
         if APP_ENV == "development":
+            print("-------------------------")
+            print("BIGQUERY CONFIG...")
+            print("  DATASET ADDRESS:", service.dataset_address.upper())
+            print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+            print("  VERBOSE QUERIES:", service.verbose)
+            print("-------------------------")
             if input("CONTINUE? (Y/N): ").upper() != "Y":
                 print("EXITING...")
                 exit()
-        # service.init_tables() # do this manually with future datasets, but comment out now to prevent accidental table deletions
+        # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
         return service
 
     def init_tables(self):
