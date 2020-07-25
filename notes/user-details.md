@@ -313,6 +313,19 @@ LIMIT 100
 ```
 
 
+## Retweets
+
+
+```sql
+select
+  t.*
+  ,rt.retweet_user_screen_name
+from impeachment_production.retweets rt
+JOIN impeachment_production.tweets t ON rt.status_id = t.status_id
+where REGEXP_CONTAINS(upper(rt.status_text), '#TRUMPLETTER')
+order by t.created_at
+```
+
 ## Retweeter Creation Dates
 
 

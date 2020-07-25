@@ -106,11 +106,15 @@ class Analyzer:
         return {
             "row_id": self.row_id,
             "topic": self.topic,
-            "pval_max": self.pval_max,
-            "x_size": self.x_size, "x_avg_date": self.x_avg_date, "x_avg": self.x_avg,
-            "y_size": self.y_size, "y_avg_date": self.y_avg_date, "y_avg": self.y_avg,
+            "x_size": self.x_size,
+            "y_size": self.y_size,
+            "x_avg": self.x_avg,
+            "y_avg": self.y_avg,
+            "x_avg_date": self.x_avg_date,
+            "y_avg_date": self.y_avg_date,
             "ks_stat": self.xy_result.statistic,
             "ks_pval": self.xy_result.pvalue,
+            "pval_max": self.pval_max,
             "ks_inter": interpret_ks(self.xy_result, self.pval_max)
         }
 

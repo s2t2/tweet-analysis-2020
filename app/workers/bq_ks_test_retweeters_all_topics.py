@@ -52,7 +52,7 @@ if __name__ == "__main__":
         'Zelensk',
         'Fiona', # 'Fiona Hill',
         'Kent', # 'George Kent',
-        'Taylor' # 'William Taylor',
+        'Taylor', # 'William Taylor',
 
         # MENTIONS
         '@realDonaldTrump',
