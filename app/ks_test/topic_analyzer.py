@@ -7,12 +7,14 @@ import numpy as np
 from scipy.stats import ks_2samp
 from pandas import DataFrame, read_csv, concat
 
+from app import DATA_DIR
 from app.bq_service import BigQueryService
 from app.ks_test.interpreter import interpret, PVAL_MAX
 
 load_dotenv()
 
 TOPIC = os.getenv("TOPIC", default="#MAGA")
+RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_retweeter_ages_by_topic.csv")
 
 class TopicAnalyzer:
     """
@@ -21,13 +23,14 @@ class TopicAnalyzer:
     """
 
     def __init__(self, bq=None, topic=TOPIC, pval_max=PVAL_MAX, results_csv_filepath=RESULTS_CSV_FILEPATH):
-        self.bq = bq or BigQueryService()
         self.topic = topic
-        self.pval_max = pval_max
-        self.results_csv_filepath = results_csv_filepath
 
+        self.bq = bq or BigQueryService()
         self.x = []
         self.y = []
+
+        self.pval_max = pval_max
+        self.results_csv_filepath = results_csv_filepath
 
     def fetch_xy(self):
         print("FETCHING RETWEETERS...")
@@ -47,30 +50,6 @@ class TopicAnalyzer:
         result = ks_2samp(self.x, self.y)
         print(type(result))
         return result #> <class 'scipy.stats.stats.KstestResult'>
-
-    @property
-    @lru_cache(maxsize=None)
-    def report(self):
-        self.xy_result # make sure data is fetched and test has been performed before reporting out
-        return {
-            "row_id": self.row_id,
-            "topic": self.topic,
-            "x_size": self.x_size,
-            "y_size": self.y_size,
-            "x_avg": self.x_avg,
-            "y_avg": self.y_avg,
-            "x_avg_date": self.x_avg_date,
-            "y_avg_date": self.y_avg_date,
-            "ks_stat": self.xy_result.statistic,
-            "ks_pval": self.xy_result.pvalue,
-            "pval_max": self.pval_max,
-            "ks_inter": interpret_ks(self.xy_result, self.pval_max)
-        }
-
-    @property
-    def row_id(self):
-        """should be unique for each set of results"""
-        return self.topic.lower().replace(" ","") #> "#sometag"
 
     @property
     def x_size(self):
@@ -96,6 +75,30 @@ class TopicAnalyzer:
     def y_avg_date(self):
         return fmt_date(self.y_avg) #> date string
 
+    @property
+    @lru_cache(maxsize=None)
+    def report(self):
+        self.xy_result # make sure data is fetched and test has been performed before reporting out
+        return {
+            "row_id": self.row_id,
+            "topic": self.topic,
+            "x_size": self.x_size,
+            "y_size": self.y_size,
+            "x_avg": self.x_avg,
+            "y_avg": self.y_avg,
+            "x_avg_date": self.x_avg_date,
+            "y_avg_date": self.y_avg_date,
+            "ks_stat": self.xy_result.statistic,
+            "ks_pval": self.xy_result.pvalue,
+            "pval_max": self.pval_max,
+            "ks_inter": interpret_ks(self.xy_result, self.pval_max)
+        }
+
+    @property
+    def row_id(self):
+        """should be unique for each topic in the CSV file"""
+        return self.topic.lower().replace(" ","") #> "#sometag"
+
     def append_results_to_csv(self, csv_filepath):
         csv_filepath = csv_filepath or self.results_csv_filepath
         print("WRITING TO FILE...", csv_filepath)
@@ -111,5 +114,9 @@ class TopicAnalyzer:
             df.to_csv(csv_filepath, index=False)
             return df
 
+
 if __name__ == "__main__":
-    pass
+
+    analyzer = TopicAnalyzer()
+    pprint(analyzer.report)
+    analyzer.append_results_to_csv(RESULTS_CSV_FILEPATH)
