@@ -3,7 +3,8 @@ from pprint import pprint
 
 from pandas import read_csv
 
-from app.workers.bq_ks_test_retweeters_by_topic import Analyzer, RESULTS_CSV_FILEPATH
+from app.ks_test.topic_analyzer import Analyzer, RESULTS_CSV_FILEPATH
+from app.ks_test.impeachment_topics import IMPEACHMENT_TOPICS
 
 if __name__ == "__main__":
 
