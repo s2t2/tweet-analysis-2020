@@ -1,6 +1,7 @@
 
 import os
 from functools import lru_cache
+from pprint import pprint
 
 from dotenv import load_dotenv
 import numpy as np
@@ -8,6 +9,7 @@ from scipy.stats import ks_2samp
 from pandas import DataFrame, read_csv, concat
 
 from app import DATA_DIR
+from app.datetime_helpers import to_ts, fmt_date
 from app.bq_service import BigQueryService
 from app.ks_test.interpreter import interpret, PVAL_MAX
 
@@ -91,15 +93,15 @@ class TopicAnalyzer:
             "ks_stat": self.xy_result.statistic,
             "ks_pval": self.xy_result.pvalue,
             "pval_max": self.pval_max,
-            "ks_inter": interpret_ks(self.xy_result, self.pval_max)
+            "ks_inter": interpret(self.xy_result, self.pval_max)
         }
 
     @property
     def row_id(self):
         """should be unique for each topic in the CSV file"""
-        return self.topic.lower().replace(" ","") #> "#sometag"
+        return self.topic.lower().replace(" ","") #> "#maga"
 
-    def append_results_to_csv(self, csv_filepath):
+    def append_results_to_csv(self, csv_filepath=None):
         csv_filepath = csv_filepath or self.results_csv_filepath
         print("WRITING TO FILE...", csv_filepath)
         df = DataFrame(self.report, index=["row_id"])
@@ -119,4 +121,4 @@ if __name__ == "__main__":
 
     analyzer = TopicAnalyzer()
     pprint(analyzer.report)
-    analyzer.append_results_to_csv(RESULTS_CSV_FILEPATH)
+    analyzer.append_results_to_csv()
