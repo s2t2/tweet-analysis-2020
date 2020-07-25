@@ -3,7 +3,7 @@
 import numpy as np
 from scipy.stats import kstest, ks_2samp
 
-np.random.seed(99)
+np.random.seed(2020)
 
 if __name__ == "__main__":
 

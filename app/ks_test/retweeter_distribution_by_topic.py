@@ -1,82 +1,31 @@
 
-
 import os
-from datetime import datetime
 from functools import lru_cache
 
 from dotenv import load_dotenv
 import numpy as np
-from scipy.stats import kstest, ks_2samp
+from scipy.stats import ks_2samp
 from pandas import DataFrame, read_csv, concat
 
 from app.bq_service import BigQueryService
+from app.ks_test.interpreter import interpret, PVAL_MAX
 
 load_dotenv()
-np.random.seed(2020)
 
 TOPIC = os.getenv("TOPIC", default="#MAGA")
-PVAL_MAX = float(os.getenv("PVAL_MAX", default="0.01")) # the maximum pvalue under which to reject the ks test null hypothesis
 
-def to_ts(dt):
-    """
-    Converts datetime object to timestamp (seconds since epoch). Should be inverse of to_dt().
-
-    Param: dt (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
-
-    Returns: (float) like ... 1469270315.6363637
-    """
-    return int(dt.timestamp())
-
-def to_dt(ts):
-    """
-    Converts timestamp (seconds since epoch) to datetime object. Should be inverse of to_ts().
-
-    Param: ts (float) seconds since epoch like ... 1469270315.6363637
-
-    Returns: (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
-    """
-    return datetime.utcfromtimestamp(ts)
-
-def fmt_date(ts):
-    """
-    Converts timestamp (seconds since epoch) to date string object.
-
-    Param: ts (float) seconds since epoch like ... 1469270315.6363637
-
-    Returns: (str) like ... "2014-02-10"
-    """
-    return to_dt(ts).strftime("%Y-%m-%d")
-
-def interpret_ks(result, pval_max=0.01):
-    """
-    Interprets the results of a KS test, indicates whether or not to reject the null hypothesis.
-    "Under the null hypothesis, the two distributions are identical."
-    "If the KS statistic is small or the p-value is high, then we cannot reject the null hypothesis."
-
-    See:
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
-
-    Params:
-        result (scipy.stats.stats.KstestResult)
-        pval_max (float) the maximum pvalue threshold under which to reject the null hypothesis
-
-    """
-    interpretation = "ACCEPT (SAME)"
-    if result.pvalue <= pval_max:
-        interpretation = "REJECT (DIFF)"
-    return interpretation
-
-class Analyzer:
+class TopicAnalyzer:
     """
     Performs two-sample KS test on two independent populations of users: those retweeting about a topic vs those not.
     Fetching strategy fetch_xy() can be customized in child classes to compare different independent user populations.
     """
 
-    def __init__(self, bq=None, topic=TOPIC, pval_max=PVAL_MAX):
+    def __init__(self, bq=None, topic=TOPIC, pval_max=PVAL_MAX, results_csv_filepath=RESULTS_CSV_FILEPATH):
         self.bq = bq or BigQueryService()
         self.topic = topic
         self.pval_max = pval_max
+        self.results_csv_filepath = results_csv_filepath
+
         self.x = []
         self.y = []
 
@@ -148,6 +97,7 @@ class Analyzer:
         return fmt_date(self.y_avg) #> date string
 
     def append_results_to_csv(self, csv_filepath):
+        csv_filepath = csv_filepath or self.results_csv_filepath
         print("WRITING TO FILE...", csv_filepath)
         df = DataFrame(self.report, index=["row_id"])
 
@@ -160,3 +110,6 @@ class Analyzer:
         else:
             df.to_csv(csv_filepath, index=False)
             return df
+
+if __name__ == "__main__":
+    pass
