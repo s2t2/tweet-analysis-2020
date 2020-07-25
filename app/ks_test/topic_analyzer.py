@@ -32,6 +32,7 @@ class TopicAnalyzer:
         self.y = []
 
         self.pval_max = pval_max
+        self.interpret_ks = interpret
         self.results_csv_filepath = results_csv_filepath
 
     def fetch_xy(self):
@@ -93,7 +94,7 @@ class TopicAnalyzer:
             "ks_stat": self.xy_result.statistic,
             "ks_pval": self.xy_result.pvalue,
             "pval_max": self.pval_max,
-            "ks_inter": interpret(self.xy_result, self.pval_max)
+            "ks_inter": self.interpret_ks(self.xy_result, self.pval_max)
         }
 
     @property

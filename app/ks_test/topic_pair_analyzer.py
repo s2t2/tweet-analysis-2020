@@ -54,7 +54,7 @@ class TopicPairAnalyzer(TopicAnalyzer):
             "ks_stat": self.xy_result.statistic,
             "pval_max": self.pval_max,
             "ks_pval": self.xy_result.pvalue,
-            "ks_inter": interpret_ks(self.xy_result, self.pval_max)
+            "ks_inter": self.interpret_ks(self.xy_result, self.pval_max)
         }
 
     @property
@@ -65,6 +65,6 @@ class TopicPairAnalyzer(TopicAnalyzer):
 
 if __name__ == "__main__":
 
-    analyzer = Analyzer()
+    analyzer = TopicPairAnalyzer()
     pprint(analyzer.report)
     analyzer.append_results_to_csv()
