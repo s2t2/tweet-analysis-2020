@@ -127,3 +127,4 @@ Big PG Data:
 
   + https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
   + https://docs.python.org/3/library/time.html#time.time
+  + https://www.tutorialspoint.com/How-do-I-convert-a-datetime-to-a-UTC-timestamp-in-Python
