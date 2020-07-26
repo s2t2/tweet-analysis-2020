@@ -9,14 +9,14 @@ from scipy.stats import ks_2samp
 from pandas import DataFrame, read_csv, concat
 
 from app import DATA_DIR
-from app.datetime_helpers import to_ts, fmt_date
+from app.datetime_decorators import to_ts, fmt_date
 from app.bq_service import BigQueryService
 from app.ks_test.interpreter import interpret, PVAL_MAX
 
 load_dotenv()
 
 TOPIC = os.getenv("TOPIC", default="#MAGA")
-RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_retweeter_ages_by_topic.csv")
+RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_test", "topic_results.csv")
 
 class TopicAnalyzer:
     """

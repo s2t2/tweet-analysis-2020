@@ -6,7 +6,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 
 from app import DATA_DIR
-from app.datetime_helpers import to_ts
+from app.datetime_decorators import to_ts
 from app.ks_test.topic_analyzer import TopicAnalyzer
 
 load_dotenv()
@@ -14,7 +14,7 @@ load_dotenv()
 X_TOPIC = os.getenv("X_TOPIC", default="#MAGA")
 Y_TOPIC = os.getenv("Y_TOPIC", default="#ImpeachAndRemove")
 
-RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_retweeter_ages_by_topic_pair.csv")
+RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_test", "topic_pair_results.csv")
 
 class TopicPairAnalyzer(TopicAnalyzer):
     """

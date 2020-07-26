@@ -14,6 +14,11 @@ data/graphs/*/*.csv
 data/graphs/*/*.gpickle
 data/graphs/*/preds/*.csv
 
+data/ks_test/*.json
+data/ks_test/*.csv
+data/ks_test/*.gpickle
+data/ks_test/preds/*.csv
+
 workbooks/*.twbx
 workbooks/*.twbr
 workbooks/*.csv

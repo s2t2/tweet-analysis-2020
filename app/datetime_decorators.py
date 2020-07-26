@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 def to_ts(dt):
     """
@@ -9,7 +9,8 @@ def to_ts(dt):
 
     Returns: (float) like ... 1469270315.6363637
     """
-    return int(dt.timestamp())
+    #return dt.timestamp()
+    return dt.replace(tzinfo=timezone.utc).timestamp()
 
 def to_dt(ts):
     """
