@@ -3,31 +3,24 @@ from datetime import datetime, timezone
 
 def to_ts(dt):
     """
-    Converts datetime object to timestamp (seconds since epoch). Should be inverse of to_dt().
+    Converts datetime object to UTC timestamp (seconds since epoch) like 1595759389.828663. Inverse of to_dt() function.
 
-    Param: dt (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
-
-    Returns: (float) like ... 1469270315.6363637
+    Params: dt (datetime) like ... datetime(2020, 7, 26, 10, 29, 49, 828663)
     """
-    #return dt.timestamp()
     return dt.replace(tzinfo=timezone.utc).timestamp()
 
 def to_dt(ts):
     """
-    Converts timestamp (seconds since epoch) to datetime object. Should be inverse of to_ts().
+    Converts UTC timestamp (seconds since epoch) to datetime object like datetime(2020, 7, 26, 10, 29, 49, 828663). Inverse of to_ts() function.
 
-    Param: ts (float) seconds since epoch like ... 1469270315.6363637
-
-    Returns: (datetime) like ... datetime.datetime(2016, 7, 23, 10, 38, 35, 636364)
+    Params: ts (float) seconds since epoch (like 1595759389.828663)
     """
     return datetime.utcfromtimestamp(ts)
 
 def fmt_date(ts):
     """
-    Converts timestamp (seconds since epoch) to date string object.
+    Converts timestamp (seconds since epoch) to date string object like "2014-02-10".
 
-    Param: ts (float) seconds since epoch like ... 1469270315.6363637
-
-    Returns: (str) like ... "2014-02-10"
+    Params: ts (float) seconds since epoch (like 1595759389.828663)
     """
     return to_dt(ts).strftime("%Y-%m-%d")
