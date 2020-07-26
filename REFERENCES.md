@@ -110,3 +110,21 @@ Big PG Data:
 
   + https://tabstospaces.com/
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
+  + https://botometer.iuni.iu.edu
+
+## Numpy
+
+  + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
+
+## Scipy and K-S Tests
+
+  + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
+  + https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
+  + https://towardsdatascience.com/when-to-use-the-kolmogorov-smirnov-test-dd0b2c8a8f61
+  + https://towardsdatascience.com/kolmogorov-smirnov-test-84c92fb4158d
+
+## Dates and Times
+
+  + https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
+  + https://docs.python.org/3/library/time.html#time.time
+  + https://www.tutorialspoint.com/How-do-I-convert-a-datetime-to-a-UTC-timestamp-in-Python

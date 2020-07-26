@@ -1,7 +1,7 @@
 
 # Tweet Analysis (Python)
 
-So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic (see [Dataset Exploration Notes](/notes/dataset-exploration.md)). Now it's time to analyze them.
+So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic and stored them in Google BigQuery (see [Dataset Exploration Notes](/notes/dataset-exploration.md)). Now it's time to analyze them.
 
 This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
@@ -287,6 +287,25 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 
 
+
+
+### KS Tests
+
+#### Retweeter Age Distribution By Topic
+
+Compare the distribution of user creation dates for those retweeting about a given topic, vs those not retweeting about that topic:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" TOPIC="#ImpeachAndConvict" python -m app.ks_test.topic_analyzer
+```
+
+#### Retweeter Age Distribution By Topic Pair
+
+Compare the distribution of user creation dates for those retweeting exclusively about one of two different topics:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TOPIC="#MAGA" python -m app.ks_test.topic_pair_analyzer
+```
 
 
 ## Testing

@@ -14,11 +14,13 @@ def generate_timestamp():
     """Formats datetime for performance logging"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+# todo: rename as logstamp()
 def fmt_ts():
     """
     Formats current timestamp, for printing and logging.
     """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 def fmt_n(large_number):
     """

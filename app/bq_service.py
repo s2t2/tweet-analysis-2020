@@ -33,9 +33,9 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
-        #self.dataset_ref = self.client.dataset(self.dataset_name) # WARNING: PendingDeprecationWarning: Client.dataset is deprecated and will be removed in a future version. Use a string like 'my_project.my_dataset' or a cloud.google.bigquery.DatasetReference object, instead.
-        if init_tables == True:
-            self.init_tables()
+        # did this originally, but commenting out now to prevent accidental table deletions
+        # if init_tables == True:
+        #     self.init_tables()
 
     @property
     def metadata(self):
@@ -44,17 +44,17 @@ class BigQueryService():
     @classmethod
     def cautiously_initialized(cls):
         service = BigQueryService()
-        print("-------------------------")
-        print("BIGQUERY CONFIG...")
-        print("  DATASET ADDRESS:", service.dataset_address.upper())
-        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
-        print("  VERBOSE QUERIES:", service.verbose)
-        print("-------------------------")
         if APP_ENV == "development":
+            print("-------------------------")
+            print("BIGQUERY CONFIG...")
+            print("  DATASET ADDRESS:", service.dataset_address.upper())
+            print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+            print("  VERBOSE QUERIES:", service.verbose)
+            print("-------------------------")
             if input("CONTINUE? (Y/N): ").upper() != "Y":
                 print("EXITING...")
                 exit()
-        service.init_tables()
+        # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
         return service
 
     def init_tables(self):
@@ -244,10 +244,9 @@ class BigQueryService():
 
             end_at (str) a date string for the latest tweet
 
-        See NOTES.md for more background about the timeline and topics collected.
         """
         sql = f"""
-            SELECT DISTINCT user_id, user_screen_name
+            SELECT DISTINCT user_id, user_screen_name, user_created_at
             FROM `{self.dataset_address}.tweets`
             WHERE upper(status_text) LIKE '%{topic.upper()}%' AND (created_at BETWEEN '{start_at}' AND '{end_at}')
             ORDER BY rand()
@@ -443,6 +442,48 @@ class BigQueryService():
         job = self.client.query(sql, job_config=job_config)
         print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
         return job
+
+    def fetch_retweeters_by_topic_exclusive(self, topic):
+        """
+        Get the retweeters talking about topic x and those not, so we can perform a two-sample KS-test on them.
+        """
+        topic = topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        sql = f"""
+            -- TOPIC: '{topic}'
+            SELECT
+                rt.user_id
+                ,rt.user_created_at
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{topic}') then rt.status_id end) as count
+            FROM {self.dataset_address}.retweets rt
+            GROUP BY 1,2
+        """
+        return self.execute_query(sql)
+
+    def fetch_retweeters_by_topics_exclusive(self, x_topic, y_topic):
+        """
+        Get the retweeters talking about topic x and not y (and vice versa).
+        For each user, determines how many times they were talking about topic x and y.
+        Only returns users who were talking about one or the other, so we can perform a two-sample KS-test on them.
+        """
+        x_topic = x_topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        y_topic = y_topic.upper() # do uppercase conversion once here instead of many times inside sql below
+        sql = f"""
+            -- TOPICS: '{x_topic}' | '{y_topic}'
+            SELECT
+                rt.user_id
+                ,rt.user_created_at
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}') then rt.status_id end) as x_count
+                ,count(distinct case when REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}') then rt.status_id end) as y_count
+            FROM {self.dataset_address}.retweets rt
+            WHERE REGEXP_CONTAINS(upper(rt.status_text), '{x_topic}')
+                OR REGEXP_CONTAINS(upper(rt.status_text), '{y_topic}')
+            GROUP BY 1,2
+            HAVING (x_count > 0 and y_count = 0) OR (x_count = 0 and y_count > 0) -- mutually exclusive populations
+        """
+        return self.execute_query(sql)
+
+
+
 
 if __name__ == "__main__":
 
