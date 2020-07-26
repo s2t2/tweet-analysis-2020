@@ -21,6 +21,10 @@ RESULTS_CSV_FILEPATH = os.path.join(DATA_DIR, "ks_test", "topic_results.csv")
 class TopicAnalyzer:
     """
     Performs two-sample KS test on two independent populations of users: those retweeting about a topic vs those not.
+    See:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
+
     Fetching strategy fetch_xy() can be customized in child classes to compare different independent user populations.
     """
 
