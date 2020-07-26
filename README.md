@@ -295,7 +295,7 @@ This will download the graph from google cloud storage, if necessary, into its l
 
 #### Retweeter Age Distribution By Topic
 
-Compare the distribution of user creation dates for retweeters talking about a given topic, vs those not:
+Compare the distribution of user creation dates for those retweeting about a given topic, vs those not retweeting about that topic:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" TOPIC="#ImpeachAndConvict" python -m app.ks_test.topic_analyzer
@@ -303,12 +303,11 @@ BIGQUERY_DATASET_NAME="impeachment_production" TOPIC="#ImpeachAndConvict" python
 
 #### Retweeter Age Distribution By Topic Pair
 
-Compare the distribution of user creation dates for retweeters talking exclusively about two different topics:
+Compare the distribution of user creation dates for those retweeting exclusively about one of two different topics:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TOPIC="#MAGA" python -m app.ks_test.topic_pair_analyzer
 ```
-
 
 
 ## Testing
