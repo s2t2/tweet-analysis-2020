@@ -16,11 +16,15 @@ You will need a retweet graph saved as a networkx object and the helper file net
 import os
 import sys
 import math
-import datetime, time
+import datetime
+import time
 import random
 import numpy as np
 import networkx as nx
-import sqlite3,sys,os,string
+import sqlite3
+import sys
+import os
+import string
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -53,9 +57,9 @@ Din = Gretweet.in_degree(weight='weight')
 Dout = Gretweet.out_degree(weight='weight')
 Dout_list = [x[1] for x in Dout]
 Din_list = [x[1] for x in Din]
-print("Gretweet has %s node, %s edges"%(n,ne))
-print("Nodes max retweet = %.2f"%max(Dout_list))
-print("Nodes max  retweet count %.2f"%max(Din_list))
+print("Gretweet has %s node, %s edges" % (n, ne))
+print("Nodes max retweet = %.2f" % max(Dout_list))
+print("Nodes max  retweet count %.2f" % max(Din_list))
 
 """## Define Ising model algorithm parameters
 
@@ -75,20 +79,22 @@ mu = scale of edge energies w.r.t. node energies.  Set this to 1.
 print("Define Ising model parameters")
 mu = 1
 
-epsilon = 10**(-3) ##named delta in paper, should be close to 0 (eg. 0.001) in order for lambda10 to be slightly > to lambda00+lambda11-1.
+# named delta in paper, should be close to 0 (eg. 0.001) in order for
+# lambda10 to be slightly > to lambda00+lambda11-1.
+epsilon = 10**(-3)
 lambda01 = 1
 lambda00 = 0.61
 lambda11 = 0.83
-lambda10 = lambda00+ lambda11 - lambda01 + epsilon
+lambda10 = lambda00 + lambda11 - lambda01 + epsilon
 
-q=0.999
-alpha_in = np.quantile(Din_list,q)
-alpha_out = np.quantile(Dout_list,q)
+q = 0.999
+alpha_in = np.quantile(Din_list, q)
+alpha_out = np.quantile(Dout_list, q)
 
-alpha=[mu,alpha_out,alpha_in]
+alpha = [mu, alpha_out, alpha_in]
 
-print("alpha_out = %.2f"%alpha_out)
-print("alpha_in = %.2f"%alpha_in)
+print("alpha_out = %.2f" % alpha_out)
+print("alpha_in = %.2f" % alpha_in)
 
 """## Create energy graph
 
@@ -101,16 +107,17 @@ edgelist_data = list of edges, edge energies
 
 PiBot = {}
 for v in Gretweet.nodes():
-    PiBot[v]=0.5
-#link_data[i] = [u,v,is (u,v) in E, is (v,u) in E, number times u rewteets v]
+    PiBot[v] = 0.5
+# link_data[i] = [u,v,is (u,v) in E, is (v,u) in E, number times u rewteets v]
 link_data = getLinkDataRestrained(Gretweet)
 
 start_time = time.time()
 print("Make edgelist_data")
-#edgelist_data[i] = [u,v,(Psi00,Psi01,Psi10,Psi11)], these are the edge energies
-#on edge (i,j) for the graph cut
-edgelist_data =[(i[0], i[1], psi(i[0],i[1],i[4], Din, Dout,alpha,lambda00,lambda11,epsilon)) for i in link_data]
-print("\tEdgelist has %s edges"%len(edgelist_data))
+# edgelist_data[i] = [u,v,(Psi00,Psi01,Psi10,Psi11)], these are the edge energies
+# on edge (i,j) for the graph cut
+edgelist_data = [(i[0], i[1], psi(i[0], i[1], i[4], Din, Dout,
+                                  alpha, lambda00, lambda11, epsilon)) for i in link_data]
+print("\tEdgelist has %s edges" % len(edgelist_data))
 print("--- %s seconds ---" % (time.time() - start_time))
 
 """## Find Min-Cut of energy graph
@@ -126,10 +133,11 @@ start_time = time.time()
 print("Cut graph")
 H, BotsIsing, user_data = computeH(Gretweet, PiBot, edgelist_data, Dout, Din)
 Nodes = []
-for v in Gretweet.nodes(): Nodes.append(v)
+for v in Gretweet.nodes():
+    Nodes.append(v)
 HumansIsing = list(set(Nodes) - set(BotsIsing))
 print('\tCompleted graph cut')
-print("%s bots in %s nodes"%(len(BotsIsing),Gretweet.number_of_nodes()))
+print("%s bots in %s nodes" % (len(BotsIsing), Gretweet.number_of_nodes()))
 print("--- %s seconds ---" % (time.time() - start_time))
 
 """## Calculate Bot Probability
@@ -144,20 +152,25 @@ start_time = time.time()
 print("Calculate bot probability for each labeled node in retweet graph")
 PiBotFinal = {}
 
-for counter,node in enumerate(Gretweet.nodes()):
-    if counter%1000==0:print("Node %s"%counter)
+for counter, node in enumerate(Gretweet.nodes()):
+    if counter % 1000 == 0:
+        print("Node %s" % counter)
     if node in Gretweet.nodes():
-        neighbors=list(np.unique([i for i in nx.all_neighbors(H,node) if i not in [0,1]]))
-        ebots=list(np.unique(np.intersect1d(neighbors,BotsIsing)))
-        ehumans=list(set(neighbors)-set(ebots))
-        psi_l= sum([H[node][j]['capacity'] for j in ehumans])- sum([H[node][i]['capacity'] for i in ebots])
+        neighbors = list(
+            np.unique([i for i in nx.all_neighbors(H, node) if i not in [0, 1]]))
+        ebots = list(np.unique(np.intersect1d(neighbors, BotsIsing)))
+        ehumans = list(set(neighbors) - set(ebots))
+        psi_l = sum([H[node][j]['capacity'] for j in ehumans]) - \
+            sum([H[node][i]['capacity'] for i in ebots])
 
-        psi_l_bis= psi_l + H[node][0]['capacity'] - H[1][node]['capacity'] ##probability to be in 1 = notPL
+        # probability to be in 1 = notPL
+        psi_l_bis = psi_l + H[node][0]['capacity'] - H[1][node]['capacity']
 
-        if (psi_l_bis)>12:
+        if (psi_l_bis) > 12:
             PiBotFinal[node] = 0
         else:
-            PiBotFinal[node] = 1./(1+np.exp(psi_l_bis)) #Probability in the target (0) class
+            # Probability in the target (0) class
+            PiBotFinal[node] = 1. / (1 + np.exp(psi_l_bis))
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
@@ -166,31 +179,38 @@ print("--- %s seconds ---" % (time.time() - start_time))
 Convert dictionary of bot probabilities to a dataframe and write to a csv file.
 """
 
-dfPiBot = pd.DataFrame(list(PiBotFinal.items()),columns = ['screen_name','bot_probability'])
-FilenamePiBot = path_data+ "Pibot_pizzagate.csv"
+dfPiBot = pd.DataFrame(
+    list(
+        PiBotFinal.items()),
+    columns=[
+        'screen_name',
+        'bot_probability'])
+FilenamePiBot = path_data + "Pibot_pizzagate.csv"
 dfPiBot.to_csv(FilenamePiBot)
-print("Wrote bot probabilities to %s"%FilenamePiBot)
+print("Wrote bot probabilities to %s" % FilenamePiBot)
 
 """## Histogram of Bot Probabilities
 Plot a histogram of the bot probabilities so you can see what a good threshold is
 """
 
 data = dfPiBot.bot_probability
-num_bins = round(len(data)/10)
-counts, bin_edges = np.histogram (data, bins=num_bins, normed=True)
-cdf = np.cumsum (counts)
-plt.plot (bin_edges[1:], cdf/cdf[-1])
+num_bins = round(len(data) / 10)
+counts, bin_edges = np.histogram(data, bins=num_bins, normed=True)
+cdf = np.cumsum(counts)
+plt.plot(bin_edges[1:], cdf / cdf[-1])
 plt.grid()
 plt.xlabel("Bot probability")
 plt.ylabel("CDF")
 
-nlow = len(dfPiBot[dfPiBot.bot_probability<0.5])
-nhigh = len(dfPiBot[dfPiBot.bot_probability>0.5])
-nmid = len(dfPiBot[dfPiBot.bot_probability==0.5])
-print("%s users bot prob<0.5\n%s users bot prob>0.5\n%s users bot prob=0.5\n"%(nlow,nmid,nhigh))
+nlow = len(dfPiBot[dfPiBot.bot_probability < 0.5])
+nhigh = len(dfPiBot[dfPiBot.bot_probability > 0.5])
+nmid = len(dfPiBot[dfPiBot.bot_probability == 0.5])
+print(
+    "%s users bot prob<0.5\n%s users bot prob>0.5\n%s users bot prob=0.5\n" %
+     (nlow, nmid, nhigh))
 
-plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability<0.5]);
-plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability>0.5]);
+plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability < 0.5])
+plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability > 0.5])
 plt.grid()
 plt.xlabel("Bot probability")
 plt.ylabel("Frequency")

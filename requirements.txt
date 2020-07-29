@@ -20,3 +20,6 @@ scipy
 # formerly known as dev dependencies:
 pytest
 memory_profiler
+
+# dev dependencies:
+autopep8
