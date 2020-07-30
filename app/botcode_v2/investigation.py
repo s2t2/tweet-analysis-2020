@@ -28,8 +28,8 @@ if __name__ == "__main__":
     if DRY_RUN:
         rt_graph = compile_mock_rt_graph(mock_rt_graph_edge_list) # mock_rt_graph()
         print("RT GRAPH:", type(rt_graph))
-        print("  NODES:", rt_graph.number_of_nodes())
-        print("  EDGES:", rt_graph.number_of_edges())
+        print("  NODES:", fmt_n(rt_graph.number_of_nodes()))
+        print("  EDGES:", fmt_n(rt_graph.number_of_edges()))
     else:
         rt_graph = manager.graph
         manager.report()
@@ -61,7 +61,6 @@ if __name__ == "__main__":
     #
 
     print("----------------")
-    print("ENERGY GRAPHER...")
 
     links = get_link_data_restrained(rt_graph, weight_attr="rt_count") # this step is unnecessary?
     print("LINKS:", fmt_n(len(links)))
@@ -73,6 +72,7 @@ if __name__ == "__main__":
     ) for link in links]
     print("ENERGIES:", fmt_n(len(energies)))
 
+    print("----------------")
     prior_probabilities = dict.fromkeys(list(rt_graph.nodes), 0.5) # set all screen names to 0.5
     energy_graph, bot_names, user_data = compile_energy_graph(rt_graph, prior_probabilities, energies, out_degrees, in_degrees)
     #human_names = list(set(rt_graph.nodes()) - set(bot_names))
@@ -84,6 +84,8 @@ if __name__ == "__main__":
     # BOT CLASSIFICATION
     #
 
+    print("----------------")
+    print("BOT CLASSIFICATION...")
     bot_probabilities = compute_bot_probabilities(rt_graph, energy_graph, bot_names)
     print("CLASSIFICATION COMPLETE!")
 
