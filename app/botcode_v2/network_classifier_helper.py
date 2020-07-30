@@ -7,6 +7,7 @@ import math
 from collections import defaultdict
 from operator import itemgetter
 import time
+from datetime import datetime
 
 import numpy as np
 import networkx as nx
@@ -153,7 +154,8 @@ def compute_bot_probabilities(rt_graph, energy_graph, bot_names, verbose=True):
     PiBotFinal = {}
 
     for counter, node in enumerate(rt_graph.nodes()):
-        if verbose and (counter % 1000 == 0): print("NODE:", counter)
+        if verbose and (counter % 1000 == 0):
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "|", "NODE:", counter)
 
         neighbors = list(np.unique([i for i in nx.all_neighbors(energy_graph, node) if i not in [0, 1]]))
         ebots = list(np.unique(np.intersect1d(neighbors, bot_names)))
