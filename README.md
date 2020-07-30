@@ -151,7 +151,7 @@ Downloading the "retweeter_details" table:
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
 ```
 
-### Friend Graph Construction
+### Friend Graphs
 
 > See: [Friend Graph Notes](/notes/friend-graphs.md).
 
@@ -197,7 +197,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
 ```
 
-### Retweet Graph Construction
+### Retweet Graphs
 
 > See: [Retweet Graph Notes](/notes/retweet-graphs.md).
 
@@ -238,7 +238,13 @@ Once you have created a retweet graph, note its `JOB_ID`, then compute bot proba
 ```sh
 # JOB_ID="2020-06-15-2141" python -m app.botcode.classifier
 
-JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
+
+JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.investigation
+
+
+
+# JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
+
 ```
 
 This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
