@@ -42,9 +42,6 @@ if __name__ == "__main__":
     print("MAX IN:", fmt_n(max(in_degrees_list))) #> 76,617
     print("MAX OUT:", fmt_n(max(out_degrees_list))) #> 5,608
 
-    print("----------------")
-    print("ISING PARAMS...")
-
     mu = 1
     percentile = 0.999
     alpha_in = np.quantile(in_degrees_list, percentile)
@@ -80,7 +77,7 @@ if __name__ == "__main__":
     energy_graph, bot_names, user_data = compile_energy_graph(rt_graph, prior_probabilities, energies, out_degrees, in_degrees)
     #human_names = list(set(rt_graph.nodes()) - set(bot_names))
     print("ENERGY GRAPH:", type(energy_graph))
-    print("NODES:", energy_graph.number_of_nodes())
+    print("NODES:", fmt_n(energy_graph.number_of_nodes()))
     print(f"BOTS: {fmt_n(len(bot_names))} ({fmt_pct(len(bot_names) / energy_graph.number_of_nodes())})")
 
     #
