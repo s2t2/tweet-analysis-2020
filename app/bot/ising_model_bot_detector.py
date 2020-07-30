@@ -5,8 +5,7 @@ import time
 
 import numpy as np
 from pandas import DataFrame
-
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #from sklearn import metrics
 #from scipy.sparse import csc_matrix
 
@@ -98,7 +97,7 @@ if __name__ == "__main__":
 
     df = DataFrame(list(bot_probabilities.items()), columns=["screen_name", "bot_probability"])
     print(df.head())
-    csv_filepath = os.path.join(manager.local_dirpath, "bot_probabilities_202001010101.csv")
+    csv_filepath = os.path.join(manager.local_dirpath, "preds2", "bot_probabilities.csv")
     df.to_csv(csv_filepath)
     print("WRITING TO FILE...")
     print(csv_filepath)
@@ -119,42 +118,33 @@ if __name__ == "__main__":
 
 
 
+    #
+    # HISTOGRAM
+    #
+
+    print("LESS THAN 50%:", len(df[df.bot_probability < 0.5]))
+    print("EQUAL TO 50%:", len(df[df.bot_probability == 0.5]))
+    print("GREATHER THAN 50%:", len(df[df.bot_probability > 0.5]))
 
 
-
-
-
-
-
-
-    exit()
-
-
-
-
-    """## Histogram of Bot Probabilities
-    Plot a histogram of the bot probabilities so you can see what a good threshold is
-    """
-
-    data = dfPiBot.bot_probability
+    data = df.bot_probability
     num_bins = round(len(data) / 10)
-    counts, bin_edges = np.histogram(data, bins=num_bins, normed=True)
+    counts, bin_edges = np.histogram(data, bins=num_bins) # ,normed=True #> "VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken"...
     cdf = np.cumsum(counts)
+
     plt.plot(bin_edges[1:], cdf / cdf[-1])
     plt.grid()
     plt.xlabel("Bot probability")
     plt.ylabel("CDF")
 
-    nlow = len(dfPiBot[dfPiBot.bot_probability < 0.5])
-    nhigh = len(dfPiBot[dfPiBot.bot_probability > 0.5])
-    nmid = len(dfPiBot[dfPiBot.bot_probability == 0.5])
-    print(
-        "%s users bot prob<0.5\n%s users bot prob>0.5\n%s users bot prob=0.5\n" %
-        (nlow, nmid, nhigh))
-
-    plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability < 0.5])
-    plt.hist(dfPiBot.bot_probability[dfPiBot.bot_probability > 0.5])
+    plt.hist(df.bot_probability[df.bot_probability < 0.5])
+    plt.hist(df.bot_probability[df.bot_probability > 0.5])
     plt.grid()
     plt.xlabel("Bot probability")
     plt.ylabel("Frequency")
     plt.title("No 0.5 probability users")
+
+    img_filepath = os.path.join(manager.local_dirpath, "preds2", "bot_probabilities_histogram.png")
+    plt.savefig(img_filepath, bbox_inches='tight')
+
+    plt.show()
