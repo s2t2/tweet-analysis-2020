@@ -201,7 +201,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 
 > See: [Retweet Graph Notes](/notes/retweet-graphs.md).
 
-The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that:
+Construct retweet graphs:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
@@ -211,7 +211,9 @@ BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" py
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
 ```
 
-See how much memory it takes to load a given graph:
+Observe the resulting job identifier (`JOB_ID`), and verify the graph and other artifacts are saved to local storage and/or Google Cloud Storage.
+
+Once you have created a retweet graph, note its `JOB_ID`, and see how much memory it takes to load a given graph:
 
 ```py
 # right-leaning conversation graph
@@ -229,15 +231,14 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 
 ### Bot Classification
 
-> STATUS: See: [User Analysis Notes](/notes/user-details.md).
+> See: [User Analysis Notes](/notes/user-details.md).
 
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
 ```sh
-# neutral conversation retweet graph
-JOB_ID="2020-06-15-2141" python -m app.workers.botcode_classifier
+# JOB_ID="2020-06-15-2141" python -m app.botcode.classifier
 
-JOB_ID="2020-06-15-2141" python -m app.bot.ising_model_bot_detector
+JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
 ```
 
 This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.

@@ -1,4 +1,8 @@
 
+#
+# AN ADAPTATION OF THE ORIGINAL BOTCODE (SEE THE "START" DIR)
+#
+
 import os
 
 from dotenv import load_dotenv

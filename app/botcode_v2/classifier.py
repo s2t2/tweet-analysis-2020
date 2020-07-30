@@ -145,6 +145,6 @@ if __name__ == "__main__":
     plt.title("No 0.5 probability users")
 
     img_filepath = os.path.join(manager.local_dirpath, "preds2", "bot_probabilities_histogram.png")
-    plt.savefig(img_filepath, bbox_inches='tight')
+    plt.savefig(img_filepath)
 
     plt.show()

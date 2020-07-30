@@ -6,7 +6,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 
 from app import DATA_DIR
-from app.datetime_decorators import to_ts
+from app.decorators.datetime_decorators import to_ts
 from app.ks_test.topic_analyzer import TopicAnalyzer
 
 load_dotenv()

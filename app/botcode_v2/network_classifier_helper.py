@@ -1,4 +1,8 @@
 
+#
+# A NEAR REPLICA OF BOTCODE VERSION 2 (SEE THE "START" DIR)
+#
+
 import math
 from collections import defaultdict
 from operator import itemgetter
@@ -6,9 +10,6 @@ import time
 
 import numpy as np
 import networkx as nx
-
-
-#from app.bot.io_helper import *
 
 ##########################################################################
 ####################### BUILD RETWEET NX-(SUB)GRAPH FROM DICTIONNARY #####
