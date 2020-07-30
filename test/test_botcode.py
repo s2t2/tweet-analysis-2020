@@ -1,7 +1,7 @@
 
 from networkx import DiGraph
 
-from app.botcode import (ALPHA, LAMBDA_1, LAMBDA_2, EPSILON,
+from app.botcode.network_classifier_helper import (ALPHA, LAMBDA_1, LAMBDA_2, EPSILON,
     compute_link_energy, compile_energy_graph, parse_bidirectional_links)
 from app.botcode.investigation import classify_bot_probabilities
 from conftest import compile_mock_rt_graph

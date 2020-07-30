@@ -24,22 +24,23 @@ if __name__ == "__main__":
     # LOAD GRAPH (GIVEN JOB ID)
     #
     print("----------------")
-
     manager = GraphAnalyzer()
     if DRY_RUN:
         rt_graph = compile_mock_rt_graph(mock_rt_graph_edge_list) # mock_rt_graph()
+        print("RT GRAPH:", type(rt_graph))
+        print("  NODES:", rt_graph.number_of_nodes())
+        print("  EDGES:", rt_graph.number_of_edges())
     else:
         rt_graph = manager.graph
         manager.report()
 
-    print("RT GRAPH:", type(rt_graph))
-
+    print("----------------")
     in_degrees = rt_graph.in_degree(weight="rt_count")
     out_degrees = rt_graph.out_degree(weight="rt_count")
     in_degrees_list = [x[1] for x in in_degrees]
     out_degrees_list = [x[1] for x in out_degrees]
-    print("RTS IN MAX:", fmt_n(max(in_degrees_list))) #> 76,617
-    print("RTS OUT MAX:", fmt_n(max(out_degrees_list))) #> 5,608
+    print("MAX IN:", fmt_n(max(in_degrees_list))) #> 76,617
+    print("MAX OUT:", fmt_n(max(out_degrees_list))) #> 5,608
 
     print("----------------")
     print("ISING PARAMS...")
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     print("ENERGY GRAPHER...")
 
     links = get_link_data_restrained(rt_graph, weight_attr="rt_count") # this step is unnecessary?
-    print("LINKS:", len(links))
+    print("LINKS:", fmt_n(len(links)))
 
     energies = [(
         link[0],
@@ -75,15 +76,12 @@ if __name__ == "__main__":
     ) for link in links]
     print("ENERGIES:", fmt_n(len(energies)))
 
-    #positive_energies = [e for e in energies if sum(e[2]) > 0]
-    #print("POSITIVE ENERGIES:", fmt_n(len(positive_energies)))
-
     prior_probabilities = dict.fromkeys(list(rt_graph.nodes), 0.5) # set all screen names to 0.5
     energy_graph, bot_names, user_data = compile_energy_graph(rt_graph, prior_probabilities, energies, out_degrees, in_degrees)
     #human_names = list(set(rt_graph.nodes()) - set(bot_names))
     print("ENERGY GRAPH:", type(energy_graph))
     print("NODES:", energy_graph.number_of_nodes())
-    print("BOTS:", fmt_n(len(bot_names)), "(", fmt_pct(len(bot_names) / energy_graph.number_of_nodes()), ")")
+    print(f"BOTS: {fmt_n(len(bot_names))} ({fmt_pct(len(bot_names) / energy_graph.number_of_nodes())})")
 
     #
     # BOT CLASSIFICATION
