@@ -9,6 +9,15 @@ BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
 DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
 USERS_LIMIT = os.getenv("USERS_LIMIT")
 
+
+
+
+
+#
+# TODO: MOVE TO NUMBER DECORATORS FILE
+#
+
+
 # @deprecated
 def generate_timestamp():
     """Formats datetime for performance logging"""
@@ -31,6 +40,16 @@ def fmt_n(large_number):
     Returns (str) like '1,000,000,000'
     """
     return f"{large_number:,}"
+
+def fmt_d(my_number):
+    """
+    Formats a number with thousands separator and two decimal places, for printing and logging.
+
+    Param my_number (int) like 1_000_000_000.5555555555
+
+    Returns (str) like '1,000,000,000.55'
+    """
+    return f"{my_number:,.2f}%"
 
 def fmt_pct(decimal_number):
     """

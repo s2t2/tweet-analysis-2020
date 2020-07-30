@@ -1,7 +1,8 @@
-import numpy as np
 from os import listdir
 from os.path import isfile, join
 import datetime
+
+import numpy as np
 import networkx as nx
 
 
