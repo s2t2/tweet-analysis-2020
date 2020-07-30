@@ -7,6 +7,7 @@ import time
 import numpy as np
 import networkx as nx
 
+
 #from app.bot.io_helper import *
 
 ##########################################################################
@@ -145,6 +146,32 @@ def computeH(G, piBot, edgelist_data, graph_out, graph_in):
 
     return H, Bots, user_data
 
+def compute_bot_probabilities(rt_graph, energy_graph, bot_names):
+    #print("Calculate bot probability for each labeled node in retweet graph")
+    #start_time = time.time()
+    PiBotFinal = {}
+
+    for counter, node in enumerate(rt_graph.nodes()):
+        #if counter % 1000 == 0: print("NODE:", counter)
+
+        neighbors = list(np.unique([i for i in nx.all_neighbors(energy_graph, node) if i not in [0, 1]]))
+        ebots = list(np.unique(np.intersect1d(neighbors, bot_names)))
+        ehumans = list(set(neighbors) - set(ebots))
+
+        psi_l = sum([energy_graph[node][j]['capacity'] for j in ehumans]) - \
+            sum([energy_graph[node][i]['capacity'] for i in ebots])
+
+        # probability to be in 1 = notPL
+        psi_l_bis = psi_l + energy_graph[node][0]['capacity'] - energy_graph[1][node]['capacity']
+
+        if (psi_l_bis) > 12:
+            PiBotFinal[node] = 0
+        else:
+            # Probability in the target (0) class
+            PiBotFinal[node] = 1.0 / (1 + np.exp(psi_l_bis))
+
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    return PiBotFinal
 
 ###############################################################################
 ####################### COMPUTE EDGES INFORMATION #############################
@@ -155,14 +182,14 @@ to further build H.
 '''
 
 
-def getLinkDataRestrained(G):
+def getLinkDataRestrained(G, weight_attr="weight"):
     '''
     INPUTS:
     ## G (ntwkX graph)
         the Retweet Graph from buildRTGraph
     '''
     edges = G.edges(data=True)
-    e_dic = dict(((x, y), z['weight']) for x, y, z in edges)
+    e_dic = dict(((x, y), z[weight_attr]) for x, y, z in edges)
     link_data = []
     for e in e_dic:
         i = e[0]
