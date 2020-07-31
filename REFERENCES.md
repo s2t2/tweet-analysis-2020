@@ -132,3 +132,7 @@ autopep8 --in-place --aggressive --recursive app/bot
   + https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
   + https://docs.python.org/3/library/time.html#time.time
   + https://www.tutorialspoint.com/How-do-I-convert-a-datetime-to-a-UTC-timestamp-in-Python
+
+## Tableau
+
+  + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)

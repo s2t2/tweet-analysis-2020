@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-#from app.botcode import _______, ______, _______
+#from app.botcode_v2 import _______, ______, _______
 
 class EnergyGrapher():
     def __init__(self, rt_graph):
