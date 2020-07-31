@@ -24,6 +24,7 @@ if __name__ == "__main__":
     # LOAD GRAPH (GIVEN JOB ID)
     #
     print("----------------")
+    print("DRY RUN:", DRY_RUN)
     manager = GraphAnalyzer()
     if DRY_RUN:
         rt_graph = compile_mock_rt_graph(mock_rt_graph_edge_list) # mock_rt_graph()
@@ -37,6 +38,15 @@ if __name__ == "__main__":
     print("----------------")
     in_degrees = rt_graph.in_degree(weight="rt_count")
     out_degrees = rt_graph.out_degree(weight="rt_count")
+
+
+
+
+    breakpoint()
+
+
+
+
     in_degrees_list = [x[1] for x in in_degrees]
     out_degrees_list = [x[1] for x in out_degrees]
     print("MAX IN:", fmt_n(max(in_degrees_list))) #> 76,617

@@ -234,14 +234,11 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
 ```sh
-# JOB_ID="2020-06-15-2141" python -m app.botcode.classifier
-
-
+#JOB_ID="2020-06-15-2141" python -m app.botcode_v2.investigation
 JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.investigation
 
-
-
-# JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
+#JOB_ID="2020-06-15-2141"  python -m app.botcode_v2.classifier
+JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
 This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
