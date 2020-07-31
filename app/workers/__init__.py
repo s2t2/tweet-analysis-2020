@@ -41,15 +41,6 @@ def fmt_n(large_number):
     """
     return f"{large_number:,.0f}"
 
-#def fmt_d(my_number):
-#    """
-#    Formats a number with thousands separator and two decimal places, for printing and logging.
-#
-#    Param my_number (int) like 1_000_000_000.5555555555
-#
-#    Returns (str) like '1,000,000,000.55'
-#    """
-#    return f"{my_number:,.2f}"
 
 def fmt_pct(decimal_number):
     """
