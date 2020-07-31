@@ -10,6 +10,7 @@ from pandas import DataFrame
 import matplotlib.pyplot as plt
 
 from conftest import compile_mock_rt_graph, mock_rt_graph_edge_list
+from app import APP_ENV
 from app.workers import fmt_n, fmt_pct, DRY_RUN
 from app.graph_analyzer import GraphAnalyzer
 from app.botcode_v2.network_classifier_helper import getLinkDataRestrained as get_link_data_restrained # TODO: deprecate
@@ -50,7 +51,7 @@ class Classifier:
     @property
     @lru_cache(maxsize=None)
     def links(self):
-        """This step is unnecessary. TODO: deprecate"""
+        """TODO: deprecate"""
         print("-----------------")
         print("LINKS...")
         return get_link_data_restrained(self.rt_graph, weight_attr=self.weight_attr)
@@ -83,7 +84,7 @@ class Classifier:
 
     @property
     @lru_cache(maxsize=None)
-    def energies(self):
+    def link_energies(self):
         """TODO: refactor by looping through the edges in the RT graph instead....
             link[0] is the edge[0]
             link[1] is the edge[1]
@@ -107,7 +108,7 @@ class Classifier:
         return dict.fromkeys(list(self.rt_graph.nodes), 0.5) # set all screen names to 0.5
 
     def compile_energy_graph(self):
-        self.energy_graph, self.bot_names, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.energies, self.out_degrees, self.in_degrees)
+        self.energy_graph, self.bot_names, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.link_energies, self.out_degrees, self.in_degrees)
         #self.human_names = list(set(self.rt_graph.nodes()) - set(self.bot_names))
         print("-----------------")
         print("ENERGY GRAPH:", type(self.energy_graph))
@@ -126,7 +127,7 @@ class Classifier:
     @lru_cache(maxsize=None)
     def bot_probabilities_df(self):
         df = DataFrame(list(self.bot_probabilities.items()), columns=["screen_name", "bot_probability"])
-        # todo: rename index column and set index val to 0, or remove index col
+        # todo: rename index column as "row_id" and set index val to 1
         return df
 
     def generate_bot_probabilities_histogram(self, img_filepath=None):
@@ -170,6 +171,11 @@ if __name__ == "__main__":
     else:
         rt_graph = manager.graph
         manager.report()
+
+    if APP_ENV == "development":
+        if input("CONTINUE? (Y/N): ").upper() != "Y":
+            print("EXITING...")
+            exit()
 
     #
     # PERFORM BOT CLASSIFICATION
