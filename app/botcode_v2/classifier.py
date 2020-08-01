@@ -26,7 +26,7 @@ ALPHA_PERCENTILE = float(os.getenv("ALPHA_PERCENTILE", default="0.999"))
 LAMBDA_00 = float(os.getenv("LAMBDA_00", default="0.61")) # TODO: interpretation of what this means
 LAMBDA_11 = float(os.getenv("LAMBDA_11", default="0.83")) # TODO: interpretation of what this means
 
-class Classifier:
+class NetworkClassifier:
     def __init__(self, rt_graph, weight_attr="rt_count", mu=MU, alpha_percentile=ALPHA_PERCENTILE, lambda_00=LAMBDA_00, lambda_11=LAMBDA_11):
         """
         The default weight_attr is "weight" but this app makes them using "rt_count", so set that as default while allowing others to customize.
@@ -131,7 +131,7 @@ class Classifier:
         # todo: rename index column as "row_id" and set index val to 1
         return df
 
-    def generate_bot_probabilities_histogram(self, img_filepath=None, show=True):
+    def generate_bot_probabilities_histogram(self, img_filepath=None, show_img=True):
         probabilities = self.bot_probabilities_df["bot_probability"]
         num_bins = round(len(probabilities) / 10)
         counts, bin_edges = np.histogram(probabilities, bins=num_bins) # ,normed=True #> "VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken"...
@@ -152,7 +152,7 @@ class Classifier:
         if img_filepath:
             plt.savefig(img_filepath)
 
-        if show:
+        if show_img:
             plt.show()
 
 if __name__ == "__main__":
@@ -215,4 +215,4 @@ if __name__ == "__main__":
     print("----------------")
     print("SAVING HISTOGRAM...")
     print(img_filepath)
-    classifier.generate_bot_probabilities_histogram(img_filepath, show=(APP_ENV=="development"))
+    classifier.generate_bot_probabilities_histogram(img_filepath=img_filepath, show_img=(APP_ENV=="development"))
