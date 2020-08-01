@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://d
 
 from app import APP_ENV
 from app.bq_service import BigQueryService, generate_timestamp
-from app.twitter_scraper import get_friends, VERBOSE_SCRAPER, MAX_FRIENDS
+from app.friend_graphs.twitter_scraper import get_friends, VERBOSE_SCRAPER, MAX_FRIENDS
 
 load_dotenv()
 

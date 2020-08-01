@@ -115,9 +115,9 @@ python -m app.models
 Testing the Twitter scraper (doesn't need credentials):
 
 ```sh
-python -m app.twitter_scraper
-# SCREEN_NAME="s2t2" python -m app.twitter_scraper
-# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
+python -m app.friend_graphs.twitter_scraper
+# SCREEN_NAME="s2t2" python -m app.friend_graphs.twitter_scraper
+# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.friend_graphs.twitter_scraper
 ```
 
 Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
