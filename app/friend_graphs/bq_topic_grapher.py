@@ -16,7 +16,7 @@ TOPIC = os.getenv("TOPIC", default="impeach")
 START_AT = os.getenv("START_AT", default="2020-01-01 01:00:00") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
 END_AT = os.getenv("END_AT", default="2020-01-30 01:00:00")
 
-class BigQueryTopicGrapher(BigQueryGrapher):
+class BigQueryTopicGrapher(BigQueryBaseGrapher):
 
     def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT,
                 bq_service=None, gcs_service=None):

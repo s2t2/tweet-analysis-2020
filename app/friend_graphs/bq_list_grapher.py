@@ -6,9 +6,9 @@ from memory_profiler import profile
 
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
-from app.friend_graphs.bq_grapher import BigQueryGrapher
+from app.bq_base_grapher import BigQueryBaseGrapher
 
-class BigQueryListGrapher(BigQueryGrapher):
+class BigQueryListGrapher(BigQueryBaseGrapher):
 
     @profile
     def perform(self):

@@ -2,23 +2,11 @@
 from networkx import DiGraph
 from memory_profiler import profile
 
-from app.bq_service import BigQueryService
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
-from app.base_grapher import BaseGrapher
+from app.bq_base_grapher import BigQueryBaseGrapher
 
-class BigQueryGrapher(BaseGrapher):
-
-    def __init__(self, bq_service=None, gcs_service=None):
-        super().__init__(gcs_service=gcs_service)
-        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
-
-    @property
-    def metadata(self):
-        #meta = super().metadata
-        #meta["bq_service"] = self.bq_service.metadata
-        #return meta
-        return {**super().metadata, **self.bq_service.metadata} # merges dicts
+class BigQueryGrapher(BigQueryBaseGrapher):
 
     @profile
     def perform(self):
