@@ -5,7 +5,7 @@ from memory_profiler import profile
 from app.bq_service import BigQueryService
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
-from app.friend_graphs.base_grapher import BaseGrapher
+from app.base_grapher import BaseGrapher
 
 class BigQueryGrapher(BaseGrapher):
 
