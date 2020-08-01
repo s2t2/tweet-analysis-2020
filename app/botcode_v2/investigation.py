@@ -3,6 +3,7 @@ import os
 import datetime
 import time
 
+from dotenv import load_dotenv
 import numpy as np
 from pandas import DataFrame
 import matplotlib.pyplot as plt
@@ -10,13 +11,16 @@ import matplotlib.pyplot as plt
 #from scipy.sparse import csc_matrix
 
 from conftest import compile_mock_rt_graph, mock_rt_graph_edge_list
-from app.workers import fmt_n, fmt_pct, DRY_RUN
+from app.decorators.number_decorators import fmt_n, fmt_pct
 from app.graph_analyzer import GraphAnalyzer
 from app.botcode_v2.network_classifier_helper import getLinkDataRestrained as get_link_data_restrained
 from app.botcode_v2.network_classifier_helper import psi as link_energy
 from app.botcode_v2.network_classifier_helper import computeH as compile_energy_graph
 from app.botcode_v2.network_classifier_helper import compute_bot_probabilities
 
+load_dotenv()
+
+DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
 
 if __name__ == "__main__":
 

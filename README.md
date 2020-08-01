@@ -199,11 +199,11 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 Construct retweet graphs:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.retweet_graphs.bq_retweet_grapher
 
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.workers.bq_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.retweet_graphs.bq_retweet_grapher
 
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.retweet_graphs.bq_retweet_grapher
 ```
 
 Observe the resulting job identifier (`JOB_ID`), and verify the graph and other artifacts are saved to local storage and/or Google Cloud Storage.

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from conftest import compile_mock_rt_graph, mock_rt_graph_edge_list
 from app import APP_ENV
-from app.workers import fmt_n, fmt_pct, DRY_RUN
+from app.decorators.number_decorators import fmt_n, fmt_pct
 from app.graph_analyzer import GraphAnalyzer
 from app.botcode_v2.network_classifier_helper import getLinkDataRestrained as get_link_data_restrained # TODO: deprecate
 from app.botcode_v2.network_classifier_helper import psi as link_energy
@@ -19,6 +19,8 @@ from app.botcode_v2.network_classifier_helper import computeH as compute_energy_
 from app.botcode_v2.network_classifier_helper import compute_bot_probabilities
 
 load_dotenv()
+
+DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
 
 MU = float(os.getenv("MU", default="1"))
 ALPHA_PERCENTILE = float(os.getenv("ALPHA_PERCENTILE", default="0.999"))

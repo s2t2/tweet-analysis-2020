@@ -5,12 +5,13 @@ from networkx import DiGraph
 from memory_profiler import profile
 from dotenv import load_dotenv
 
-from app.workers import fmt_ts, fmt_n
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.friend_graphs.bq_grapher import BigQueryGrapher
 
 load_dotenv()
 
-USERS_LIMIT = int(os.getenv("USERS_LIMIT", default="1000")) # forces us to have a limit, unlike the app.workers version
+USERS_LIMIT = int(os.getenv("USERS_LIMIT", default="1000")) # forces us to have a limit, unlike the base grapher version
 TOPIC = os.getenv("TOPIC", default="impeach")
 START_AT = os.getenv("START_AT", default="2020-01-01") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
 END_AT = os.getenv("END_AT", default="2020-01-30")
@@ -58,7 +59,7 @@ class BigQueryRetweetGrapher(BigQueryGrapher):
 
             self.counter += 1
             if self.counter % self.batch_size == 0:
-                rr = {"ts": fmt_ts(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
+                rr = {"ts": logstamp(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
                 self.running_results.append(rr)
 

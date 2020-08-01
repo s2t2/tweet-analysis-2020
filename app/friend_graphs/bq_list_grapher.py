@@ -4,7 +4,8 @@ import pickle
 from networkx import DiGraph
 from memory_profiler import profile
 
-from app.workers import fmt_ts, fmt_n
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.friend_graphs.bq_grapher import BigQueryGrapher
 
 class BigQueryListGrapher(BigQueryGrapher):
@@ -24,7 +25,7 @@ class BigQueryListGrapher(BigQueryGrapher):
                 self.edges += [(row["screen_name"], friend) for friend in row["friend_names"]]
 
             if self.counter % self.batch_size == 0:
-                rr = {"ts": fmt_ts(), "counter": self.counter, "edges": len(self.edges)}
+                rr = {"ts": logstamp(), "counter": self.counter, "edges": len(self.edges)}
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
                 self.running_results.append(rr)
 
@@ -34,9 +35,9 @@ class BigQueryListGrapher(BigQueryGrapher):
         self.write_edges_to_file()
         self.upload_edges()
 
-        print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
+        print(logstamp(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
-        print(fmt_ts(), "GRAPH CONSTRUCTED!")
+        print(logstamp(), "GRAPH CONSTRUCTED!")
         self.report()
 
         del self.running_results # remove in hopes of freeing up some memory
@@ -53,7 +54,7 @@ class BigQueryListGrapher(BigQueryGrapher):
         overwrite the parent method because we need self.edges vs self.graph.edges
         todo: inherit / mix-in
         """
-        print(fmt_ts(), "WRITING EDGES...:")
+        print(logstamp(), "WRITING EDGES...:")
         with open(self.local_edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file) # write edges before graph is constructed
 
