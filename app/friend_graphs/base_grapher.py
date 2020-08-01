@@ -9,7 +9,9 @@ from networkx import DiGraph, write_gpickle
 from pandas import DataFrame
 
 from app import APP_ENV, DATA_DIR
-from app.workers import BATCH_SIZE, DRY_RUN, USERS_LIMIT, fmt_ts, fmt_n
+from app.workers import BATCH_SIZE, DRY_RUN, USERS_LIMIT
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.gcs_service import GoogleCloudStorageService
 
 class BaseGrapher():
@@ -120,46 +122,46 @@ class BaseGrapher():
 
     def write_metadata_to_file(self, metadata_filepath=None):
         metadata_filepath = metadata_filepath or self.local_metadata_filepath
-        print(fmt_ts(), "WRITING METADATA...")
+        print(logstamp(), "WRITING METADATA...")
         with open(metadata_filepath, "w") as metadata_file:
             json.dump(self.metadata, metadata_file)
 
     def write_results_to_file(self, results_filepath=None):
         results_filepath = results_filepath or self.local_results_filepath
-        print(fmt_ts(), "WRITING RESULTS...")
+        print(logstamp(), "WRITING RESULTS...")
         df = DataFrame(self.running_results)
         df.to_csv(results_filepath)
 
     def write_edges_to_file(self, edges_filepath=None):
         edges_filepath = edges_filepath or self.local_edges_filepath
-        print(fmt_ts(), "WRITING EDGES...:")
+        print(logstamp(), "WRITING EDGES...:")
         with open(edges_filepath, "wb") as pickle_file:
             pickle.dump(self.edges, pickle_file)
 
     def write_graph_to_file(self, graph_filepath=None):
         graph_filepath = graph_filepath or self.local_graph_filepath
-        print(fmt_ts(), "WRITING GRAPH...")
+        print(logstamp(), "WRITING GRAPH...")
         write_gpickle(self.graph, graph_filepath)
 
     def upload_metadata(self):
-        print(fmt_ts(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
+        print(logstamp(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
         blob = self.gcs_service.upload(self.local_metadata_filepath, self.gcs_metadata_filepath)
-        print(fmt_ts(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
     def upload_results(self):
-        print(fmt_ts(), "UPLOADING JOB RESULTS...", self.gcs_results_filepath)
+        print(logstamp(), "UPLOADING JOB RESULTS...", self.gcs_results_filepath)
         blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
-        print(fmt_ts(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
     def upload_edges(self):
-        print(fmt_ts(), "UPLOADING NETWORK EDGES...", self.gcs_edges_filepath)
+        print(logstamp(), "UPLOADING NETWORK EDGES...", self.gcs_edges_filepath)
         blob = self.gcs_service.upload(self.local_edges_filepath, self.gcs_edges_filepath)
-        print(fmt_ts(), blob)
+        print(logstamp(), blob)
 
     def upload_graph(self):
-        print(fmt_ts(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
+        print(logstamp(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
         blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
-        print(fmt_ts(), blob)
+        print(logstamp(), blob)
 
     def sleep(self):
         if APP_ENV == "production":

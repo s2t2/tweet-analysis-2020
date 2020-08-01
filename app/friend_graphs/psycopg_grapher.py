@@ -4,8 +4,10 @@ from networkx import DiGraph
 from memory_profiler import profile
 
 from app import APP_ENV
+from app.workers import DRY_RUN, BATCH_SIZE, USERS_LIMIT
 from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
-from app.workers import DRY_RUN, BATCH_SIZE, USERS_LIMIT, fmt_ts, fmt_n
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.friend_graphs.base_grapher import BaseGrapher
 
 class PsycopgGrapher(BaseGrapher):
@@ -34,7 +36,7 @@ class PsycopgGrapher(BaseGrapher):
         self.write_metadata_to_file()
         self.upload_metadata()
 
-        print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
+        print(logstamp(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph()
         self.running_results = []
         self.cursor.execute(self.sql)
@@ -47,13 +49,13 @@ class PsycopgGrapher(BaseGrapher):
                 for row in batch:
                     self.graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
 
-            rr = {"ts": fmt_ts(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
+            rr = {"ts": logstamp(), "counter": self.counter, "nodes": len(self.graph.nodes), "edges": len(self.graph.edges)}
             print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
             self.running_results.append(rr)
 
         self.cursor.close()
         self.connection.close()
-        print(fmt_ts(), "GRAPH CONSTRUCTED!")
+        print(logstamp(), "GRAPH CONSTRUCTED!")
         self.report()
 
         self.write_results_to_file()

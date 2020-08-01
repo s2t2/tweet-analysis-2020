@@ -2,7 +2,9 @@
 from networkx import DiGraph
 from memory_profiler import profile
 
-from app.workers import fmt_ts, fmt_n
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
+
 from app.friend_graphs.psycopg_grapher import PsycopgGrapher
 
 class Grapher(PsycopgGrapher):
@@ -23,7 +25,7 @@ class Grapher(PsycopgGrapher):
                 for row in batch:
                     self.edges += [(row["screen_name"], friend) for friend in row["friend_names"]]
 
-            rr = {"ts": fmt_ts(), "counter": self.counter, "edges": len(self.edges)}
+            rr = {"ts": logstamp(), "counter": self.counter, "edges": len(self.edges)}
             print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["edges"]))
             self.running_results.append(rr)
 
@@ -33,9 +35,9 @@ class Grapher(PsycopgGrapher):
         self.write_edges_to_file()
         self.upload_edges()
 
-        print(fmt_ts(), "CONSTRUCTING GRAPH OBJECT...")
+        print(logstamp(), "CONSTRUCTING GRAPH OBJECT...")
         self.graph = DiGraph(self.edges)
-        print(fmt_ts(), "GRAPH CONSTRUCTED!")
+        print(logstamp(), "GRAPH CONSTRUCTED!")
         del self.edges # try to free up some memory maybe, before writing to file
         self.report()
 

@@ -1,6 +1,12 @@
 
 from datetime import datetime, timezone
 
+def logstamp():
+    """
+    Formats current timestamp, for printing and logging.
+    """
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 def to_ts(dt):
     """
     Converts datetime object to UTC timestamp (seconds since epoch) like 1595759389.828663. Inverse of to_dt() function.

@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 
 from app import APP_ENV
-from app.workers import USERS_LIMIT, BATCH_SIZE, fmt_ts, fmt_n
+from app.workers import USERS_LIMIT, BATCH_SIZE
+from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
 from app.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
 
@@ -61,7 +63,7 @@ class Pipeline():
             UserFriend.__table__.create(self.pg_engine)
             self.pg_session.commit()
 
-        print(fmt_ts(), "DATA FLOWING...")
+        print(logstamp(), "DATA FLOWING...")
         for row in self.bq_service.fetch_user_friends_in_batches(limit=self.users_limit):
             self.batch.append({
                 "user_id": row["user_id"],
@@ -72,7 +74,7 @@ class Pipeline():
             self.counter+=1
 
             if len(self.batch) >= self.batch_size:
-                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(UserFriend, self.batch)
                 self.pg_session.commit()
                 self.batch = []
@@ -96,7 +98,7 @@ class Pipeline():
             UserDetail.__table__.create(self.pg_engine)
             self.pg_session.commit()
 
-        print(fmt_ts(), "DATA FLOWING LIKE WATER...")
+        print(logstamp(), "DATA FLOWING LIKE WATER...")
         for row in self.bq_service.fetch_user_details_in_batches(limit=self.users_limit):
             item = {
                 "user_id": row['user_id'],
@@ -146,7 +148,7 @@ class Pipeline():
             #self.pg_session.commit()
 
             if len(self.batch) >= self.batch_size:
-                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(UserDetail, self.batch)
                 self.pg_session.commit()
                 self.batch = []
@@ -170,7 +172,7 @@ class Pipeline():
             RetweeterDetail.__table__.create(self.pg_engine)
             self.pg_session.commit()
 
-        print(fmt_ts(), "DATA FLOWING LIKE WATER...")
+        print(logstamp(), "DATA FLOWING LIKE WATER...")
         for row in self.bq_service.fetch_retweeter_details_in_batches(limit=self.users_limit):
             item = {
                 "user_id": row['user_id'],
@@ -204,7 +206,7 @@ class Pipeline():
             #self.pg_session.commit()
 
             if len(self.batch) >= self.batch_size:
-                print(fmt_ts(), fmt_n(self.counter), "SAVING BATCH...")
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
                 self.pg_session.bulk_insert_mappings(RetweeterDetail, self.batch)
                 self.pg_session.commit()
                 self.batch = []
