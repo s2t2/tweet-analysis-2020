@@ -5,14 +5,20 @@ from datetime import datetime as dt
 import pickle
 import json
 
+from dotenv import load_dotenv
 from networkx import DiGraph, write_gpickle
 from pandas import DataFrame
 
 from app import APP_ENV, DATA_DIR
-from app.workers import BATCH_SIZE, DRY_RUN, USERS_LIMIT
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.gcs_service import GoogleCloudStorageService
+
+load_dotenv()
+
+DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
+USERS_LIMIT = os.getenv("USERS_LIMIT")
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
 
 class BaseGrapher():
     """
@@ -77,7 +83,7 @@ class BaseGrapher():
     def cautiously_initialized(cls):
         service = cls()
         print("-------------------------")
-        print("NETWORK GRAPHER CONFIG...")
+        print("GRAPHER CONFIG...")
         print("  JOB ID:", service.job_id)
         print("  DRY RUN:", str(service.dry_run).upper())
         print("  USERS LIMIT:", service.users_limit)

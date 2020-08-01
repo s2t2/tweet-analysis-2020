@@ -4,7 +4,6 @@ import os
 from dotenv import load_dotenv
 
 from app import APP_ENV
-from app.workers import USERS_LIMIT, BATCH_SIZE
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
@@ -12,6 +11,8 @@ from app.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
 
 load_dotenv()
 
+USERS_LIMIT = os.getenv("USERS_LIMIT")
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
 PG_DESTRUCTIVE = (os.getenv("PG_DESTRUCTIVE", default="false") == "true")
 
 def clean_string(dirty):

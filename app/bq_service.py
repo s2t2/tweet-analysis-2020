@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from google.cloud import bigquery
 
 from app import APP_ENV
-from app.workers import fmt_n
+from app.decorators.number_decorators import fmt_n
 
 load_dotenv()
 

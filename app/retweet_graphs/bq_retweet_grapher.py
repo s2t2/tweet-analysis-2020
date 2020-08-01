@@ -11,7 +11,7 @@ from app.friend_graphs.bq_grapher import BigQueryGrapher
 
 load_dotenv()
 
-USERS_LIMIT = int(os.getenv("USERS_LIMIT", default="1000")) # forces us to have a limit, unlike the app.workers version
+USERS_LIMIT = int(os.getenv("USERS_LIMIT", default="1000")) # forces us to have a limit, unlike the base grapher version
 TOPIC = os.getenv("TOPIC", default="impeach")
 START_AT = os.getenv("START_AT", default="2020-01-01") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
 END_AT = os.getenv("END_AT", default="2020-01-30")
