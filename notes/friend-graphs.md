@@ -100,7 +100,7 @@ The largest friend graph we've been able to construct so far is from only 50K us
 
 These memory constraints require us to either further optimize memory usage, get access to much larger servers, or deem acceptable the graph size we do have.
 
-## Custom Conversation Graphs
+## Conversation Topic Graphs
 
 Constructing separate graph objects for different topics of conversation across different periods of time (e.g. the graph for discussion of the topic ABC during the week of XYZ)...
 

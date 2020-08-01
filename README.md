@@ -169,25 +169,27 @@ python -m app.friend_graphs.bq_list_grapher
 # BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.friend_graphs.bq_list_grapher
 ```
 
-However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" and "Local Database Migration" instructions above. After the database is ready, you can try to assemble the network graph object from the PostgreSQL data:
+However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" and "Local Database Migration" instructions above. After the database is ready, you can try to assemble the network graph object from PostgreSQL data:
 
 ```sh
 # graph construction from complete edges list (uses less incremental memory):
-python -m app.workers.psycopg_list_grapher
+python -m app.friend_graphs.psycopg_list_grapher
 # USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="true" python -m app.friend_graphs.psycopg_list_grapher
 # USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.friend_graphs.psycopg_list_grapher
 ```
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
 
+#### Topic Graphs
+
 The graphs are very large, so how about we create a few different smaller topic-specific graphs:
 
 ```sh
 # assemble right-leaning conversation graph:
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.workers.bq_topic_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#MAGA" python -m app.friend_graphs.bq_topic_grapher
 
 # assemble left-leaning conversation graph:
-BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_topic_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.friend_graphs.bq_topic_grapher
 ```
 
 ### Retweet Graphs
