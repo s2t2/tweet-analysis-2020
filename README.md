@@ -123,8 +123,8 @@ python -m app.friend_collection.twitter_scraper
 Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
 
 ```sh
-python -m app.app.friend_collection_in_batches
-# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.app.friend_collection_in_batches
+python -m app.friend_collection.in_batches
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.friend_collection.in_batches
 ```
 
 ### Local Database Migration
