@@ -48,6 +48,72 @@ first_at | last_at
 2019-12-02 01:13:49 UTC | 2020-03-24 19:04:03 UTC
 
 
+```sql
+SELECT
+  EXTRACT(YEAR from created_at) as year
+  ,EXTRACT(MONTH from created_at) as month
+  ,EXTRACT(WEEK from created_at) as week
+  ,min(EXTRACT(DAY from created_at)) as first_day
+  ,max(EXTRACT(DAY from created_at)) as last_day
+  ,count(DISTINCT status_id) as tweet_count
+  ,count(DISTINCT user_id) as user_count
+FROM impeachment_production.tweets
+GROUP BY 1,2,3
+ORDER BY 1,2,3
+```
+
+
+
+
+```sql
+
+SELECT
+  -- join week 52 2019 with week 0 of 2020 to get evenly-bucketed weeks (otherwise 2019-52 and 2020-0 are only partial weeks)
+  CASE
+    WHEN EXTRACT(week from created_at) = 0 THEN 2019
+    ELSE EXTRACT(year from created_at)
+    END  year
+
+  ,CASE
+    WHEN EXTRACT(week from created_at) = 0 THEN 52
+    ELSE EXTRACT(week from created_at)
+    END  week
+
+  ,count(DISTINCT EXTRACT(day from created_at)) as day_count
+  ,min(created_at) as min_created
+  ,max(created_at) as max_created
+  ,count(DISTINCT status_id) as tweet_count
+  ,count(DISTINCT user_id) as user_count
+FROM impeachment_production.tweets
+
+-- WHERE created_at BETWEEN "2019-12-15 00:00:00" AND "2020-03-21 23:59:59" -- get complete weeks
+GROUP BY 1,2
+ORDER BY 1,2
+```
+
+year	| week	| day_count	| min_created	| max_created	| tweet_count	|user_count
+---	| ---	| ---	| ---	| ---	| ---	|---
+2019	| 48	| 1	| 2019-12-02 01:13:49 UTC	| 2019-12-02 03:23:14 UTC	| 2	        | 2
+2019	| 49	| 3	| 2019-12-12 07:29:40 UTC	| 2019-12-14 23:59:59 UTC	| 4082497	  | 676812
+2019	| 50	| 7	| 2019-12-15 00:00:00 UTC	| 2019-12-21 23:59:59 UTC	| 7419496	  | 1203537
+2019	| 51	| 7	| 2019-12-22 00:00:00 UTC	| 2019-12-28 23:59:59 UTC	| 5303966	  | 880910
+2019	| 52	| 7	| 2019-12-29 00:00:00 UTC	| 2020-01-04 23:59:59 UTC	| 3564155	  | 778148
+2020	| 1	  | 7	| 2020-01-05 00:00:00 UTC	| 2020-01-11 23:59:59 UTC	| 4729694	  | 780629
+2020	| 2	  | 7	| 2020-01-12 00:00:00 UTC	| 2020-01-18 23:59:59 UTC	| 7344094	  | 914259
+2020	| 3	  | 7	| 2020-01-19 00:00:00 UTC	| 2020-01-25 23:59:59 UTC	| 9090452	  | 955223
+2020	| 4	  | 7	| 2020-01-26 00:00:00 UTC	| 2020-02-01 23:59:59 UTC	| 9614217	  | 1064299
+2020	| 5	  | 7	| 2020-02-02 00:00:00 UTC	| 2020-02-08 23:59:59 UTC	| 7269314	  | 1016836
+2020	| 6	  | 7	| 2020-02-09 00:00:00 UTC	| 2020-02-15 23:59:59 UTC	| 3170176	  | 589573
+2020	| 7	  | 7	| 2020-02-16 00:00:00 UTC	| 2020-02-22 23:59:59 UTC	| 1538486	  | 415831
+2020	| 8	  | 7	| 2020-02-23 00:00:00 UTC	| 2020-02-29 23:59:59 UTC	| 824646	  | 283137
+2020	| 9	  | 7	| 2020-03-01 00:00:00 UTC	| 2020-03-07 23:59:59 UTC	| 930076	  | 323864
+2020	| 10	| 7	| 2020-03-08 00:00:00 UTC	| 2020-03-14 23:59:59 UTC	| 1183346	  | 381776
+2020	| 11	| 7	| 2020-03-15 00:00:01 UTC	| 2020-03-21 23:59:59 UTC	| 946883	  | 387214
+2020	| 12	| 3	| 2020-03-22 00:00:00 UTC	| 2020-03-24 19:04:03 UTC	| 655057	  | 261301
+
+
+
+
 ## Topics
 
 Listing topics (25):

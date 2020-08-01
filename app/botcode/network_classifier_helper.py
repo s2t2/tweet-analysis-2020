@@ -1,4 +1,8 @@
 
+#
+# AN ADAPTATION OF THE ORIGINAL BOTCODE (SEE THE "START" DIR)
+#
+
 import os
 
 from dotenv import load_dotenv
@@ -65,7 +69,7 @@ def parse_bidirectional_links(graph, weight_attr="rt_count"):
             reverse_edge_weight = 0
 
         link = [user, retweeted_user, True, has_reverse_edge, edge_weight, reverse_edge_weight]
-        #> ['user1', 'leader1', True, False, 4.0, 0] # TODO: prefer to assemble a dict here, for more explicit access later
+        #> ['user1', 'leader1', True, False, 4.0, 0]
         links.append(link)
     return links
 
@@ -150,6 +154,36 @@ def compute_link_energy(u1, u2, rt_count, in_graph, out_graph, alpha=ALPHA, alam
         print("\n")
 
     return [val_00, val_01, val_10, val_11]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# TODO: ENERGY GRAPHER
 
 def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
     """
@@ -253,30 +287,3 @@ def compile_energy_graph(G, piBot, edgelist_data, graph_out, graph_in):
     PL.remove(1)
 
     return H, PL, user_data
-
-#def write_edge_capacities_to_csv(csv_filepath, energy_graph):
-#    """
-#    Adapted from the "writeCSVFile_H" function in the "ioHELPER" file.
-#
-#    Params:
-#
-#        energy_graph (networkx.DiGraph) energy graph
-#    """
-#    with open(csv_filepath, "w") as f:
-#        for edge in energy_graph.edges(data=True):
-#            f.write(f"{edge[0]}; {edge[1]}; {edge[2]['capacity']}")
-#            f.write("\n")
-#
-#def write_bot_probabilities_to_csv(csv_filepath, bot_probabilities):
-#    """
-#    Adapted from "writeCSVFile_piBot" function in "ioHELPER" file.
-#
-#    Params:
-#
-#        bot_probabilities (dict) like... {"user1":0, "user2": 0.5}
-#    """
-#    with open(csv_filepath, "w") as f:
-#        for user, bot_probability in bot_probabilities.entries():
-#            f.write(f"{user}; {bot_probability}")
-#            f.write('\n')
-#

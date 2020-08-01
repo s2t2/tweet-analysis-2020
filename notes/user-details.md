@@ -375,3 +375,68 @@ select
 from retweeter_details d
 --  17	2744356	3734	6893
 ```
+
+
+
+## Bot Classifications
+
+After generating bot classifications, import the results into BigQuery and the local PG database as a table named "bot_probabilities".
+
+Run this query against local PG and export the results as "user_details_with_bot_probabilities.csv" then load the results into Tableau.
+
+```sql
+select
+  ud.user_id
+  ,ud.screen_name
+  ,ud.verified
+  ,ud.created_at
+  ,ud.screen_name_count
+  ,ud.name_count
+  ,ud.description_count
+  ,ud.location_count
+  ,ud.friend_count
+  ,ud.status_count
+  ,ud.retweet_count
+
+  ,b.bot_probability
+  -- ,case when b.bot_probability > .5
+from bot_probabilities b
+join user_details ud on ud.screen_name = b.screen_name
+
+```
+
+
+Run this queries against BigQuery to get retweet beneficiaries, then save the result to CSV and upload to Google Sheets for sharing:
+
+
+```sql
+select
+  *
+  -- ,bot_retweet_count / human_retweet_count as bot_to_human_retweet_ratio
+  -- ,bot_retweeter_count / human_retweeter_count as bot_to_human_retweeter_ratio
+  ,SAFE_DIVIDE(bot_retweet_count, human_retweet_count) as bot_to_human_retweet_ratio
+  ,SAFE_DIVIDE(bot_retweeter_count, human_retweeter_count) as bot_to_human_retweeter_ratio
+
+FROM (
+
+  SELECT
+    retweet_user_screen_name
+    ,count(distinct status_id) as retweet_count
+    ,count(distinct user_id) as retweeter_count
+
+    ,count(distinct CASE WHEN b.bot_probability < .9 THEN status_id END) as human_retweet_count
+    ,count(distinct CASE WHEN b.bot_probability < .9 THEN user_id END) as human_retweeter_count
+
+    ,count(distinct CASE WHEN b.bot_probability >= .9 THEN status_id END) as bot_retweet_count
+    ,count(distinct CASE WHEN b.bot_probability >= .9 THEN user_id END) as bot_retweeter_count
+
+
+  FROM impeachment_production.retweets rt
+  LEFT JOIN impeachment_production.bot_probabilities b on b.screen_name = rt.user_screen_name
+  GROUP BY retweet_user_screen_name
+  -- ORDER BY retweet_count DESC
+) subq
+
+ORDER BY retweet_count DESC
+LIMIT 10000 -- big query export maximum 16000 rows to local CSV
+```

@@ -6,7 +6,7 @@ from pandas import DataFrame
 
 from app.graph_analyzer import GraphAnalyzer
 from app.workers import fmt_n, fmt_pct
-from app.workers.investigate_botcode import classify_bot_probabilities
+from app.botcode.investigation import classify_bot_probabilities
 
 
 if __name__ == "__main__":

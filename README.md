@@ -110,7 +110,7 @@ python -m app.models
 
 ### Friend Collection
 
-> STATUS: COMPLETED. See: [Friend Collection Notes](/notes/friend-collection.md).
+> See: [Friend Collection Notes](/notes/friend-collection.md).
 
 Testing the Twitter scraper (doesn't need credentials):
 
@@ -151,9 +151,9 @@ Downloading the "retweeter_details" table:
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
 ```
 
-### Friend Graph Construction
+### Friend Graphs
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [Friend Graph Notes](/notes/friend-graphs.md).
+> See: [Friend Graph Notes](/notes/friend-graphs.md).
 
 In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
 
@@ -197,11 +197,11 @@ BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 T
 BIGQUERY_DATASET_NAME="impeachment_production" USERS_LIMIT=1000 BATCH_SIZE=100 TOPIC="#ImpeachAndConvict" python -m app.workers.bq_custom_grapher
 ```
 
-### Retweet Graph Construction
+### Retweet Graphs
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [Retweet Graph Notes](/notes/retweet-graphs.md).
+> See: [Retweet Graph Notes](/notes/retweet-graphs.md).
 
-The [previous research](https://arxiv.org/pdf/1810.12398.pdf) ([botcode](/start/botcode/README.md)) focuses on constructing retweet graphs, so let's do that (need to circle back on this later):
+Construct retweet graphs:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.workers.bq_retweet_grapher
@@ -211,7 +211,9 @@ BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" py
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.workers.bq_retweet_grapher
 ```
 
-See how much memory it takes to load a given graph:
+Observe the resulting job identifier (`JOB_ID`), and verify the graph and other artifacts are saved to local storage and/or Google Cloud Storage.
+
+Once you have created a retweet graph, note its `JOB_ID`, and see how much memory it takes to load a given graph:
 
 ```py
 # right-leaning conversation graph
@@ -229,16 +231,14 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 
 ### Bot Classification
 
-> STATUS: IN PROGRESS (NEED TO CIRCLE BACK ON THIS). See: [User Analysis Notes](/notes/user-details.md).
-
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
 ```sh
-# neutral conversation retweet graph
-JOB_ID="2020-06-15-2141" python -m app.workers.botcode_classifier
+# JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
+JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
-This will download the graph from google cloud storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
+This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
 
 
 

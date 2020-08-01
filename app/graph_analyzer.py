@@ -56,8 +56,8 @@ class GraphAnalyzer():
 
     def report(self):
         print("GRAPH:", type(self.graph))
-        print("NODES:", fmt_n(len(self.graph.nodes)))
-        print("EDGES:", fmt_n(len(self.graph.edges)))
+        print("NODES:", fmt_n(len(self.graph.nodes))) # self.graph.number_of_nodes()
+        print("EDGES:", fmt_n(len(self.graph.edges))) # self.graph.number_of_edges()
         #print("SIZE:", fmt_n(self.graph.size())) # same as edges
 
 if __name__ == "__main__":

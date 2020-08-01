@@ -1,7 +1,7 @@
 
 from datetime import datetime
 
-from app.datetime_decorators import to_ts, to_dt
+from app.decorators.datetime_decorators import to_ts, to_dt
 
 def test_bidirectional_timestamp_conversion():
 

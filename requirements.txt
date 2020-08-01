@@ -17,6 +17,14 @@ mpi4py
 numpy
 scipy
 
+matplotlib
+
+
+
+
 # formerly known as dev dependencies:
 pytest
 memory_profiler
+
+# dev dependencies:
+autopep8

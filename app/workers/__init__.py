@@ -9,6 +9,15 @@ BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=100))
 DRY_RUN = (os.getenv("DRY_RUN", default="true") == "true")
 USERS_LIMIT = os.getenv("USERS_LIMIT")
 
+
+
+
+
+#
+# TODO: MOVE TO NUMBER DECORATORS FILE
+#
+
+
 # @deprecated
 def generate_timestamp():
     """Formats datetime for performance logging"""
@@ -30,7 +39,8 @@ def fmt_n(large_number):
 
     Returns (str) like '1,000,000,000'
     """
-    return f"{large_number:,}"
+    return f"{large_number:,.0f}"
+
 
 def fmt_pct(decimal_number):
     """

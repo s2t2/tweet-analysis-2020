@@ -112,6 +112,10 @@ Big PG Data:
   + https://www.fileformat.info/info/unicode/char/0fffd/index.htm
   + https://botometer.iuni.iu.edu
 
+```sh
+autopep8 --in-place --aggressive --recursive app/bot
+```
+
 ## Numpy
 
   + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
@@ -128,3 +132,7 @@ Big PG Data:
   + https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
   + https://docs.python.org/3/library/time.html#time.time
   + https://www.tutorialspoint.com/How-do-I-convert-a-datetime-to-a-UTC-timestamp-in-Python
+
+## Tableau
+
+  + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
