@@ -1,12 +1,14 @@
 
 import os
+import time
 from datetime import datetime
 from dotenv import load_dotenv
 from threading import current_thread, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
 
-from app import APP_ENV
+from app import APP_ENV, SERVER_NAME, SERVER_DASHBOARD_URL
 from app.bq_service import BigQueryService, generate_timestamp
+from app.email_service import send_email
 from app.friend_collection.twitter_scraper import get_friends, VERBOSE_SCRAPER, MAX_FRIENDS
 
 load_dotenv()
@@ -48,6 +50,8 @@ class FriendCollector:
         self.max_threads = max_threads
         self.batch_size = batch_size
 
+        self.users = None
+
         print("-------------------------")
         print("FRIEND COLLECTOR CONFIG...")
         print("  MIN USER ID:", self.min_user_id)
@@ -61,9 +65,17 @@ class FriendCollector:
         print("  MAX FRIENDS:", MAX_FRIENDS)
         print("-------------------------")
 
-    def perform(self):
-        users = self.bq.fetch_remaining_users(min_id=self.min_user_id, max_id=self.max_user_id, limit=self.users_limit)
+        if APP_ENV == "development":
+            if input("CONTINUE? (Y/N): ").upper() != "Y":
+                print("EXITING...")
+                exit()
+
+    def fetch_users(parameter_list):
+        self.users = self.bq.fetch_remaining_users(min_id=self.min_user_id, max_id=self.max_user_id, limit=self.users_limit)
         print("FETCHED UNIVERSE OF", len(users), "USERS")
+
+    def perform(self):
+        if not self.users: self.fetch_users()
 
         with ThreadPoolExecutor(max_workers=self.max_threads, thread_name_prefix="THREAD") as executor:
             batch = []
@@ -85,14 +97,30 @@ class FriendCollector:
                     batch = []
                 lock.release()
 
+    def send_completion_email(self):
+        subject = "[Impeachment Tweet Analysis] Friend Collection Complete!"
+        html = f"""
+            <h3>Nice!</h3>
+            <p>Server '{SERVER_NAME}' has completed its work.</p>
+            <p>So please shut it off so it can get some rest.</p>
+            <p>
+                <a href='{SERVER_DASHBOARD_URL}'>{SERVER_DASHBOARD_URL}</a>
+            </p>
+            <p>Thanks!</p>
+        """
+        response = send_email(subject, html)
+        return response
+
+    def sleep(self):
+        print("yeah")
+        time.sleep(1)
+        print("yeah")
+        time.sleep(1)
+        print("yeah")
+        time.sleep(12 * 60 * 60) # twelve hours, enough time to stop the server before it restarts
 
 if __name__ == "__main__":
 
     collector = FriendCollector()
-
-    if APP_ENV == "development":
-        if input("CONTINUE? (Y/N): ").upper() != "Y":
-            print("EXITING...")
-            exit()
 
     collector.perform()
