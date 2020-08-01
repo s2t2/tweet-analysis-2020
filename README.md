@@ -115,16 +115,16 @@ python -m app.models
 Testing the Twitter scraper (doesn't need credentials):
 
 ```sh
-python -m app.twitter_scraper
-# SCREEN_NAME="s2t2" python -m app.twitter_scraper
-# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.twitter_scraper
+python -m app.friend_collection.twitter_scraper
+# SCREEN_NAME="s2t2" python -m app.friend_collection.twitter_scraper
+# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.friend_collection.twitter_scraper
 ```
 
 Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
 
 ```sh
-python -m app.workers.friend_batch_collector
-# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.workers.friend_batch_collector
+python -m app.friend_collection.batch_per_thread
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.friend_collection.batch_per_thread
 ```
 
 ### Local Database Migration

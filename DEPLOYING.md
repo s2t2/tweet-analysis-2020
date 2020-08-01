@@ -53,13 +53,13 @@ Test everything is working in production:
 heroku run "python -m app.bq_service"
 ```
 
-Run the collection script in production, manually:
+You could run the friend collection script in production, manually:
 
 ```sh
-heroku run "python -m app.workers.friend_collector"
+heroku run "python -m app.friend_collection.batch_per_thread"
 ```
 
-... though ultimately you'll want to setup a Heroku "dyno" (hobby tier) to run the collection script as a background process (see the "Procfile"):
+... though ultimately you'll want to setup a Heroku "dyno" (hobby tier) to run the friend collection script as a background process (see the "Procfile"):
 
 ```sh
 heroku run friend_collector
