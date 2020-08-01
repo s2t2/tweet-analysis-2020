@@ -56,7 +56,7 @@ heroku run "python -m app.bq_service"
 Run the collection script in production, manually:
 
 ```sh
-heroku run "python -m app.friend_graphs.collect"
+heroku run "python -m app.friend_collection"
 ```
 
 ... though ultimately you'll want to setup a Heroku "dyno" (hobby tier) to run the collection script as a background process (see the "Procfile"):

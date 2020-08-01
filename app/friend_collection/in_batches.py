@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor #, as_completed
 
 from app import SERVER_NAME, SERVER_DASHBOARD_URL
 from app.email_service import send_email
-from app.friend_graphs.collect import (MAX_THREADS, BATCH_SIZE, LIMIT, MIN_ID, MAX_ID,
+from app.friend_collection import (MAX_THREADS, BATCH_SIZE, LIMIT, MIN_ID, MAX_ID,
     user_with_friends, cautiously_initialized_storage_service, generate_timestamp,
     current_thread, BoundedSemaphore
 )

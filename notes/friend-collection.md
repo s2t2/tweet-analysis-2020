@@ -75,7 +75,7 @@ performance-l | 14 GB | 32,768 | $500
 Running timed trials on different kinds of Heroku servers, with different concurrency configurations (i.e. max threads), to determine the optimal cost and time results. Example configuration:
 
 ```sh
-USERS_LIMIT=5000 BATCH_SIZE=20 MAX_THREADS=50 python -m app.app.friend_graphs.collect_in_batches
+USERS_LIMIT=5000 BATCH_SIZE=20 MAX_THREADS=50 python -m app.app.friend_collection_in_batches
 ```
 
 ## Friend Collection
@@ -83,8 +83,8 @@ USERS_LIMIT=5000 BATCH_SIZE=20 MAX_THREADS=50 python -m app.app.friend_graphs.co
 Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
 
 ```sh
-python -m app.app.friend_graphs.collect_in_batches
-# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.app.friend_graphs.collect_in_batches
+python -m app.app.friend_collection_in_batches
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.app.friend_collection_in_batches
 ```
 
 ## Monitoring Results
