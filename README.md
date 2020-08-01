@@ -132,23 +132,23 @@ python -m app.friend_collection.batch_per_thread
 Downloading the "user_friends" table:
 
 ```sh
-#python -m app.workers.pg_pipeline_user_friends
-BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.workers.pg_pipeline_user_friends
+#python -m app.pg_pipeline.user_friends
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.pg_pipeline.user_friends
 ```
 
 Downloading the "user_details" table:
 
 ```sh
-#BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_user_details
-BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_user_details
+#BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.pg_pipeline.user_details
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.pg_pipeline.user_details
 ```
 
 Downloading the "retweeter_details" table:
 
 ```sh
 
-# BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.workers.pg_pipeline_retweeter_details
-BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.workers.pg_pipeline_retweeter_details
+# BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.pg_pipeline.retweeter_details
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.pg_pipeline.retweeter_details
 ```
 
 ### Friend Graphs

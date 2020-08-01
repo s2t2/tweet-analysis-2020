@@ -127,14 +127,14 @@ class Pipeline():
                 "status_count":        row["status_count"],
                 "retweet_count":       row["retweet_count"],
 
-                # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-                "impeach_and_convict": row["impeach_and_convict"],
-                "senate_hearing":      row["senate_hearing"],
-                "ig_hearing":          row["ig_hearing"],
-                "facts_matter":        row["facts_matter"],
-                "sham_trial":          row["sham_trial"],
-                "maga":                row["maga"],
-                "acquitted_forever":   row["acquitted_forever"],
+                # # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                # "impeach_and_convict": row["impeach_and_convict"],
+                # "senate_hearing":      row["senate_hearing"],
+                # "ig_hearing":          row["ig_hearing"],
+                # "facts_matter":        row["facts_matter"],
+                # "sham_trial":          row["sham_trial"],
+                # "maga":                row["maga"],
+                # "acquitted_forever":   row["acquitted_forever"],
 
             }
             self.batch.append(item)
@@ -181,18 +181,18 @@ class Pipeline():
                 "name_count":          row["name_count"],
 
                 "retweet_count":       row["retweet_count"],
-                # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-                "ig_report":           row["ig_report"],
-                "ig_hearing":          row["ig_hearing"],
-                "senate_hearing":      row["senate_hearing"],
-                "not_above_the_law":   row["not_above_the_law"],
-                "impeach_and_convict": row["impeach_and_convict"],
-                "impeach_and_remove":  row["impeach_and_remove"],
-                "facts_matter":        row["facts_matter"],
-                "sham_trial":          row["sham_trial"],
-                "maga":                row["maga"],
-                "acquitted_forever":   row["acquitted_forever"],
-                "country_over_party":  row["country_over_party"],
+                # # todo: these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+                # "ig_report":           row["ig_report"],
+                # "ig_hearing":          row["ig_hearing"],
+                # "senate_hearing":      row["senate_hearing"],
+                # "not_above_the_law":   row["not_above_the_law"],
+                # "impeach_and_convict": row["impeach_and_convict"],
+                # "impeach_and_remove":  row["impeach_and_remove"],
+                # "facts_matter":        row["facts_matter"],
+                # "sham_trial":          row["sham_trial"],
+                # "maga":                row["maga"],
+                # "acquitted_forever":   row["acquitted_forever"],
+                # "country_over_party":  row["country_over_party"],
 
             }
             self.batch.append(item)

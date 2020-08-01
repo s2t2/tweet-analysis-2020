@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
-USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends")
+USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends") # can customize different sizes, like "user_friends_10k", for testing
 USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
 RETWEETER_DETAILS_TABLE_NAME = os.getenv("RETWEETER_DETAILS_TABLE_NAME", default="retweeter_details")
 
@@ -63,14 +63,14 @@ class UserDetail(Base):
     status_count            = Column(Integer)
     retweet_count           = Column(Integer)
 
-    # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-    impeach_and_convict     = Column(Integer)
-    senate_hearing          = Column(Integer)
-    ig_hearing              = Column(Integer)
-    facts_matter            = Column(Integer)
-    sham_trial              = Column(Integer)
-    maga                    = Column(Integer)
-    acquitted_forever       = Column(Integer)
+    # # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+    # impeach_and_convict     = Column(Integer)
+    # senate_hearing          = Column(Integer)
+    # ig_hearing              = Column(Integer)
+    # facts_matter            = Column(Integer)
+    # sham_trial              = Column(Integer)
+    # maga                    = Column(Integer)
+    # acquitted_forever       = Column(Integer)
 
 class RetweeterDetail(Base):
     __tablename__ = RETWEETER_DETAILS_TABLE_NAME
@@ -81,18 +81,18 @@ class RetweeterDetail(Base):
     name_count = Column(Integer)
 
     retweet_count           = Column(Integer)
-    # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-    ig_report               = Column(Integer)
-    ig_hearing              = Column(Integer)
-    senate_hearing          = Column(Integer)
-    not_above_the_law       = Column(Integer)
-    impeach_and_convict     = Column(Integer)
-    impeach_and_remove      = Column(Integer)
-    facts_matter            = Column(Integer)
-    sham_trial              = Column(Integer)
-    maga                    = Column(Integer)
-    acquitted_forever       = Column(Integer)
-    country_over_party      = Column(Integer)
+    # # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
+    # ig_report               = Column(Integer)
+    # ig_hearing              = Column(Integer)
+    # senate_hearing          = Column(Integer)
+    # not_above_the_law       = Column(Integer)
+    # impeach_and_convict     = Column(Integer)
+    # impeach_and_remove      = Column(Integer)
+    # facts_matter            = Column(Integer)
+    # sham_trial              = Column(Integer)
+    # maga                    = Column(Integer)
+    # acquitted_forever       = Column(Integer)
+    # country_over_party      = Column(Integer)
 
 
 
