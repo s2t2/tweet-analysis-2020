@@ -6,7 +6,7 @@
 Transferring 10K users from BigQuery development database to a local PostgreSQL database, to make subsequent analysis easier (prevent unnecessary future network requests):
 
 ```sh
-DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.pg_pipeline_user_friends
+DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.pg_pipeline.user_friends
 ```
 
 Benchmarking different batch sizes:
@@ -26,7 +26,7 @@ Choosing optimal batch size of around 100.
 Transferring all 3.6M users from the BigQuery production database:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.pg_pipeline_user_friends
+BIGQUERY_DATASET_NAME="impeachment_production" DESTRUCTIVE_PG=true BATCH_SIZE=100 python -m app.pg_pipeline.user_friends
 ```
 
 Users | Batch Size | Duration (seconds)
