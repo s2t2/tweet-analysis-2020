@@ -39,14 +39,6 @@ if __name__ == "__main__":
     in_degrees = rt_graph.in_degree(weight="rt_count")
     out_degrees = rt_graph.out_degree(weight="rt_count")
 
-
-
-
-    breakpoint()
-
-
-
-
     in_degrees_list = [x[1] for x in in_degrees]
     out_degrees_list = [x[1] for x in out_degrees]
     print("MAX IN:", fmt_n(max(in_degrees_list))) #> 76,617

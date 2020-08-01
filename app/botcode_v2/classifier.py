@@ -121,6 +121,7 @@ class Classifier:
     def bot_probabilities(self):
         if not self.energy_graph and not self.bot_names:
             self.compile_energy_graph()
+
         return compute_bot_probabilities(self.rt_graph, self.energy_graph, self.bot_names)
 
     @property
@@ -130,12 +131,10 @@ class Classifier:
         # todo: rename index column as "row_id" and set index val to 1
         return df
 
-    def generate_bot_probabilities_histogram(self, img_filepath=None):
-        df = self.bot_probabilities_df
-
-        data = df["bot_probability"]
-        num_bins = round(len(data) / 10)
-        counts, bin_edges = np.histogram(data, bins=num_bins) # ,normed=True #> "VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken"...
+    def generate_bot_probabilities_histogram(self, img_filepath=None, show=True):
+        probabilities = self.bot_probabilities_df["bot_probability"]
+        num_bins = round(len(probabilities) / 10)
+        counts, bin_edges = np.histogram(probabilities, bins=num_bins) # ,normed=True #> "VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken"...
         cdf = np.cumsum(counts)
 
         plt.plot(bin_edges[1:], cdf / cdf[-1])
@@ -143,8 +142,8 @@ class Classifier:
         plt.xlabel("Bot probability")
         plt.ylabel("CDF")
 
-        plt.hist(df.bot_probability[df.bot_probability < 0.5])
-        plt.hist(df.bot_probability[df.bot_probability > 0.5])
+        plt.hist(probabilities[probabilities < 0.5])
+        plt.hist(probabilities[probabilities > 0.5])
         plt.grid()
         plt.xlabel("Bot probability")
         plt.ylabel("Frequency")
@@ -153,7 +152,8 @@ class Classifier:
         if img_filepath:
             plt.savefig(img_filepath)
 
-        plt.show()
+        if show:
+            plt.show()
 
 if __name__ == "__main__":
 
@@ -197,9 +197,9 @@ if __name__ == "__main__":
     #
 
     artifacts_dir = os.path.join(manager.local_dirpath, "botcode_v2")
-
     if not os.path.isdir(artifacts_dir):
         os.mkdir(artifacts_dir)
+
     if DRY_RUN:
         csv_filepath = os.path.join(artifacts_dir, "mock_probabilities.csv")
         img_filepath = os.path.join(artifacts_dir, "mock_probabilities_histogram.png")
@@ -215,4 +215,4 @@ if __name__ == "__main__":
     print("----------------")
     print("SAVING HISTOGRAM...")
     print(img_filepath)
-    classifier.generate_bot_probabilities_histogram(img_filepath) #TODO: only in development should the image be shown
+    classifier.generate_bot_probabilities_histogram(img_filepath, show=(APP_ENV=="development"))

@@ -234,10 +234,7 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
 
 ```sh
-#JOB_ID="2020-06-15-2141" python -m app.botcode_v2.investigation
-JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.investigation
-
-#JOB_ID="2020-06-15-2141"  python -m app.botcode_v2.classifier
+# JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
 JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
