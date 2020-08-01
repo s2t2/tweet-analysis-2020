@@ -77,7 +77,7 @@ Running network grapher:
 heroku config:set BATCH_SIZE=1000 -r heroku-4
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production" -r heroku-4
 heroku config:set DRY_RUN="false" -r heroku-4
-heroku run:detached "python -m app.workers.bq_grapher" -r heroku-4
+heroku run:detached "python -m app.friend_graphs.bq_grapher" -r heroku-4
 ```
 
 Running graph analyzer:

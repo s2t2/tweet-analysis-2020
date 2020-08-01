@@ -1,7 +1,7 @@
 import os
 from networkx import read_gpickle
 
-from app.workers.bq_grapher import BigQueryGrapher
+from app.friend_graphs.bq_grapher import BigQueryGrapher
 from app.bq_service import BigQueryService
 
 def test_network_grapher(mock_graph, expected_nodes, expected_edges):

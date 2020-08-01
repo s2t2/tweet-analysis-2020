@@ -155,34 +155,27 @@ BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=25
 
 > See: [Friend Graph Notes](/notes/friend-graphs.md).
 
-In order to analyze Twitter user network graphs, we'll attempt to construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
+In order to analyze Twitter user network graphs, we'll construct a `networkx` Graph object and make use of some of its built-in analysis capabilities.
 
 When assembling this network graph object, one option is to stream the user data directly from BigQuery:
 
 ```sh
 # incremental graph construction (uses more incremental memory):
-python -m app.workers.bq_grapher
-BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="true" BATCH_SIZE=1000 python app.workers.bq_grapher
+python -m app.friend_graphs.bq_grapher
+# BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="true" BATCH_SIZE=1000 python app.friend_graphs.bq_grapher
 
 # graph construction from complete edges list (uses less incremental memory):
-python -m app.workers.bq_list_grapher
-BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.workers.bq_list_grapher
+python -m app.friend_graphs.bq_list_grapher
+# BIGQUERY_DATASET_NAME="impeachment_development" DRY_RUN="false" python -m app.friend_graphs.bq_list_grapher
 ```
 
 However, depending on the size of the graph, that approach might run into memory errors. So another option is to query the data from the local PostgreSQL database. First, ensure you've setup and populated a remote Heroku PostgreSQL database using the "Local Database Setup" and "Local Database Migration" instructions above. After the database is ready, you can try to assemble the network graph object from the PostgreSQL data:
 
 ```sh
-# incremental graph construction (uses more incremental memory):
-python -m app.workers.pg_grapher
-USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="true" python -m app.workers.pg_grapher
-USER_FRIENDS_TABLE_NAME="user_friends_10k" DRY_RUN="false" python -m app.workers.pg_grapher
-USER_FRIENDS_TABLE_NAME="user_friends" DRY_RUN="false" python -m app.workers.pg_grapher
-USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_grapher
-
 # graph construction from complete edges list (uses less incremental memory):
-python -m app.workers.pg_list_grapher
-USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="true" python -m app.workers.pg_list_grapher
-USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.workers.pg_list_grapher
+python -m app.workers.psycopg_list_grapher
+# USERS_LIMIT=10000 BATCH_SIZE=1000 DRY_RUN="true" python -m app.friend_graphs.psycopg_list_grapher
+# USERS_LIMIT=100000 BATCH_SIZE=1000 DRY_RUN="false" python -m app.friend_graphs.psycopg_list_grapher
 ```
 
 > NOTE: you might be unable to create graph objects to cover your entire user dataset, so just make the largest possible given the memory constraints of the computers and servers available to you by trying to get the `USERS_LIMIT` as large as possible.
