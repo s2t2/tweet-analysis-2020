@@ -3,7 +3,7 @@ from networkx import DiGraph
 from memory_profiler import profile
 
 from app.workers import fmt_ts, fmt_n
-from app.workers.psycopg_grapher import PsycopgGrapher
+from app.friend_graphs.psycopg_grapher import PsycopgGrapher
 
 class Grapher(PsycopgGrapher):
 

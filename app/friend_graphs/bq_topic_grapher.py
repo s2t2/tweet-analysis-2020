@@ -6,7 +6,7 @@ from memory_profiler import profile
 from dotenv import load_dotenv
 
 from app.workers import fmt_ts, fmt_n
-from app.workers.bq_grapher import BigQueryGrapher
+from app.friend_graphs.bq_grapher import BigQueryGrapher
 
 load_dotenv()
 
@@ -15,7 +15,7 @@ TOPIC = os.getenv("TOPIC", default="impeach")
 START_AT = os.getenv("START_AT", default="2020-01-01 01:00:00") # On 1/15, The House of Representatives names seven impeachment managers and votes to transmit articles of impeachment to the Senate
 END_AT = os.getenv("END_AT", default="2020-01-30 01:00:00")
 
-class BigQueryCustomGrapher(BigQueryGrapher):
+class BigQueryTopicGrapher(BigQueryGrapher):
 
     def __init__(self, users_limit=USERS_LIMIT, topic=TOPIC, convo_start_at=START_AT, convo_end_at=END_AT,
                 bq_service=None, gcs_service=None):
@@ -75,7 +75,7 @@ class BigQueryCustomGrapher(BigQueryGrapher):
 if __name__ == "__main__":
 
 
-    grapher = BigQueryCustomGrapher.cautiously_initialized()
+    grapher = BigQueryTopicGrapher.cautiously_initialized()
 
     grapher.perform()
 

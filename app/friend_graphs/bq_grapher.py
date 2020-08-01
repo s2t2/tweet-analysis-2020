@@ -4,7 +4,7 @@ from memory_profiler import profile
 
 from app.bq_service import BigQueryService
 from app.workers import fmt_ts, fmt_n
-from app.workers.base_grapher import BaseGrapher
+from app.friend_graphs.base_grapher import BaseGrapher
 
 class BigQueryGrapher(BaseGrapher):
 
