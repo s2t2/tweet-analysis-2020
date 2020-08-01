@@ -1,4 +1,4 @@
-friend_collector: python -m app.workers.friend_batch_collector
+friend_collector: python -m app.app.friend_graphs.collect_in_batches
 bq_grapher: python -m app.workers.bq_grapher
 bq_list_grapher: python -m app.workers.bq_list_grapher
 pg_migrate: python -m app.models

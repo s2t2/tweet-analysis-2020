@@ -40,7 +40,7 @@ def user_with_friends(row):
 def cautiously_initialized_storage_service():
     service = BigQueryService()
     print("-------------------------")
-    print("DB CONFIG...")
+    print("BQ CONFIG...")
     print("  BIGQUERY DATASET:", service.dataset_address.upper())
     print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
     print("  VERBOSE QUERIES:", service.verbose)
@@ -60,7 +60,7 @@ def cautiously_initialized_storage_service():
         if input("CONTINUE? (Y/N): ").upper() != "Y":
             print("EXITING...")
             exit()
-    service.init_tables()
+    #service.init_tables() # did this originally, but moving to a manual migration strategy to prevent accidental deletions
     return service
 
 if __name__ == "__main__":
