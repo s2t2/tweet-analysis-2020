@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
     ,split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)] as retweet_user_screen_name
     ,status_id
     ,status_text
+    ,created_at
   FROM impeachment_production.tweets
   WHERE retweet_status_id is not null
 );

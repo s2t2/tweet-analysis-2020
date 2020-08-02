@@ -363,27 +363,27 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def fetch_weeks(self, tweet_start_at=None, tweets_end_at=None):
+    def fetch_retweet_weeks(self, start_at=None, end_at=None):
         """
         Params:
-            tweet_start_at (str) like "2019-12-15 00:00:00"
-            tweets_end_at (str) like "2020-03-21 23:59:59"
+            start_at (str) like "2019-12-15 00:00:00"
+            end_at (str) like "2020-03-21 23:59:59"
         """
         sql = f"""
             SELECT
-                EXTRACT(YEAR from t.created_at) as year
-                ,EXTRACT(WEEK from t.created_at) as week -- FYI week 52 of the previous year and week 0 of this year are partial weeks.
+                EXTRACT(YEAR from rt.created_at) as year
+                ,EXTRACT(WEEK from rt.created_at) as week -- FYI week 52 of the previous year and week 0 of this year are partial weeks.
 
-                ,count(DISTINCT EXTRACT(DAY from t.created_at)) as day_count
-                ,min(t.created_at) as min_created
-                ,max(t.created_at) as max_created
-                ,count(DISTINCT t.status_id) as tweet_count
-                ,count(DISTINCT t.user_id) as user_count
+                ,count(DISTINCT EXTRACT(DAY from rt.created_at)) as day_count
+                ,min(rt.created_at) as min_created
+                ,max(rt.created_at) as max_created
+                ,count(DISTINCT rt.status_id) as tweet_count
+                ,count(DISTINCT rt.user_id) as user_count
 
-            FROM `{self.dataset_address}.tweets` t
+            FROM `{self.dataset_address}.retweets` rt
         """
-        if tweet_start_at and tweets_end_at:
-            sql += f" WHERE t.created_at BETWEEN '{tweet_start_at}' AND '{tweets_end_at}' "
+        if start_at and end_at:
+            sql += f" WHERE rt.created_at BETWEEN '{start_at}' AND '{end_at}' "
         sql += """
             GROUP BY 1,2
             ORDER BY 1,2
