@@ -371,20 +371,36 @@ class BigQueryService():
         """
         sql = f"""
             SELECT
-                EXTRACT(YEAR from rt.created_at) as year
-                ,EXTRACT(WEEK from rt.created_at) as week -- FYI week 52 of the previous year and week 0 of this year are partial weeks.
+                CASE WHEN week = 0 THEN year - 1 -- treat first week of new year as the previous year
+                    ELSE year
+                    END  year
 
-                ,count(DISTINCT EXTRACT(DAY from rt.created_at)) as day_count
-                ,min(rt.created_at) as min_created
-                ,max(rt.created_at) as max_created
-                ,count(DISTINCT rt.status_id) as tweet_count
-                ,count(DISTINCT rt.user_id) as user_count
+                ,CASE WHEN week = 0 THEN 52 -- treat first week of new year as the previous week
+                    ELSE week
+                    END  week
 
-            FROM `{self.dataset_address}.retweets` rt
+                ,count(DISTINCT day) as day_count
+                ,min(created_at) as min_created
+                ,max(created_at) as max_created
+                ,count(DISTINCT status_id) as retweet_count
+                ,count(DISTINCT user_id) as user_count
+            FROM (
+                SELECT
+                    status_id
+                    ,user_id
+                    ,created_at
+                    ,EXTRACT(year from created_at) as year
+                    ,EXTRACT(month from created_at) as month
+                    ,EXTRACT(week from created_at) as week
+                    ,EXTRACT(day from created_at) as day
+                FROM `{self.dataset_address}.retweets`
         """
         if start_at and end_at:
-            sql += f" WHERE rt.created_at BETWEEN '{start_at}' AND '{end_at}' "
+            sql += """
+                WHERE created_at BETWEEN "2019-12-15 00:00:00" AND "2020-03-21 23:59:59"
+            """
         sql += """
+            ) subq
             GROUP BY 1,2
             ORDER BY 1,2
         """

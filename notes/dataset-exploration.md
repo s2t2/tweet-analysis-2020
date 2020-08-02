@@ -68,27 +68,37 @@ ORDER BY 1,2,3
 ```sql
 
 SELECT
-  -- join week 52 2019 with week 0 of 2020 to get evenly-bucketed weeks (otherwise 2019-52 and 2020-0 are only partial weeks)
   CASE
-    WHEN EXTRACT(week from created_at) = 0 THEN 2019
-    ELSE EXTRACT(year from created_at)
+    WHEN week = 0 THEN year - 1 -- treat first week of new year as the previous year
+    ELSE year
     END  year
 
   ,CASE
-    WHEN EXTRACT(week from created_at) = 0 THEN 52
-    ELSE EXTRACT(week from created_at)
+    WHEN week = 0 THEN 52 -- treat first week of new year as the previous week
+    ELSE week
     END  week
 
-  ,count(DISTINCT EXTRACT(day from created_at)) as day_count
+  ,count(DISTINCT day) as day_count
   ,min(created_at) as min_created
   ,max(created_at) as max_created
-  ,count(DISTINCT status_id) as tweet_count
+  ,count(DISTINCT status_id) as retweet_count
   ,count(DISTINCT user_id) as user_count
-FROM impeachment_production.tweets
-
--- WHERE created_at BETWEEN "2019-12-15 00:00:00" AND "2020-03-21 23:59:59" -- get complete weeks
+FROM (
+  SELECT
+    status_id
+    ,user_id
+    ,created_at
+    ,EXTRACT(year from created_at) as year
+    ,EXTRACT(month from created_at) as month
+    ,EXTRACT(week from created_at) as week
+    ,EXTRACT(day from created_at) as day
+  FROM impeachment_production.retweets
+  -- WHERE created_at BETWEEN "2019-12-15 00:00:00" AND "2020-03-21 23:59:59" -- get complete weeks
+  limit 10000
+) subq
 GROUP BY 1,2
 ORDER BY 1,2
+
 ```
 
 year	| week	| day_count	| min_created	| max_created	| tweet_count	|user_count
