@@ -4,9 +4,9 @@ from app.bq_service import BigQueryService
 
 class BigQueryBaseGrapher(BaseGrapher):
 
-    def __init__(self, bq_service=None, gcs_service=None):
-        super().__init__(gcs_service=gcs_service)
-        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
+    def __init__(self, bq_service=None):
+        super().__init__()
+        self.bq_service = bq_service or BigQueryService()
 
     @property
     def metadata(self):

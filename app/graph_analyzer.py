@@ -9,7 +9,7 @@ from memory_profiler import profile
 
 from app import DATA_DIR
 from app.decorators.number_decorators import fmt_n
-from app.base_grapher import BaseGrapher
+from app.friend_graphs.base_grapher import BaseGrapher
 
 load_dotenv()
 

@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
-from app import APP_ENV
+from app import APP_ENV, seek_confirmation
 from app.decorators.number_decorators import fmt_n
 
 load_dotenv()
@@ -33,6 +33,16 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
+
+        print("-------------------------")
+        print("BIGQUERY SERVICE...")
+        print("  DATASET ADDRESS:", self.dataset_address.upper())
+        print("  DESTRUCTIVE MIGRATIONS:", self.destructive)
+        print("  VERBOSE QUERIES:", self.verbose)
+        print("-------------------------")
+
+        seek_confirmation()
+
         # did this originally, but commenting out now to prevent accidental table deletions
         # if init_tables == True:
         #     self.init_tables()
@@ -43,6 +53,7 @@ class BigQueryService():
 
     @classmethod
     def cautiously_initialized(cls):
+        """ DEPRECATE ME """
         service = BigQueryService()
         if APP_ENV == "development":
             print("-------------------------")
@@ -173,7 +184,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # CONSTRUCTING NETWORK GRAPHS
+    # FRIEND GRAPHS
     #
 
     def fetch_user_friends(self, min_id=None, max_id=None, limit=None):
@@ -253,6 +264,10 @@ class BigQueryService():
             LIMIT {int(limit)};
         """
         return self.execute_query(sql)
+
+    #
+    # RETWEET GRAPHS
+    #
 
     def fetch_retweet_counts(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
         """
@@ -345,6 +360,33 @@ class BigQueryService():
             WHERE user_screen_name in {tuple(screen_names)} -- tuple conversion surrounds comma-separated screen_names in parens
                 -- AND user_screen_name <> retweet_user_screen_name -- exclude users who have retweeted themselves
             ORDER BY 2,3
+        """
+        return self.execute_query(sql)
+
+    def fetch_weeks(self, tweet_start_at=None, tweets_end_at=None):
+        """
+        Params:
+            tweet_start_at (str) like "2019-12-15 00:00:00"
+            tweets_end_at (str) like "2020-03-21 23:59:59"
+        """
+        sql = f"""
+            SELECT
+                EXTRACT(YEAR from t.created_at) as year
+                ,EXTRACT(WEEK from t.created_at) as week -- FYI week 52 of the previous year and week 0 of this year are partial weeks.
+
+                ,count(DISTINCT EXTRACT(DAY from t.created_at)) as day_count
+                ,min(t.created_at) as min_created
+                ,max(t.created_at) as max_created
+                ,count(DISTINCT t.status_id) as tweet_count
+                ,count(DISTINCT t.user_id) as user_count
+
+            FROM `{self.dataset_address}.tweets` t
+        """
+        if tweet_start_at and tweets_end_at:
+            sql += f" WHERE t.created_at BETWEEN '{tweet_start_at}' AND '{tweets_end_at}' "
+        sql += """
+            GROUP BY 1,2
+            ORDER BY 1,2
         """
         return self.execute_query(sql)
 
