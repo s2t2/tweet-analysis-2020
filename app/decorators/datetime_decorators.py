@@ -7,7 +7,7 @@ def logstamp():
     """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def to_ts(dt):
+def to_ts(dt): # todo: rename as dt_to_ts
     """
     Converts datetime object to UTC timestamp (seconds since epoch) like 1595759389.828663. Inverse of to_dt() function.
 
@@ -15,7 +15,7 @@ def to_ts(dt):
     """
     return dt.replace(tzinfo=timezone.utc).timestamp()
 
-def to_dt(ts):
+def to_dt(ts): # todo: rename as ts_to_dt
     """
     Converts UTC timestamp (seconds since epoch) to datetime object like datetime(2020, 7, 26, 10, 29, 49, 828663). Inverse of to_ts() function.
 
@@ -23,10 +23,18 @@ def to_dt(ts):
     """
     return datetime.utcfromtimestamp(ts)
 
-def fmt_date(ts):
+def dt_to_date(dt):
+    """
+    Converts datetime object to date string object like "2014-02-10".
+
+    Params: dt (datetime) like ... datetime(2020, 7, 26, 10, 29, 49, 828663)
+    """
+    return dt.strftime("%Y-%m-%d")
+
+def fmt_date(ts): # todo: rename as ts_to_date
     """
     Converts timestamp (seconds since epoch) to date string object like "2014-02-10".
 
     Params: ts (float) seconds since epoch (like 1595759389.828663)
     """
-    return to_dt(ts).strftime("%Y-%m-%d")
+    return dt_to_date(to_dt(ts))

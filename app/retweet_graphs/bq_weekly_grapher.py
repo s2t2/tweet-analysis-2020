@@ -3,6 +3,9 @@ import os
 from pprint import pprint
 from dotenv import load_dotenv
 
+from app import seek_confirmation
+from app.decorators.datetime_decorators import dt_to_date
+from app.decorators.number_decorators import fmt_n
 from app.bq_base_grapher import BigQueryBaseGrapher
 
 load_dotenv()
@@ -18,13 +21,22 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         self.tweets_end_at = tweets_end_at
 
     def perform(self):
-        self.weeks = list(self.grapher.bq_service.fetch_weeks())
+        self.rows = list(self.bq_service.fetch_weeks())
 
-        week = self.weeks[0]
-        pprint(dict(week))
+        print("--------------------")
+        print("WEEKS:")
+        for row in self.rows:
+            print("   ",
+                f"{row.year} {row.week}", "|",
+                f"'{dt_to_date(row.min_created)}' TO '{dt_to_date(row.max_created)}'", "|",
+                f"TWEETS: {fmt_n(row.tweet_count)}", "|",
+                f"USERS: {fmt_n(row.user_count)}"
+             )
+            #pprint(dict(row))
+            #breakpoint()
+
+        seek_confirmation()
         breakpoint()
-
-
 
 
 if __name__ == "__main__":

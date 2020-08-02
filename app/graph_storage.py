@@ -17,17 +17,18 @@ class GraphStorage:
         Abstract class to support the saving of artifacts during the networkx graph compilation process.
 
         Params:
-            local_dirpath (str) like "path/to/my/local/dir"
-            gcs_dirpath (str) like "path/to/gcs/bucket/dir"
+            local_dirpath (str) like "/Users/USERNAME/path/to/repo/data/graphs/2020-08-02-1818"
+            gcs_dirpath (str) like "storage/data/graphs/2020-08-02-1818"
         """
         self.local_dirpath = local_dirpath or os.path.join(DATA_DIR, "graphs", "storage_example")
         self.gcs_dirpath = gcs_dirpath or os.path.join("storage", "data", "graphs", "storage_example")
         self.gcs_service = gcs_service or GoogleCloudStorageService()
 
-        print("----------------------------")
-        print("GRAPH STORAGE")
+        print("----------------------")
+        print("GRAPH STORAGE...")
         print("   LOCAL DIR:", self.local_dirpath)
-        print("   GCS DIR:", self.local_dirpath)
+        print("   GCS DIR:", self.gcs_dirpath)
+        print("----------------------")
 
         seek_confirmation()
 

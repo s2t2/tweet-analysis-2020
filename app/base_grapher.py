@@ -1,17 +1,21 @@
 
-
+import os
 from datetime import datetime
+import time
 
 from app import APP_ENV, DATA_DIR
 from app.graph_storage import GraphStorage
+from app.decorators.number_decorators import fmt_n
+
+from networkx import DiGraph
 
 class BaseGrapher(GraphStorage):
 
     def __init__(self, job_id=None):
         self.job_id = (job_id or datetime.now().strftime("%Y-%m-%d-%H%M"))
-        GraphStorage.__init__(
-            local_dirpath = os.path.join(DATA_DIR, "graphs", job_id),
-            gcs_dirpath = os.path.join("storage", "data", "graphs", job_id)
+        super().__init__(
+            local_dirpath = os.path.join(DATA_DIR, "graphs", self.job_id),
+            gcs_dirpath = os.path.join("storage", "data", "graphs", self.job_id)
         )
 
     @property
@@ -36,9 +40,10 @@ class BaseGrapher(GraphStorage):
         print(f"PROCESSED {fmt_n(self.counter)} USERS IN {fmt_n(self.duration_seconds)} SECONDS")
 
     def report(self):
+        print("-----------------")
         print("NODES:", fmt_n(len(self.graph.nodes)))
         print("EDGES:", fmt_n(len(self.graph.edges)))
-        print("SIZE:", fmt_n(self.graph.size()))
+        #print("SIZE:", fmt_n(self.graph.size()))
 
 
 if __name__ == "__main__":
