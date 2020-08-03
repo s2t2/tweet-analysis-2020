@@ -47,48 +47,46 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
     # takes hours for lots of users.
     # needs to process each user X each user they retweeted, so edge counter will be larger than total retweeters
 
-    def __init__(self, week_id=WEEK_ID):
+    @classmethod
+    def __init_storage_service__(cls, week_id=WEEK_ID):
+        """
+        We need to be able to call this without initializing the instance. Allows us to load graphs after they've already been saved.
+        """
+        return GraphStorageService(
+            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", week_id),
+            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id)
+        )
+
+    def __init__(self, bq_service=None, week_id=WEEK_ID):
+        bq_service = bq_service or BigQueryService()
         self.week_id = week_id
 
         print("--------------------")
         print("FETCHING WEEKS...")
-        bq_service = BigQueryService()
-        weeks = [Week(row) for row in list(bq_service.fetch_retweet_weeks())]
-        for week in weeks:
+        self.weeks = [Week(row) for row in list(bq_service.fetch_retweet_weeks())]
+        for week in self.weeks:
             print("   ", week.details)
 
         print("--------------------")
         print("SELECTING A WEEK...")
-        # TODO: see which ones have not already been graphed, and take the first one
-        #row = random.choice(self.rows)
-        #wk = self.weeks[1]
-        selected_id = self.week_id or input("PLEASE SELECT A WEEK (E.G. '2019-52', '2020-01', ETC.): ")
+        if not self.week_id:
+            self.week_id = input("PLEASE SELECT A WEEK (E.G. '2019-52', '2020-01', ETC.): ") # assumes you know what you're doing when setting WEEK_ID on production! once you run this once you'll see what all the week ids are.
+
         try:
-            selected_week = [wk for wk in weeks if wk.week_id == selected_id][0]
+            self.week = [wk for wk in self.weeks if wk.week_id == self.week_id][0]
+            print("   ", self.week.details)
         except IndexError as err:
             print("OOPS - PLEASE CHECK WEEK ID AND TRY AGAIN...")
             exit()
 
-        #print("--------------------")
-        #print("SETTING THE WEEK...")
-        self.week_id = selected_id
-        #print("ID:", self.week_id)
-        self.week = selected_week
-        #print("TOTAL USERS:", self.week.row.user_count)
-        print("   ", self.week.details)
         self.tweets_start_at = self.week.row.min_created
         self.tweets_end_at = self.week.row.max_created
-        #print("TWEETS START:", dt_to_date(self.tweets_start_at))
-        #print("TWEETS END:", dt_to_date(self.tweets_end_at))
 
         seek_confirmation()
 
-        storage_service = GraphStorageService(
-            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", self.week_id),
-            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", self.week_id)
-        )
-        #self.storage_service = storage_service
+        storage_service = self.__init_storage_service__(self.week_id)
         super().__init__(bq_service=bq_service, storage_service=storage_service)
+
 
     @property
     def metadata(self):
@@ -104,7 +102,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
     @profile
     def perform(self):
-        self.storage_service.write_metadata_to_file(self.metadata)
+        self.storage_service.write_metadata_to_file(self.metadata) # CHECK ME
         self.storage_service.upload_metadata()
 
         self.start()
