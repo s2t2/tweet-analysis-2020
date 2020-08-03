@@ -5,7 +5,15 @@ def logstamp():
     """
     Formats current timestamp, for printing and logging.
     """
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return dt_to_s(datetime.now())
+
+def dt_to_s(dt):
+    """
+    Converts datetime object to date string like "2020-01-01 00:00:00"
+
+    Params: dt (datetime) like ... datetime(2020, 7, 26, 10, 29, 49, 828663)
+    """
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 def to_ts(dt): # todo: rename as dt_to_ts
     """

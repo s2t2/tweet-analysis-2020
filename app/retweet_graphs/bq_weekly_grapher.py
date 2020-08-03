@@ -1,17 +1,21 @@
 
 import os
-from pprint import pprint
+#from pprint import pprint
 #import random
 
 from dotenv import load_dotenv
+import numpy as np
+from networkx import DiGraph
 
-from app import seek_confirmation
-from app.decorators.datetime_decorators import dt_to_date
+from app import DATA_DIR, seek_confirmation
+from app.decorators.datetime_decorators import dt_to_date, dt_to_s
 from app.decorators.number_decorators import fmt_n
 from app.bq_base_grapher import BigQueryBaseGrapher
+from app.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
+USERS_LIMIT=1000
 #TWEETS_START_AT = os.getenv("TWEETS_START_AT", default="2019-12-15 00:00:00")
 #TWEETS_END_AT = os.getenv("TWEETS_START_AT", default="2020-03-21 23:59:59")
 
@@ -49,36 +53,69 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
              )
 
         print("--------------------")
-        print("SELECTED WEEK:")
         #row = random.choice(self.rows) # TODO: see which ones have not already been graphed, and take the first one
         wk = self.weeks[1] # TODO: see which ones have not already been graphed, and take the first one
         wk_id = f"{wk.year}-{str(wk.week).zfill(2)}"
-        print(wk_id)
-        pprint(dict(wk))
+        print("SELECTED WEEK:", wk_id)
+        #pprint(dict(wk))
 
         seek_confirmation()
 
-        breakpoint()
-        #self.storage_service = GraphStorageService(
-        #    local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", wk_id),
-        #    gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", wk_id)
-        #)
+        #
+        # INIT
+        #
 
-        self.tweets_start_at = tweets_start_at
-        self.tweets_end_at = tweets_start_at
+        self.storage_service = GraphStorageService(
+            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", wk_id),
+            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", wk_id)
+        )
 
-        self.write_metadata_to_file()
-        self.upload_metadata()
+        self.tweets_start_at = dt_to_s(wk.min_created)
+        self.tweets_end_at = dt_to_s(wk.max_created)
+
+        #
+        # PERFORMANCE
+        #
+
+        self.storage_service.write_metadata_to_file(self.metadata)
+        self.storage_service.upload_metadata()
 
         self.start()
+        self.results = []
+        #self.edges = []
         self.graph = DiGraph()
-        self.running_results = []
 
-        for row in self.bq.fetch_retweet_counts_in_batches(start_at=self.tweets_start_at, end_at=self.tweets_end_at):
+        #counter = 0
+        for row in self.bq_service.fetch_retweet_counts_in_batches(start_at=self.tweets_start_at, end_at=self.tweets_end_at):
 
+            self.graph.add_edge(
+                row["user_screen_name"], # todo: user_id
+                row["retweeted_user_screen_name"], # todo: retweet_user_id
+                weight=row["retweet_count"]
+            )
 
-            breakpoint()
+            self.counter += 1
+            if self.counter % self.batch_size == 0:
+                rr = {
+                    "ts": logstamp(),
+                    "counter": self.counter,
+                    "nodes": self.graph.number_of_nodes(),
+                    "edges": self.graph.number_of_edges()
+                }
+                print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
+                self.results.append(rr)
 
+            if self.counter >= USERS_LIMIT:
+                break
+
+        self.end()
+        self.report()
+
+        self.storage_service.write_results_to_file(self.results)
+        self.storage_service.upload_results()
+
+        self.storage_service.write_graph_to_file(self.graph)
+        self.storage_service.upload_graph()
 
 
 

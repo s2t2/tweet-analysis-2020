@@ -3,24 +3,34 @@ import os
 from datetime import datetime
 import time
 
-from app import APP_ENV, DATA_DIR
-from app.graph_storage import GraphStorage
-from app.decorators.number_decorators import fmt_n
-
+from dotenv import load_dotenv
 from networkx import DiGraph
 
-class BaseGrapher(GraphStorage):
+from app import APP_ENV, DATA_DIR
+from app.decorators.number_decorators import fmt_n
+from app.graph_storage_service import GraphStorageService
 
-    def __init__(self, job_id=None):
+load_dotenv()
+
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=20))
+
+class BaseGrapher():
+
+    def __init__(self, job_id=None, storage_service=None, batch_size=BATCH_SIZE):
         self.job_id = (job_id or datetime.now().strftime("%Y-%m-%d-%H%M"))
-        super().__init__(
-            local_dirpath = os.path.join(DATA_DIR, "graphs", self.job_id),
-            gcs_dirpath = os.path.join("storage", "data", "graphs", self.job_id)
+        self.storage_service = storage_service or GraphStorageService(
+            local_dirpath=os.path.join(DATA_DIR, "graphs", self.job_id),
+            gcs_dirpath=os.path.join("storage", "data", "graphs", self.job_id)
         )
+
+        self.batch_size = batch_size
+
+        print("-----------------")
+        print("  BATCH_SIZE:", self.batch_size)
 
     @property
     def metadata(self):
-        return {"app_env": APP_ENV, "job_id": self.job_id}
+        return {"app_env": APP_ENV, "job_id": self.job_id, "batch_size": self.batch_size}
 
     def start(self):
         print("-----------------")
@@ -40,10 +50,12 @@ class BaseGrapher(GraphStorage):
         print(f"PROCESSED {fmt_n(self.counter)} USERS IN {fmt_n(self.duration_seconds)} SECONDS")
 
     def report(self):
+        #if not self.graph:
+        #    self.graph = self.storage_service.load_graph()
+
         print("-----------------")
-        print("NODES:", fmt_n(len(self.graph.nodes)))
-        print("EDGES:", fmt_n(len(self.graph.edges)))
-        #print("SIZE:", fmt_n(self.graph.size()))
+        print("NODES:", fmt_n(self.graph.number_of_nodes()))
+        print("EDGES:", fmt_n(self.graph.number_of_edges()))
 
 
 if __name__ == "__main__":

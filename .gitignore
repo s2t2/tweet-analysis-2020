@@ -12,9 +12,12 @@ data/*.csv
 data/graphs/*/*.json
 data/graphs/*/*.csv
 data/graphs/*/*.gpickle
-
 data/graphs/*/*/*.csv
 data/graphs/*/*/*.png
+
+data/graphs/weekly/*/*.json
+data/graphs/weekly/*/*.csv
+data/graphs/weekly/*/*.gpickle
 
 data/ks_test/*.csv
 
