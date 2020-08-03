@@ -41,20 +41,6 @@ def expected_edges():
         ("E", "F") # "E" follows "F" and "F" follows no-one
     ]
 
-def compile_mock_rt_graph(edge_list):
-    """
-    Param
-        edge_list (list of dict) like: [
-            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
-            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
-            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
-        ]
-    """
-    graph = DiGraph()
-    for row in edge_list:
-        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
-    return graph
-
 mock_rt_graph_edge_list = [
     # add some examples of users retweeting others:
     {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 40},
@@ -69,9 +55,25 @@ mock_rt_graph_edge_list = [
     {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40}
 ]
 
+def compile_mock_rt_graph(edge_list=mock_rt_graph_edge_list, weight_attr="retweet_count"):
+    """
+    Param
+        edge_list (list of dict) like: [
+            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "weight": 4},
+            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "weight": 6},
+            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "weight": 4},
+        ]
+
+        weight_attr (str) the name of the weight attribute for each edge in the edge list
+    """
+    graph = DiGraph()
+    for row in edge_list:
+        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row[weight_attr]))
+    return graph
+
 @pytest.fixture(scope="module")
 def mock_rt_graph():
     """
     Returns a retweet graph with sufficient energy to populate bot probabilities given default hyperparams
     """
-    return compile_mock_rt_graph(mock_rt_graph_edge_list)
+    return compile_mock_rt_graph()

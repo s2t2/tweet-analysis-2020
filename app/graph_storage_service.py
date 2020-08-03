@@ -10,6 +10,7 @@ from networkx import DiGraph, write_gpickle
 from app import APP_ENV, DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
 from app.gcs_service import GoogleCloudStorageService
+from conftest import compile_mock_rt_graph
 
 class GraphStorageService:
 
@@ -32,11 +33,14 @@ class GraphStorageService:
         print("   GCS DIR:", self.gcs_dirpath)
         print("   LOCAL DIR:", self.local_dirpath)
         print("----------------------")
-
         seek_confirmation()
-
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
+
+        self.metadata = {}
+        self.results = []
+        self.edges = []
+        self.graph = DiGraph()
 
     #
     # LOCAL STORAGE
@@ -58,45 +62,40 @@ class GraphStorageService:
     def local_graph_filepath(self):
         return os.path.join(self.local_dirpath, "graph.gpickle")
 
-    def write_metadata_to_file(self, metadata, metadata_filepath=None):
+    def write_metadata_to_file(self, metadata=None, metadata_filepath=None):
         """
         Params: metadata (dict)
         """
-        metadata_filepath = metadata_filepath or self.local_metadata_filepath
         print(logstamp(), "WRITING METADATA...")
-        with open(metadata_filepath, "w") as metadata_file:
-            json.dump(metadata, metadata_file)
+        with open(metadata_filepath or self.local_metadata_filepath, "w") as f:
+            json.dump(metadata or self.metadata, f)
 
-    def write_results_to_file(self, job_results, results_filepath=None):
+    def write_results_to_file(self, results=None, results_filepath=None):
         """
-        Params: job_results (list of dict)
+        Params: results (list of dict)
         """
-        results_filepath = results_filepath or self.local_results_filepath
         print(logstamp(), "WRITING RESULTS...")
-        df = DataFrame(job_results)
-        df.to_csv(results_filepath)
+        df = DataFrame(results or self.results)
+        df.to_csv(results_filepath or self.local_results_filepath)
 
-    def write_edges_to_file(self, edges, edges_filepath=None):
+    def write_edges_to_file(self, edges=None, edges_filepath=None):
         """
         Params: edges (list of dict)
         """
-        edges_filepath = edges_filepath or self.local_edges_filepath
         print(logstamp(), "WRITING EDGES...:")
-        with open(edges_filepath, "wb") as pickle_file:
-            pickle.dump(edges, pickle_file)
+        with open(edges_filepath or self.local_edges_filepath, "wb") as f:
+            pickle.dump(edges or self.edges, f)
 
-    def write_graph_to_file(self, graph, graph_filepath=None):
+    def write_graph_to_file(self, graph=None, graph_filepath=None):
         """
         Params: graph (DiGraph)
         """
-        graph_filepath = graph_filepath or self.local_graph_filepath
         print(logstamp(), "WRITING GRAPH...")
-        write_gpickle(graph, graph_filepath)
+        write_gpickle(graph or self.graph, graph_filepath or self.local_graph_filepath)
 
     def read_graph_from_file(self, graph_filepath=None):
-        graph_filepath = graph_filepath or self.local_graph_filepath
         print(logstamp(), "READING GRAPH...")
-        return read_gpickle(graph_filepath)
+        return read_gpickle(graph_filepath or self.local_graph_filepath)
 
     #
     # REMOTE STORAGE
@@ -155,7 +154,20 @@ class GraphStorageService:
 
 if __name__ == "__main__":
 
-    example_storage = GraphStorageService()
+    storage = GraphStorageService()
 
-    print(example_storage.gcs_dirpath)
-    print(example_storage.local_dirpath)
+    storage.metadata = {"app_env": APP_ENV, "config": {"a":True, "b": 2500}}
+    storage.write_metadata_to_file()
+    storage.upload_metadata()
+
+    storage.results = [
+        {"ts": "2020-01-01 10:00:00", "counter": 2500, "nodes": 100_000, "edges": 150_000},
+        {"ts": "2020-01-01 10:00:00", "counter": 5000, "nodes": 200_000, "edges": 400_000},
+        {"ts": "2020-01-01 10:00:00", "counter": 7500, "nodes": 300_000, "edges": 900_000}
+    ]
+    storage.write_results_to_file()
+    storage.upload_results()
+
+    storage.graph = compile_mock_rt_graph()
+    storage.write_graph_to_file()
+    storage.upload_graph()

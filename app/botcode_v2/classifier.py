@@ -9,7 +9,7 @@ import numpy as np
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 
-from conftest import compile_mock_rt_graph, mock_rt_graph_edge_list
+from conftest import compile_mock_rt_graph
 from app import APP_ENV
 from app.decorators.number_decorators import fmt_n, fmt_pct
 from app.graph_analyzer import GraphAnalyzer
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     #
 
     if DRY_RUN:
-        rt_graph = compile_mock_rt_graph(mock_rt_graph_edge_list)
+        rt_graph = compile_mock_rt_graph()
         print("RT GRAPH:", type(rt_graph))
         print("  NODES:", fmt_n(rt_graph.number_of_nodes()))
         print("  EDGES:", fmt_n(rt_graph.number_of_edges()))

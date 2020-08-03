@@ -10,19 +10,7 @@ from networkx import DiGraph
 from app.botcode.network_classifier_helper import parse_bidirectional_links, compute_link_energy, compile_energy_graph
 from app.decorators.number_decorators import fmt_n
 
-def compile_mock_rt_graph(edge_list):
-    """
-    Param edge_list (list of dict) like:
-        [
-            {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 4},
-            {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 6},
-            {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 4},
-        ]
-    """
-    graph = DiGraph()
-    for row in edge_list:
-        graph.add_edge(row["user_screen_name"], row["retweet_user_screen_name"], rt_count=float(row["retweet_count"]))
-    return graph
+from app.conftest import compile_mock_rt_graph
 
 def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
     """
@@ -60,19 +48,7 @@ def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
 
 if __name__ == "__main__":
 
-    graph = compile_mock_rt_graph([
-        # add some examples of users retweeting others:
-        {"user_screen_name": "user1", "retweet_user_screen_name": "leader1", "retweet_count": 40},
-        {"user_screen_name": "user2", "retweet_user_screen_name": "leader1", "retweet_count": 60},
-        {"user_screen_name": "user3", "retweet_user_screen_name": "leader2", "retweet_count": 40},
-        {"user_screen_name": "user4", "retweet_user_screen_name": "leader2", "retweet_count": 20},
-        {"user_screen_name": "user5", "retweet_user_screen_name": "leader3", "retweet_count": 40},
-        # add some examples of users retweeting eachother:
-        {"user_screen_name": "colead1", "retweet_user_screen_name": "colead2", "retweet_count": 30},
-        {"user_screen_name": "colead2", "retweet_user_screen_name": "colead1", "retweet_count": 20},
-        {"user_screen_name": "colead3", "retweet_user_screen_name": "colead4", "retweet_count": 10},
-        {"user_screen_name": "colead4", "retweet_user_screen_name": "colead3", "retweet_count": 40}
-    ])
+    graph = compile_mock_rt_graph()
 
     print("----------------------")
     in_degrees = dict(graph.in_degree(weight="rt_count")) # users receiving retweets
