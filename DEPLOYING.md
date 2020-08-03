@@ -114,5 +114,10 @@ heroku config:unset USERS_LIMIT -r heroku-9
 
 git push heroku-9 weekly-rt:master
 
-# change "bq_weekly_rt_grapher" process dyno to size ""
+# "bq_weekly_rt_grapher" process dyno:
+#   + change size to "Standard-1X" for better metrics
+#   + turn on and monitor metrics
+
+# monitor the logs:
+heroku logs --tail -r heroku-9
 ```
