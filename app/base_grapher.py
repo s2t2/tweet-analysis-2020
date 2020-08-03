@@ -6,9 +6,10 @@ import time
 from dotenv import load_dotenv
 from networkx import DiGraph
 
-from app import APP_ENV, DATA_DIR
+from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL
 from app.decorators.number_decorators import fmt_n
 from app.graph_storage_service import GraphStorageService
+from app.email_service import send_email
 
 load_dotenv()
 
@@ -59,6 +60,20 @@ class BaseGrapher():
         print("-----------------")
         print("NODES:", fmt_n(self.graph.number_of_nodes()))
         print("EDGES:", fmt_n(self.graph.number_of_edges()))
+
+    def send_completion_email(self, subject="[Tweet Analysis] Graph Complete!"):
+        if APP_ENV == "production":
+            html = f"""
+                <h3>Nice!</h3>
+                <p>Server '{SERVER_NAME}' has completed its work.</p>
+                <p>So please shut it off so it can get some rest.</p>
+                <p>
+                    <a href='{SERVER_DASHBOARD_URL}'>{SERVER_DASHBOARD_URL}</a>
+                </p>
+                <p>Thanks!</p>
+            """
+            response = send_email(subject, html)
+            return response
 
     def sleep(self):
         if APP_ENV == "production":

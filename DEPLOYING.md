@@ -115,7 +115,7 @@ heroku config:unset USERS_LIMIT -r heroku-9
 git push heroku-9 weekly-rt:master
 
 # "bq_weekly_rt_grapher" process dyno:
-#   + change size to "Standard-1X" for better metrics
+#   + change size to "Standard-1X" for better metrics (JK: actually need "Performance-L" for enough memory, costs $500/mo ($16/day), so remember to shut off ASAP!)
 #   + turn on and monitor metrics
 
 # monitor the logs:

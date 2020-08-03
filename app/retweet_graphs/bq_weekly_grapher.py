@@ -81,6 +81,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
             print("OOPS - PLEASE CHECK WEEK ID AND TRY AGAIN...")
             exit()
 
+        self.week_id = selected_id
         #wk_id = f"{wk.year}-{str(wk.week).zfill(2)}"
         print("ID:", selected_id)
         print("TOTAL USERS:", selected_week.user_count)
@@ -151,5 +152,7 @@ if __name__ == "__main__":
     grapher = BigQueryWeeklyRetweetGrapher()
 
     grapher.perform()
+
+    grapher.send_completion_email(subject=f"[Tweet Analysis] Retweet Graph Complete! (WK {grapher.week_id})")
 
     grapher.sleep()
