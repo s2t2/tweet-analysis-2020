@@ -57,13 +57,13 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
             gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id)
         )
 
-    def __init__(self, bq_service=None, week_id=WEEK_ID):
-        bq_service = bq_service or BigQueryService()
+    def __init__(self, job_id=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None, week_id=WEEK_ID):
+        super().__init__(bq_service=bq_service)
         self.week_id = week_id
 
         print("--------------------")
         print("FETCHING WEEKS...")
-        self.weeks = [Week(row) for row in list(bq_service.fetch_retweet_weeks())]
+        self.weeks = [Week(row) for row in list(self.bq_service.fetch_retweet_weeks())]
         for week in self.weeks:
             print("   ", week.details)
 
@@ -83,9 +83,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         self.tweets_end_at = self.week.row.max_created
 
         seek_confirmation()
-
-        storage_service = self.__init_storage_service__(self.week_id)
-        super().__init__(bq_service=bq_service, storage_service=storage_service)
+        self.storage_service = self.__init_storage_service__(self.week_id)
 
 
     @property
@@ -102,7 +100,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
     @profile
     def perform(self):
-        self.storage_service.write_metadata_to_file(self.metadata) # CHECK ME
+        self.storage_service.write_metadata_to_file(self.metadata)
         self.storage_service.upload_metadata()
 
         self.start()
@@ -132,7 +130,8 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
                 break
 
         self.end()
-        self.report()
+
+        self.storage_service.report(self.graph)
 
         self.storage_service.write_results_to_file(self.results)
         self.storage_service.upload_results()

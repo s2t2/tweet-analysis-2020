@@ -148,15 +148,14 @@ class GraphStorageService:
 
         return self.read_graph_from_file()
 
-    def report(self, graph=None):
+    def report(self, graph):
         """
         Params: graph (DiGraph)
         """
         print("-------------------")
-        if graph:
-            print(type(graph))
-            print("  NODES:", fmt_n(graph.number_of_nodes()))
-            print("  EDGES:", fmt_n(graph.number_of_edges()))
+        print(type(graph))
+        print("  NODES:", fmt_n(graph.number_of_nodes()))
+        print("  EDGES:", fmt_n(graph.number_of_edges()))
         print("-------------------")
 
 if __name__ == "__main__":

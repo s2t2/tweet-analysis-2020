@@ -8,7 +8,7 @@ from networkx import DiGraph
 
 from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL
 from app.decorators.number_decorators import fmt_n
-from app.graph_storage_service import GraphStorageService
+#from app.graph_storage_service import GraphStorageService
 from app.email_service import send_email
 
 load_dotenv()
@@ -20,10 +20,10 @@ class BaseGrapher():
 
     def __init__(self, job_id=None, storage_service=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE):
         self.job_id = (job_id or datetime.now().strftime("%Y-%m-%d-%H%M"))
-        self.storage_service = storage_service or GraphStorageService(
-            local_dirpath=os.path.join(DATA_DIR, "graphs", self.job_id),
-            gcs_dirpath=os.path.join("storage", "data", "graphs", self.job_id)
-        )
+        #self.storage_service = storage_service or GraphStorageService(
+        #    local_dirpath=os.path.join(DATA_DIR, "graphs", self.job_id),
+        #    gcs_dirpath=os.path.join("storage", "data", "graphs", self.job_id)
+        #)
 
         self.users_limit = users_limit
         self.batch_size = batch_size
@@ -53,9 +53,6 @@ class BaseGrapher():
         self.end_at = time.perf_counter()
         self.duration_seconds = round(self.end_at - self.start_at, 2)
         print(f"PROCESSED {fmt_n(self.counter)} USERS IN {fmt_n(self.duration_seconds)} SECONDS")
-
-    def report(self):
-        self.storage_service.report()
 
     def send_completion_email(self, subject="[Tweet Analysis] Graph Complete!"):
         if APP_ENV == "production":

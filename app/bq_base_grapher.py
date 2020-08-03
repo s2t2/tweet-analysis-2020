@@ -4,8 +4,8 @@ from app.bq_service import BigQueryService
 
 class BigQueryBaseGrapher(BaseGrapher):
 
-    def __init__(self, job_id=None, storage_service=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
-        super().__init__(job_id=job_id, storage_service=storage_service, users_limit=users_limit, batch_size=batch_size)
+    def __init__(self, job_id=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
+        super().__init__(job_id=job_id, users_limit=users_limit, batch_size=batch_size)
         self.bq_service = bq_service or BigQueryService()
 
     @property
