@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import numpy as np
 from networkx import DiGraph
+from memory_profiler import profile
 
 from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import dt_to_date, dt_to_s, logstamp
@@ -15,9 +16,21 @@ from app.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
-USERS_LIMIT = int(os.getenv("USERS_LIMIT", default=500))
+WEEK_ID = os.getenv("WEEK_ID")
+
 #TWEETS_START_AT = os.getenv("TWEETS_START_AT", default="2019-12-15 00:00:00")
 #TWEETS_END_AT = os.getenv("TWEETS_START_AT", default="2020-03-21 23:59:59")
+
+def week_id(wk):
+    return f"{wk.year}-{str(wk.week).zfill(2)}" #> "2019-52", "2020-01", etc.
+
+def week_range(wk):
+    return f"('{dt_to_date(wk.min_created)}' - '{dt_to_date(wk.max_created)}')"
+
+#class Week():
+#    def week_id(self):
+#        return f"{self.year}-{str(self.week_num).zfill(2)}" #> "2019-52", "2020-01", etc.
+
 
 class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
@@ -29,14 +42,15 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
     @property
     def metadata(self):
         return {**super().metadata, **{
-            "retweeters":True,
             "conversation": {
+                "retweeters":True,
                 "topic": None,
                 "start_at": self.tweets_start_at,
                 "end_at": self.tweets_end_at,
             }
         }} # merges dicts
 
+    @profile
     def perform(self):
         print("--------------------")
         print("FETCHING WEEKS...")
@@ -45,18 +59,28 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         print("--------------------")
         print("WEEKS:")
         for wk in self.weeks:
-            wk_id = f"{wk.year}-{str(wk.week).zfill(2)}"
-            print("   ", wk_id, f"('{dt_to_date(wk.min_created)}' - '{dt_to_date(wk.max_created)}')", "|",
+            print("   ", "ID: ", week_id(wk), week_range(wk), "|",
                 f"DAYS: {fmt_n(wk.day_count)}", "|",
                 f"USERS: {fmt_n(wk.user_count)}", "|",
                 f"RETWEETS: {fmt_n(wk.retweet_count)}"
              )
 
         print("--------------------")
-        #row = random.choice(self.rows) # TODO: see which ones have not already been graphed, and take the first one
-        wk = self.weeks[1] # TODO: see which ones have not already been graphed, and take the first one
-        wk_id = f"{wk.year}-{str(wk.week).zfill(2)}"
-        print("SELECTED WEEK:", wk_id)
+        print("SELECTED WEEK...")
+
+        # TODO: see which ones have not already been graphed, and take the first one
+        #row = random.choice(self.rows)
+        #wk = self.weeks[1]
+        selected_id = WEEK_ID or input("PLEASE SELECT A WEEK (E.G. '2019-52', '2020-01', ETC.): ")
+        try:
+            selected_week = [wk for wk in self.weeks if week_id(wk) == selected_id][0]
+        except IndexError as err:
+            print("OOPS - PLEASE CHECK WEEK ID AND TRY AGAIN...")
+            exit()
+
+        #wk_id = f"{wk.year}-{str(wk.week).zfill(2)}"
+        print("ID:", selected_id)
+        print("TOTAL USERS:", selected_week.user_count)
         #pprint(dict(wk))
 
         seek_confirmation()
@@ -66,16 +90,14 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         #
 
         self.storage_service = GraphStorageService(
-            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", wk_id),
-            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", wk_id)
+            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", week_id(selected_week)),
+            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id(selected_week))
         )
 
-        self.tweets_start_at = dt_to_s(wk.min_created)
-        self.tweets_end_at = dt_to_s(wk.max_created)
-        self.users_limit = USERS_LIMIT
-
-        print("-----------------")
-        print("  USERS LIMIT:", self.users_limit)
+        self.tweets_start_at = dt_to_s(selected_week.min_created)
+        self.tweets_end_at = dt_to_s(selected_week.max_created)
+        if self.users_limit:
+            self.users_limit = int(self.users_limit)
 
         #
         # PERFORMANCE

@@ -12,25 +12,28 @@ from app.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=20))
+USERS_LIMIT = os.getenv("USERS_LIMIT") # default is None
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default=2500))
 
 class BaseGrapher():
 
-    def __init__(self, job_id=None, storage_service=None, batch_size=BATCH_SIZE):
+    def __init__(self, job_id=None, storage_service=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE):
         self.job_id = (job_id or datetime.now().strftime("%Y-%m-%d-%H%M"))
         self.storage_service = storage_service or GraphStorageService(
             local_dirpath=os.path.join(DATA_DIR, "graphs", self.job_id),
             gcs_dirpath=os.path.join("storage", "data", "graphs", self.job_id)
         )
 
+        self.users_limit = users_limit
         self.batch_size = batch_size
 
         print("-----------------")
-        print("  BATCH_SIZE:", self.batch_size)
+        print("  USERS LIMIT:", self.users_limit)
+        print("  BATCH SIZE:", self.batch_size)
 
     @property
     def metadata(self):
-        return {"app_env": APP_ENV, "job_id": self.job_id, "batch_size": self.batch_size}
+        return {"app_env": APP_ENV, "job_id": self.job_id, "users_limit": self.users_limit, "batch_size": self.batch_size}
 
     def start(self):
         print("-----------------")
