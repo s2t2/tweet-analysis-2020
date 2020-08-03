@@ -112,5 +112,7 @@ heroku config:set BATCH_SIZE=2000 -r heroku-9
 heroku config:set WEEK_ID="2019-50" -r heroku-9
 heroku config:unset USERS_LIMIT -r heroku-9
 
-git push heroku weekly-rt:master -r heroku-9
+git push heroku-9 weekly-rt:master
+
+# change "bq_weekly_rt_grapher" process dyno to size ""
 ```
