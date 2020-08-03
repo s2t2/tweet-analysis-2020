@@ -8,14 +8,14 @@ import numpy as np
 from networkx import DiGraph
 
 from app import DATA_DIR, seek_confirmation
-from app.decorators.datetime_decorators import dt_to_date, dt_to_s
+from app.decorators.datetime_decorators import dt_to_date, dt_to_s, logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_base_grapher import BigQueryBaseGrapher
 from app.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
-USERS_LIMIT=1000
+USERS_LIMIT = int(os.getenv("USERS_LIMIT", default=500))
 #TWEETS_START_AT = os.getenv("TWEETS_START_AT", default="2019-12-15 00:00:00")
 #TWEETS_END_AT = os.getenv("TWEETS_START_AT", default="2020-03-21 23:59:59")
 
@@ -73,6 +73,9 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         self.tweets_start_at = dt_to_s(wk.min_created)
         self.tweets_end_at = dt_to_s(wk.max_created)
         self.users_limit = USERS_LIMIT
+
+        print("-----------------")
+        print("  USERS LIMIT:", self.users_limit)
 
         #
         # PERFORMANCE
