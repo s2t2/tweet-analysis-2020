@@ -24,4 +24,4 @@ if __name__ == "__main__":
     grapher.start()
     grapher.perform()
     grapher.end()
-    grapher.report()
+    #grapher.report()

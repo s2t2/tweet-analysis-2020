@@ -5,7 +5,7 @@ import pickle
 from memory_profiler import profile
 
 from pandas import DataFrame
-from networkx import DiGraph, write_gpickle, read_gpickle
+from networkx import write_gpickle, read_gpickle
 
 from app import APP_ENV, DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
@@ -148,34 +148,33 @@ class GraphStorageService:
 
         return self.read_graph_from_file()
 
-    def report(self, graph=None):
+    def report(self, graph):
         """
         Params: graph (DiGraph)
         """
         print("-------------------")
-        if graph:
-            print(type(graph))
-            print("  NODES:", fmt_n(graph.number_of_nodes()))
-            print("  EDGES:", fmt_n(graph.number_of_edges()))
+        print(type(graph))
+        print("  NODES:", fmt_n(graph.number_of_nodes()))
+        print("  EDGES:", fmt_n(graph.number_of_edges()))
         print("-------------------")
 
 if __name__ == "__main__":
 
     storage = GraphStorageService()
 
-    storage.metadata = {"app_env": APP_ENV, "config": {"a":True, "b": 2500}}
-    storage.write_metadata_to_file()
+    metadata = {"app_env": APP_ENV, "config": {"a":True, "b": 2500}}
+    storage.write_metadata_to_file(metadata)
     storage.upload_metadata()
 
-    storage.results = [
+    results = [
         {"ts": "2020-01-01 10:00:00", "counter": 2500, "nodes": 100_000, "edges": 150_000},
         {"ts": "2020-01-01 10:00:00", "counter": 5000, "nodes": 200_000, "edges": 400_000},
         {"ts": "2020-01-01 10:00:00", "counter": 7500, "nodes": 300_000, "edges": 900_000}
     ]
-    storage.write_results_to_file()
+    storage.write_results_to_file(results)
     storage.upload_results()
 
-    storage.graph = compile_mock_rt_graph()
-    storage.report()
-    storage.write_graph_to_file()
+    graph = compile_mock_rt_graph()
+    storage.report(graph)
+    storage.write_graph_to_file(graph)
     storage.upload_graph()

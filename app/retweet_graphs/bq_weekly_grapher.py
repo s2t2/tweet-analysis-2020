@@ -132,7 +132,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
                 break
 
         self.end()
-        self.report()
+        self.storage_service.report(self.graph)
 
         self.storage_service.write_results_to_file(self.results)
         self.storage_service.upload_results()

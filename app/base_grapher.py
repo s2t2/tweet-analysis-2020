@@ -23,7 +23,7 @@ class BaseGrapher():
         self.storage_service = storage_service or GraphStorageService(
             local_dirpath=os.path.join(DATA_DIR, "graphs", self.job_id),
             gcs_dirpath=os.path.join("storage", "data", "graphs", self.job_id)
-        )
+        ) # TODO: consider moving storage service to separate concern
 
         self.users_limit = users_limit
         self.batch_size = batch_size
@@ -54,8 +54,8 @@ class BaseGrapher():
         self.duration_seconds = round(self.end_at - self.start_at, 2)
         print(f"PROCESSED {fmt_n(self.counter)} USERS IN {fmt_n(self.duration_seconds)} SECONDS")
 
-    def report(self):
-        self.storage_service.report()
+    #def report(self):
+    #    self.storage_service.report(self.graph)
 
     def send_completion_email(self, subject="[Tweet Analysis] Graph Complete!"):
         if APP_ENV == "production":
@@ -83,6 +83,6 @@ if __name__ == "__main__":
     grapher.start()
     grapher.perform()
     grapher.end()
-    grapher.report()
+    #grapher.report()
 
     grapher.sleep()
