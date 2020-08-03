@@ -17,8 +17,7 @@ class GraphStorageService:
 
     def __init__(self, local_dirpath=None, gcs_dirpath=None, gcs_service=None):
         """
-        Saves and loads artifacts from the networkx graph compilation process
-            to local storage, and optionally to Google Cloud Storage.
+        Saves and loads artifacts from the networkx graph compilation process to local storage, and optionally to Google Cloud Storage.
 
         Params:
             local_dirpath (str) like "/Users/USERNAME/path/to/repo/data/graphs/2020-08-02-1818"
@@ -36,11 +35,6 @@ class GraphStorageService:
         seek_confirmation()
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
-
-        self.metadata = {}
-        self.results = []
-        self.edges = []
-        self.graph = DiGraph()
 
     #
     # LOCAL STORAGE
@@ -62,40 +56,40 @@ class GraphStorageService:
     def local_graph_filepath(self):
         return os.path.join(self.local_dirpath, "graph.gpickle")
 
-    def write_metadata_to_file(self, metadata=None, metadata_filepath=None):
+    def write_metadata_to_file(self, metadata):
         """
         Params: metadata (dict)
         """
         print(logstamp(), "WRITING METADATA...")
-        with open(metadata_filepath or self.local_metadata_filepath, "w") as f:
-            json.dump(metadata or self.metadata, f)
+        with open(self.local_metadata_filepath, "w") as f:
+            json.dump(metadata, f)
 
-    def write_results_to_file(self, results=None, results_filepath=None):
+    def write_results_to_file(self, results):
         """
         Params: results (list of dict)
         """
         print(logstamp(), "WRITING RESULTS...")
-        df = DataFrame(results or self.results)
-        df.to_csv(results_filepath or self.local_results_filepath)
+        df = DataFrame(results)
+        df.to_csv(self.local_results_filepath)
 
-    def write_edges_to_file(self, edges=None, edges_filepath=None):
+    def write_edges_to_file(self, edges):
         """
         Params: edges (list of dict)
         """
         print(logstamp(), "WRITING EDGES...:")
-        with open(edges_filepath or self.local_edges_filepath, "wb") as f:
-            pickle.dump(edges or self.edges, f)
+        with open(self.local_edges_filepath, "wb") as f:
+            pickle.dump(edges, f)
 
-    def write_graph_to_file(self, graph=None, graph_filepath=None):
+    def write_graph_to_file(self, graph):
         """
         Params: graph (DiGraph)
         """
         print(logstamp(), "WRITING GRAPH...")
-        write_gpickle(graph or self.graph, graph_filepath or self.local_graph_filepath)
+        write_gpickle(graph, self.local_graph_filepath)
 
     def read_graph_from_file(self, graph_filepath=None):
         print(logstamp(), "READING GRAPH...")
-        return read_gpickle(graph_filepath or self.local_graph_filepath)
+        return read_gpickle(self.local_graph_filepath)
 
     #
     # REMOTE STORAGE
@@ -123,12 +117,12 @@ class GraphStorageService:
         print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
     def upload_results(self):
-        print(logstamp(), "UPLOADING JOB RESULTS...", self.gcs_results_filepath)
+        print(logstamp(), "UPLOADING RESULTS...", self.gcs_results_filepath)
         blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
         print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
     def upload_edges(self):
-        print(logstamp(), "UPLOADING NETWORK EDGES...", self.gcs_edges_filepath)
+        print(logstamp(), "UPLOADING EDGES...", self.gcs_edges_filepath)
         blob = self.gcs_service.upload(self.local_edges_filepath, self.gcs_edges_filepath)
         print(logstamp(), blob)
 
@@ -148,8 +142,10 @@ class GraphStorageService:
 
     @profile
     def load_graph(self):
+        """Assumes the graph already exists and is saved locally or remotely"""
         if not os.path.isfile(self.local_graph_filepath):
             self.download_graph()
+
         return self.read_graph_from_file()
 
     def report(self, graph=None):
@@ -161,10 +157,6 @@ class GraphStorageService:
             print(type(graph))
             print("  NODES:", fmt_n(graph.number_of_nodes()))
             print("  EDGES:", fmt_n(graph.number_of_edges()))
-        else:
-            print(type(self.graph))
-            print("  NODES:", fmt_n(self.graph.number_of_nodes()))
-            print("  EDGES:", fmt_n(self.graph.number_of_edges()))
         print("-------------------")
 
 if __name__ == "__main__":
