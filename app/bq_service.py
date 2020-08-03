@@ -371,36 +371,28 @@ class BigQueryService():
         """
         sql = f"""
             SELECT
-                CASE WHEN week = 0 THEN year - 1 -- treat first week of new year as the previous year
-                    ELSE year
+                CASE
+                    WHEN EXTRACT(week from created_at) = 0 THEN EXTRACT(year from created_at) - 1 -- treat first week of new year as the previous year
+                    ELSE EXTRACT(year from created_at)
                     END  year
 
-                ,CASE WHEN week = 0 THEN 52 -- treat first week of new year as the previous week
-                    ELSE week
+                ,CASE
+                    WHEN EXTRACT(week from created_at) = 0 THEN 52 -- treat first week of new year as the previous week
+                    ELSE EXTRACT(week from created_at)
                     END  week
 
-                ,count(DISTINCT day) as day_count
+                ,count(DISTINCT EXTRACT(day from created_at)) as day_count
                 ,min(created_at) as min_created
                 ,max(created_at) as max_created
                 ,count(DISTINCT status_id) as retweet_count
                 ,count(DISTINCT user_id) as user_count
-            FROM (
-                SELECT
-                    status_id
-                    ,user_id
-                    ,created_at
-                    ,EXTRACT(year from created_at) as year
-                    ,EXTRACT(month from created_at) as month
-                    ,EXTRACT(week from created_at) as week
-                    ,EXTRACT(day from created_at) as day
-                FROM `{self.dataset_address}.retweets`
+            FROM `{self.dataset_address}.retweets`
         """
         if start_at and end_at:
-            sql += """
-                WHERE created_at BETWEEN "2019-12-15 00:00:00" AND "2020-03-21 23:59:59"
+            sql += f"""
+            WHERE rt.created_at BETWEEN '{start_at}' AND '{end_at}'
             """
         sql += """
-            ) subq
             GROUP BY 1,2
             ORDER BY 1,2
         """

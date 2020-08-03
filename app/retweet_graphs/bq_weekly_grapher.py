@@ -29,8 +29,8 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         print("WEEKS:")
         for row in self.rows:
             print("   ",
-                f"{row.year} {str(row.week).zfill(2)}",
-                f"('{dt_to_date(row.min_created)}' ... '{dt_to_date(row.max_created)}')", "|",
+                f"{row.year}-{str(row.week).zfill(2)}",
+                f"('{dt_to_date(row.min_created)}' - '{dt_to_date(row.max_created)}')", "|",
                 f"DAYS: {fmt_n(row.day_count)}", "|",
                 f"USERS: {fmt_n(row.user_count)}", "|",
                 f"RETWEETS: {fmt_n(row.retweet_count)}"
