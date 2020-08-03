@@ -313,7 +313,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TO
 Run tests:
 
 ```sh
-pytest
+APP_ENV="test" pytest
 ```
 
 ## [Deploying](/DEPLOYING.md)

@@ -9,8 +9,7 @@ from networkx import DiGraph
 
 from app.botcode.network_classifier_helper import parse_bidirectional_links, compute_link_energy, compile_energy_graph
 from app.decorators.number_decorators import fmt_n
-
-from app.conftest import compile_mock_rt_graph
+from conftest import compile_mock_rt_graph
 
 def classify_bot_probabilities(rt_graph, weight_attr="rt_count"):
     """
