@@ -9,11 +9,11 @@ credentials.json
 
 data/*.csv
 
-data/graphs/*/*.json
-data/graphs/*/*.csv
-data/graphs/*/*.gpickle
-data/graphs/*/*/*.csv
-data/graphs/*/*/*.png
+data/graphs/archived/*/*.json
+data/graphs/archived/*/*.csv
+data/graphs/archived/*/*.gpickle
+data/graphs/archived/*/*/*.csv
+data/graphs/archived/*/*/*.png
 
 data/graphs/weekly/*/*.json
 data/graphs/weekly/*/*.csv

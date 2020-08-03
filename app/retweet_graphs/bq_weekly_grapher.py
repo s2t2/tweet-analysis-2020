@@ -33,6 +33,9 @@ def week_range(wk):
 
 
 class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
+    # takes 8 mins for 550 users
+    # takes hours for lots of users.
+    # needs to process each user X each user they retweeted, so edge counter will be larger than total retweeters
 
     #def __init__(self, tweets_start_at=TWEETS_START_AT, tweets_end_at=TWEETS_END_AT):
     #    super().__init__()
@@ -108,10 +111,8 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
         self.start()
         self.results = []
-        #self.edges = []
         self.graph = DiGraph()
 
-        #counter = 0
         for row in self.bq_service.fetch_retweet_counts_in_batches(start_at=self.tweets_start_at, end_at=self.tweets_end_at):
 
             self.graph.add_edge(
@@ -150,3 +151,5 @@ if __name__ == "__main__":
     grapher = BigQueryWeeklyRetweetGrapher()
 
     grapher.perform()
+
+    grapher.sleep()

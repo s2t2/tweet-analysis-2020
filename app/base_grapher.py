@@ -60,6 +60,11 @@ class BaseGrapher():
         print("NODES:", fmt_n(self.graph.number_of_nodes()))
         print("EDGES:", fmt_n(self.graph.number_of_edges()))
 
+    def sleep(self):
+        if APP_ENV == "production":
+            print("SLEEPING...")
+            time.sleep(3 * 60 * 60) # three hours, more than enough time to stop the server
+
 
 if __name__ == "__main__":
 
@@ -68,3 +73,5 @@ if __name__ == "__main__":
     grapher.perform()
     grapher.end()
     grapher.report()
+
+    grapher.sleep()
