@@ -5,10 +5,11 @@ import pickle
 from memory_profiler import profile
 
 from pandas import DataFrame
-from networkx import DiGraph, write_gpickle
+from networkx import DiGraph, write_gpickle, read_gpickle
 
 from app import APP_ENV, DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.gcs_service import GoogleCloudStorageService
 from conftest import compile_mock_rt_graph
 
@@ -18,7 +19,6 @@ class GraphStorageService:
         """
         Saves and loads artifacts from the networkx graph compilation process
             to local storage, and optionally to Google Cloud Storage.
-            Graphs and other artifacts are external to this object.
 
         Params:
             local_dirpath (str) like "/Users/USERNAME/path/to/repo/data/graphs/2020-08-02-1818"
@@ -152,6 +152,21 @@ class GraphStorageService:
             self.download_graph()
         return self.read_graph_from_file()
 
+    def report(self, graph=None):
+        """
+        Params: graph (DiGraph)
+        """
+        print("-------------------")
+        if graph:
+            print(type(graph))
+            print("  NODES:", fmt_n(graph.number_of_nodes()))
+            print("  EDGES:", fmt_n(graph.number_of_edges()))
+        else:
+            print(type(self.graph))
+            print("  NODES:", fmt_n(self.graph.number_of_nodes()))
+            print("  EDGES:", fmt_n(self.graph.number_of_edges()))
+        print("-------------------")
+
 if __name__ == "__main__":
 
     storage = GraphStorageService()
@@ -169,5 +184,6 @@ if __name__ == "__main__":
     storage.upload_results()
 
     storage.graph = compile_mock_rt_graph()
+    storage.report()
     storage.write_graph_to_file()
     storage.upload_graph()

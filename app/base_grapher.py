@@ -29,6 +29,7 @@ class BaseGrapher():
         self.batch_size = batch_size
 
         print("-----------------")
+        print("BASE GRAPHER...")
         print("  USERS LIMIT:", self.users_limit)
         print("  BATCH SIZE:", self.batch_size)
 
@@ -54,12 +55,7 @@ class BaseGrapher():
         print(f"PROCESSED {fmt_n(self.counter)} USERS IN {fmt_n(self.duration_seconds)} SECONDS")
 
     def report(self):
-        #if not self.graph:
-        #    self.graph = self.storage_service.load_graph()
-
-        print("-----------------")
-        print("NODES:", fmt_n(self.graph.number_of_nodes()))
-        print("EDGES:", fmt_n(self.graph.number_of_edges()))
+        self.storage_service.report()
 
     def send_completion_email(self, subject="[Tweet Analysis] Graph Complete!"):
         if APP_ENV == "production":

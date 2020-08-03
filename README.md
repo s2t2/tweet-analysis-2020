@@ -307,6 +307,12 @@ Compare the distribution of user creation dates for those retweeting exclusively
 BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TOPIC="#MAGA" python -m app.ks_test.topic_pair_analyzer
 ```
 
+Load weekly retweet graphs to see how much memory it takes:
+
+```sh
+WEEK_ID="2020-12" python -m app.retweet_graphs.bq_weekly_graph_loader
+```
+
 
 ## Testing
 
