@@ -72,6 +72,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
         self.tweets_start_at = dt_to_s(wk.min_created)
         self.tweets_end_at = dt_to_s(wk.max_created)
+        self.users_limit = USERS_LIMIT
 
         #
         # PERFORMANCE
@@ -90,7 +91,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
             self.graph.add_edge(
                 row["user_screen_name"], # todo: user_id
-                row["retweeted_user_screen_name"], # todo: retweet_user_id
+                row["retweet_user_screen_name"], # todo: retweet_user_id
                 weight=row["retweet_count"]
             )
 
@@ -105,7 +106,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
                 self.results.append(rr)
 
-            if self.counter >= USERS_LIMIT:
+            if self.users_limit and self.counter >= self.users_limit:
                 break
 
         self.end()
