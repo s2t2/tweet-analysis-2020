@@ -21,6 +21,9 @@ def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+def generate_temp_table_id():
+    return datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
@@ -269,80 +272,51 @@ class BigQueryService():
     # RETWEET GRAPHS
     #
 
-    def fetch_retweet_counts(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
+    def fetch_retweet_counts_in_batches(self, topic=None, start_at=None, end_at=None):
         """
-        Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
-            row per user per retweeted user, counting the number of times that user retweeted the other
+        For each retweeter, includes the number of times each they retweeted each other user.
+            Optionally about a given topic.
+            Optionally with within a given timeframe.
 
         Params:
 
-            topic (str) the topic they were tweeting about:
-                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
-                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
-                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
-
+            topic (str) the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
             start_at (str) a date string for the earliest tweet
-
             end_at (str) a date string for the latest tweet
-
-        See NOTES.md for more background about the timeline and topics collected.
         """
         sql = f"""
             SELECT
-                rt.user_id
-                ,rt.user_screen_name
-                ,rt.retweet_user_screen_name
+                user_id
+                ,user_screen_name
+                ,retweet_user_screen_name
                 ,count(distinct status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets` rt
-            WHERE upper(status_text) LIKE '%{topic.upper()}%'
+            FROM `{self.dataset_address}.retweets`
+            WHERE user_screen_name <> retweet_user_screen_name -- excludes people retweeting themselves
+        """
+        if topic:
+            sql+=f"""
+                AND upper(status_text) LIKE '%{topic.upper()}%'
+            """
+        if start_at and end_at:
+            sql+=f"""
                 AND (created_at BETWEEN '{start_at}' AND '{end_at}')
-                AND rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves, right?
+            """
+        sql += """
             GROUP BY 1,2,3
-            -- ORDER BY 4 desc
         """
-        return self.execute_query(sql)
+        # return self.execute_query(sql)
 
-    def fetch_retweet_counts_in_batches(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
-        """
-        Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
-            row per user per retweeted user, counting the number of times that user retweeted the other
-
-        Params:
-
-            topic (str) the topic they were tweeting about:
-                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
-                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
-                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
-
-            start_at (str) a date string for the earliest tweet
-
-            end_at (str) a date string for the latest tweet
-
-        See NOTES.md for more background about the timeline and topics collected.
-        """
-        sql = f"""
-            SELECT
-                rt.user_id
-                ,rt.user_screen_name
-                ,rt.retweet_user_screen_name
-                ,count(distinct status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets` rt
-            WHERE upper(status_text) LIKE '%{topic.upper()}%'
-                AND (created_at BETWEEN '{start_at}' AND '{end_at}')
-                AND rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves, right?
-            GROUP BY 1,2,3
-            -- ORDER BY 4 desc
-        """
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        temp_table_name = f"{self.dataset_address}.retweet_counts_temp_{job_name}"
+        temp_table_id = generate_temp_table_id()
+        temp_table_name = f"{self.dataset_address}.retweet_edges_temp_{temp_table_id}"
         job_config = bigquery.QueryJobConfig(
             priority=bigquery.QueryPriority.BATCH,
             allow_large_results=True,
             destination=temp_table_name
         )
         job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH RETWEET COUNTS):", type(job), job.job_id, job.state, job.location)
+        print("JOB (FETCH RETWEET GRAPH EDGES):", type(job), job.job_id, job.state, job.location)
         return job #, temp_table_name # pass this back in hopes the caller will delete this table after using it
+
 
     def fetch_specific_user_friends(self, screen_names):
         sql = f"""
