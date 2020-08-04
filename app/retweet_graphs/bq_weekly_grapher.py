@@ -102,7 +102,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
     @profile
     def perform(self):
-        self.storage_service.write_metadata_to_file(self.metadata) # CHECK ME
+        self.storage_service.write_metadata_to_file(self.metadata)
         self.storage_service.upload_metadata()
 
         self.start()

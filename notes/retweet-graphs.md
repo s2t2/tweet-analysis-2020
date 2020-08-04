@@ -21,8 +21,6 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
 );
 ```
 
-> NOTE: this is an expensive query, as it is processing all 67M tweets. Bytes processed: 13.12 GB.
-
 ```sql
 SELECT count(DISTINCT status_id)
 FROM impeachment_production.retweets;
@@ -140,4 +138,36 @@ Constructing Retweet Graphs:
 
   {"users_limit": 50000, "topic": "impeach", "start_at": "2020-01-01", "end_at": "2020-01-30"}
 }
+```
+
+# Version 2 Migrations
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.retweets;
+CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
+  SELECT
+    user_id
+    ,user_created_at
+    ,user_screen_name
+    ,split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)] as retweet_user_screen_name
+    ,status_id
+    ,status_text
+    ,created_at
+  FROM impeachment_production.tweets
+  WHERE retweet_status_id is not null
+);
+```
+
+Begin to reverse-engineer retweeted user ids:
+
+```sql
+drop table if exists impeachment_development.retweeted_users;
+create table impeachment_development.retweeted_users as (
+  select
+      retweet_user_screen_name,
+      count(distinct status_id) as retweeted_count
+  from impeachment_development.retweets
+  group by 1
+  order by 2 desc
+)
 ```
