@@ -148,13 +148,13 @@ def computeH(G, piBot, edgelist_data, graph_out, graph_in):
 
     return H, Bots, user_data
 
-def compute_bot_probabilities(rt_graph, energy_graph, bot_names, verbose=True):
+def compute_bot_probabilities(rt_graph, energy_graph, bot_names):
     #print("Calculate bot probability for each labeled node in retweet graph")
     #start_time = time.time()
     PiBotFinal = {}
 
     for counter, node in enumerate(rt_graph.nodes()):
-        if verbose and (counter % 1000 == 0):
+        if counter % 1000 == 0:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "|", "NODE:", counter)
 
         neighbors = list(np.unique([i for i in nx.all_neighbors(energy_graph, node) if i not in [0, 1]]))
