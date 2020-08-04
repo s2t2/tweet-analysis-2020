@@ -48,7 +48,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
         seek_confirmation()
 
-        storage_service = self.__init_storage_service__(self.week_id)
+        storage_service = self.init_storage_service(self.week_id)
         super().__init__(bq_service=bq_service, storage_service=storage_service)
 
 

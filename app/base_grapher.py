@@ -19,14 +19,12 @@ BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="2500"))
 class BaseGrapher():
 
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, storage_service=None):
-        #self.job_id = datetime.now().strftime("%Y-%m-%d-%H%M")
         self.users_limit = users_limit
         self.batch_size = batch_size
         self.storage_service = storage_service or GraphStorageService()
 
         print("-----------------")
         print("BASE GRAPHER...")
-        #print("  JOB ID:", self.job_id)
         print("  USERS LIMIT:", self.users_limit)
         print("  BATCH SIZE:", self.batch_size)
 
