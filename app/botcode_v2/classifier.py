@@ -111,6 +111,7 @@ class NetworkClassifier:
         return dict.fromkeys(list(self.rt_graph.nodes), 0.5) # set all screen names to 0.5
 
     def compile_energy_graph(self):
+        print("COMPILING ENERGY GRAPH...")
         self.energy_graph, self.bot_names, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.link_energies, self.out_degrees, self.in_degrees)
         #self.human_names = list(set(self.rt_graph.nodes()) - set(self.bot_names))
         print("-----------------")
