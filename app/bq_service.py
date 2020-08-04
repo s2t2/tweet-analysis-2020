@@ -5,6 +5,7 @@ from google.cloud import bigquery
 
 from app import APP_ENV, seek_confirmation
 from app.decorators.number_decorators import fmt_n
+from app.decorators.datetime_decorators import dt_to_date
 
 load_dotenv()
 
@@ -229,7 +230,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        self.execute_query_in_batches(sql)
+        return self.execute_query_in_batches(sql)
 
     def partition_user_friends(self, n=10):
         """Params n (int) the number of partitions, each will be of equal size"""
@@ -314,7 +315,7 @@ class BigQueryService():
             GROUP BY 1,2,3
         """
 
-        self.execute_query_in_batches(sql)
+        return self.execute_query_in_batches(sql)
 
 
     def fetch_specific_user_friends(self, screen_names):
@@ -419,7 +420,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        self.execute_query_in_batches(sql)
+        return self.execute_query_in_batches(sql)
 
     def fetch_retweeter_details_in_batches(self, limit=None):
         sql = f"""
@@ -449,7 +450,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        self.execute_query_in_batches(sql)
+        return self.execute_query_in_batches(sql)
 
     def fetch_retweeters_by_topic_exclusive(self, topic):
         """
