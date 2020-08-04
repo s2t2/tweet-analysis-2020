@@ -22,6 +22,8 @@ data/graphs/example/*.gpickle
 data/graphs/weekly/*/*.json
 data/graphs/weekly/*/*.csv
 data/graphs/weekly/*/*.gpickle
+data/graphs/weekly/*/*/*.csv
+data/graphs/weekly/*/*/*.png
 
 data/ks_test/*.csv
 
