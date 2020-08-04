@@ -25,23 +25,30 @@ if __name__ == "__main__":
 
     # SAVE ARTIFACTS
 
-    artifacts_dir = os.path.join(storage_service.local_dirpath, "botcode_v2")
-    if not os.path.isdir(artifacts_dir):
-        os.mkdir(artifacts_dir)
+    local_artifacts_dir = os.path.join(storage_service.local_dirpath, "botcode_v2")
+    if not os.path.isdir(local_artifacts_dir):
+        os.mkdir(local_artifacts_dir)
+    remote_artifacts_dir = os.path.join(storage_service.gcs_dirpath, "botcode_v2")
 
     if DRY_RUN:
-        csv_filepath = os.path.join(artifacts_dir, "mock_probabilities.csv")
-        img_filepath = os.path.join(artifacts_dir, "mock_probabilities_histogram.png")
+        local_csv_filepath = os.path.join(local_artifacts_dir, "mock_probabilities.csv")
+        local_img_filepath = os.path.join(local_artifacts_dir, "mock_probabilities_histogram.png")
+        remote_csv_filepath = os.path.join(remote_artifacts_dir, "mock_probabilities.csv")
+        remote_img_filepath = os.path.join(remote_artifacts_dir, "mock_probabilities_histogram.png")
     else:
-        csv_filepath = os.path.join(artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}.csv")
-        img_filepath = os.path.join(artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}_histogram.png")
+        local_csv_filepath = os.path.join(local_artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}.csv")
+        local_img_filepath = os.path.join(local_artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}_histogram.png")
+        remote_csv_filepath = os.path.join(remote_artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}.csv")
+        remote_img_filepath = os.path.join(remote_artifacts_dir, f"bot_probabilities_{classifier.lambda_00}_{classifier.lambda_11}_histogram.png")
 
     print("----------------")
     print("SAVING CSV FILE...")
-    print(csv_filepath)
-    df.to_csv(csv_filepath)
+    print(local_csv_filepath)
+    df.to_csv(local_csv_filepath)
+    storage_service.gcs_service.upload(local_csv_filepath, remote_csv_filepath)
 
     print("----------------")
     print("SAVING HISTOGRAM...")
-    print(img_filepath)
-    classifier.generate_bot_probabilities_histogram(img_filepath=img_filepath, show_img=(APP_ENV=="development"))
+    print(local_img_filepath)
+    classifier.generate_bot_probabilities_histogram(img_filepath=local_img_filepath, show_img=(APP_ENV=="development"))
+    storage_service.gcs_service.upload(local_img_filepath, remote_img_filepath)
