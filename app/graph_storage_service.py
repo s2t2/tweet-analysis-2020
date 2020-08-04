@@ -32,7 +32,9 @@ class GraphStorageService:
         print("   GCS DIR:", self.gcs_dirpath)
         print("   LOCAL DIR:", self.local_dirpath)
         print("----------------------")
+
         seek_confirmation()
+
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
 

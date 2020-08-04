@@ -12,50 +12,14 @@ from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import dt_to_date, dt_to_s, logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_base_grapher import BigQueryBaseGrapher
-from app.bq_service import BigQueryService
+from app.bq_service import BigQueryService, RetweetWeek
 from app.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
 WEEK_ID = os.getenv("WEEK_ID")
 
-
-class Week:
-    def __init__(self, row):
-        """
-        Param row (google.cloud.bigquery.table.Row) one of the weeks fetched from BigQuery
-        """
-        self.row = row
-
-    @property
-    def week_id(self):
-        return f"{self.row.year}-{str(self.row.week).zfill(2)}" #> "2019-52", "2020-01", etc.
-
-    @property
-    def details(self):
-        details = ""
-        details += f"ID: {self.week_id} | "
-        details += f"FROM: '{dt_to_date(self.row.min_created)}' "
-        details += f"TO: '{dt_to_date(self.row.max_created)}' | "
-        details += f"DAYS: {fmt_n(self.row.day_count)} | "
-        details += f"USERS: {fmt_n(self.row.user_count)} | " + f"RETWEETS: {fmt_n(self.row.retweet_count)}"
-        return details
-
-
 class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
-    # takes 8 mins for 550 users
-    # takes hours for lots of users.
-    # needs to process each user X each user they retweeted, so edge counter will be larger than total retweeters
-
-    @classmethod
-    def __init_storage_service__(cls, week_id=WEEK_ID):
-        """
-        We need to be able to call this without initializing the instance. Allows us to load graphs after they've already been saved.
-        """
-        return GraphStorageService(
-            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", week_id),
-            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id)
-        )
 
     def __init__(self, bq_service=None, week_id=WEEK_ID):
         bq_service = bq_service or BigQueryService()
@@ -63,7 +27,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
         print("--------------------")
         print("FETCHING WEEKS...")
-        self.weeks = [Week(row) for row in list(bq_service.fetch_retweet_weeks())]
+        self.weeks = [RetweetWeek(row) for row in list(bq_service.fetch_retweet_weeks())]
         for week in self.weeks:
             print("   ", week.details)
 
@@ -88,22 +52,31 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         super().__init__(bq_service=bq_service, storage_service=storage_service)
 
 
+    @classmethod
+    def init_storage_service(cls, week_id=WEEK_ID):
+        """
+        We need to be able to call this without initializing the instance.
+        Allows us to load graphs after they've already been saved.
+        """
+        return GraphStorageService(
+            local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", week_id),
+            gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id)
+        )
+
     @property
     def metadata(self):
         return {**super().metadata, **{
-            "conversation": {
-                "retweeters":True,
+            "retweet_graph": {
                 "topic": None,
                 "week_id": self.week_id,
-                "tweets_start_at": dt_to_s(self.tweets_start_at), # string is serializeable
-                "tweets_end_at": dt_to_s(self.tweets_end_at), # string is serializeable
+                "tweets_start_at": dt_to_s(self.tweets_start_at),
+                "tweets_end_at": dt_to_s(self.tweets_end_at),
             }
-        }} # merges dicts
+        }}
 
     @profile
     def perform(self):
-        self.storage_service.write_metadata_to_file(self.metadata)
-        self.storage_service.upload_metadata()
+        self.save_metadata()
 
         self.start()
         self.results = []
@@ -128,17 +101,16 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
                 print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
                 self.results.append(rr)
 
-            if self.users_limit and self.counter >= self.users_limit:
-                break
+                # gets us an approximate users limit but reached a fraction of the time (perhaps more performant when there are millions of rows)
+                if self.users_limit and self.counter >= self.users_limit:
+                    break
 
         self.end()
-        self.storage_service.report(self.graph)
+        self.report()
 
-        self.storage_service.write_results_to_file(self.results)
-        self.storage_service.upload_results()
-
-        self.storage_service.write_graph_to_file(self.graph)
-        self.storage_service.upload_graph()
+        self.save_results()
+        self.save_edges()
+        self.save_graph()
 
 
 

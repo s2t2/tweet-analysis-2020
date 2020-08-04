@@ -4,24 +4,19 @@ from app.bq_service import BigQueryService
 
 class BigQueryBaseGrapher(BaseGrapher):
 
-    def __init__(self, job_id=None, storage_service=None, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
-        super().__init__(job_id=job_id, storage_service=storage_service, users_limit=users_limit, batch_size=batch_size)
+    def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, storage_service=None, bq_service=None):
+        super().__init__(users_limit=users_limit, batch_size=batch_size, storage_service=storage_service)
         self.bq_service = bq_service or BigQueryService()
 
     @property
     def metadata(self):
-        return {**super().metadata, **self.bq_service.metadata} # merges dicts
+        return {**super().metadata, **{"bq_service": self.bq_service.metadata}}
 
 if __name__ == "__main__":
 
     grapher = BigQueryBaseGrapher()
 
-    # print(type(grapher))
-    # print(type(grapher.bq_service))
-    # print(type(grapher.gcs_service))
-    # print(dir(grapher))
-
     grapher.start()
     grapher.perform()
     grapher.end()
-    #grapher.report()
+    grapher.report()
