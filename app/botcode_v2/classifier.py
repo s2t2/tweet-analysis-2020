@@ -130,11 +130,11 @@ class NetworkClassifier:
     @property
     @lru_cache(maxsize=None)
     def bot_probabilities_df(self):
-        print("--------------------------")
-        print("CLASSIFICATION COMPLETE!")
         df = DataFrame(list(self.bot_probabilities.items()), columns=["screen_name", "bot_probability"])
         df.index.name = "row_id"
         df.index = df.index + 1
+        print("--------------------------")
+        print("CLASSIFICATION COMPLETE!")
         print(df.head())
         print("... < 50% (NOT BOTS):", len(df[df["bot_probability"] < 0.5]))
         print("... = 50% (NOT BOTS):", len(df[df["bot_probability"] == 0.5]))
