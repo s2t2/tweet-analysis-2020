@@ -55,6 +55,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
         We need to be able to call this without initializing the instance.
         Allows us to load graphs after they've already been saved.
         """
+        if not week_id: raise ValueError("EXPECTING A WEEK ID!")
         return GraphStorageService(
             local_dirpath = os.path.join(DATA_DIR, "graphs", "weekly", week_id),
             gcs_dirpath = os.path.join("storage", "data", "graphs", "weekly", week_id)

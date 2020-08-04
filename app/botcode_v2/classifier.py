@@ -29,9 +29,10 @@ LAMBDA_00 = float(os.getenv("LAMBDA_00", default="0.61")) # TODO: interpretation
 LAMBDA_11 = float(os.getenv("LAMBDA_11", default="0.83")) # TODO: interpretation of what this means
 
 class NetworkClassifier:
-    def __init__(self, rt_graph, weight_attr="rt_count", mu=MU, alpha_percentile=ALPHA_PERCENTILE, lambda_00=LAMBDA_00, lambda_11=LAMBDA_11):
+    def __init__(self, rt_graph, weight_attr="weight", mu=MU, alpha_percentile=ALPHA_PERCENTILE, lambda_00=LAMBDA_00, lambda_11=LAMBDA_11):
         """
-        The default weight_attr is "weight" but this app makes them using "rt_count", so set that as default while allowing others to customize.
+        Takes all nodes in a retweet graph and assigns each user a score from 0 (human) to 1 (bot).
+        Then writes the results to CSV file.
         """
         self.rt_graph = rt_graph
         self.weight_attr = weight_attr
@@ -39,9 +40,9 @@ class NetworkClassifier:
         # PARAMS FOR THE LINK ENERGY FUNCTION...
         self.mu = mu
         self.alpha_percentile = alpha_percentile
-        self.epsilon = 10**(-3) #> 0.001
         self.lambda_00 = lambda_00
         self.lambda_11 = lambda_11
+        self.epsilon = 10**(-3) #> 0.001
         #self.lambda_01 = 1
         #self.lambda_10 = self.lambda_00 + self.lambda_11 - self.lambda_01 + self.epsilon
 
@@ -110,6 +111,7 @@ class NetworkClassifier:
         return dict.fromkeys(list(self.rt_graph.nodes), 0.5) # set all screen names to 0.5
 
     def compile_energy_graph(self):
+        print("COMPILING ENERGY GRAPH...")
         self.energy_graph, self.bot_names, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.link_energies, self.out_degrees, self.in_degrees)
         #self.human_names = list(set(self.rt_graph.nodes()) - set(self.bot_names))
         print("-----------------")
@@ -130,7 +132,14 @@ class NetworkClassifier:
     @lru_cache(maxsize=None)
     def bot_probabilities_df(self):
         df = DataFrame(list(self.bot_probabilities.items()), columns=["screen_name", "bot_probability"])
-        # todo: rename index column as "row_id" and set index val to 1
+        df.index.name = "row_id"
+        df.index = df.index + 1
+        print("--------------------------")
+        print("CLASSIFICATION COMPLETE!")
+        print(df.head())
+        print("... < 50% (NOT BOTS):", len(df[df["bot_probability"] < 0.5]))
+        print("... = 50% (NOT BOTS):", len(df[df["bot_probability"] == 0.5]))
+        print("... > 50% (MAYBE BOTS):", len(df[df["bot_probability"] > 0.5]))
         return df
 
     def generate_bot_probabilities_histogram(self, img_filepath=None, show_img=True):
@@ -183,16 +192,9 @@ if __name__ == "__main__":
     # PERFORM BOT CLASSIFICATION
     #
 
-    classifier = Classifier(rt_graph)
+    classifier = Classifier(rt_graph, weight_attr="rt_count")
 
     df = classifier.bot_probabilities_df
-
-    print("--------------------------")
-    print("CLASSIFICATION COMPLETE!")
-    print(df.head())
-    print("... < 50% (NOT BOTS):", len(df[df["bot_probability"] < 0.5]))
-    print("... = 50% (NOT BOTS):", len(df[df["bot_probability"] == 0.5]))
-    print("... > 50% (MAYBE BOTS):", len(df[df["bot_probability"] > 0.5]))
 
     #
     # SAVE ARTIFACTS

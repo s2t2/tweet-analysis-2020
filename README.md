@@ -238,7 +238,7 @@ Constructing retweet graphs for a given week in the dataset:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 python -m app.retweet_graphs.bq_weekly_grapher
-#BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_grapher
+# BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_grapher
 ```
 
 Load weekly retweet graphs to see how much memory it takes:
@@ -247,18 +247,19 @@ Load weekly retweet graphs to see how much memory it takes:
 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_loader
 ```
 
-
 ### Bot Classification
 
-Once you have created a retweet graph, note its `JOB_ID`, then compute bot probabilities for each node:
+Once you have created a retweet graph, note its `JOB_ID` or `WEEK_ID`, then compute bot probabilities for each node:
 
 ```sh
 # JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
 JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
-This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
-
+```sh
+# WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_bot_classifier
+WEEK_ID="2019-52" DRY_RUN="false" python -m app.retweet_graphs.bq_weekly_graph_bot_classifier
+```
 
 ### KS Tests
 
