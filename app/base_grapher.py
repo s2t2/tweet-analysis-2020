@@ -38,8 +38,6 @@ class BaseGrapher():
         self.end_at = None
         self.duration_seconds = None
 
-
-
     @property
     def metadata(self):
         return {"app_env": APP_ENV, "users_limit": self.users_limit, "batch_size": self.batch_size}

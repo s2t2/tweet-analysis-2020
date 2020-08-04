@@ -136,7 +136,6 @@ class GraphStorageService:
     def download_graph(self):
         print(logstamp(), "DOWNLOADING GRAPH...", self.gcs_graph_filepath)
         self.gcs_service.download(self.gcs_graph_filepath, self.local_graph_filepath)
-        print(logstamp(), blob)
 
     #
     # GRAPH LOADING AND ANALYSIS
