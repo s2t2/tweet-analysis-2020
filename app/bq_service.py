@@ -21,7 +21,7 @@ def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def generate_temp_table_id():
+def generate_temp_table_id(): # todo: maybe a class method
     return datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
 
 class BigQueryService():
@@ -86,6 +86,24 @@ class BigQueryService():
             print(sql)
         job = self.client.query(sql)
         return job.result()
+
+    def execute_query_in_batches(self, sql, temp_table_name=None):
+        """Param: sql (str)"""
+        if not temp_table_name:
+            temp_table_id = generate_temp_table_id()
+            temp_table_name = f"{self.dataset_address}.temp_{temp_table_id}"
+
+        # todo: consider deleting an existing temp table and then overwriting it,
+        # ... or figure out a good system for deleting the temp tables after they have been created
+
+        job_config = bigquery.QueryJobConfig(
+            priority=bigquery.QueryPriority.BATCH,
+            allow_large_results=True,
+            destination=temp_table_name
+        )
+        job = self.client.query(sql, job_config=job_config)
+        print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
+        return job
 
     def fetch_topics(self):
         sql = f"""
@@ -211,16 +229,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=f"{self.dataset_address}.user_friends_temp_{job_name}"
-        )
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
-        return job
+        self.execute_query_in_batches(sql)
 
     def partition_user_friends(self, n=10):
         """Params n (int) the number of partitions, each will be of equal size"""
@@ -304,18 +313,8 @@ class BigQueryService():
         sql += """
             GROUP BY 1,2,3
         """
-        # return self.execute_query(sql)
 
-        temp_table_id = generate_temp_table_id()
-        temp_table_name = f"{self.dataset_address}.retweet_edges_temp_{temp_table_id}"
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=temp_table_name
-        )
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH RETWEET GRAPH EDGES):", type(job), job.job_id, job.state, job.location)
-        return job #, temp_table_name # pass this back in hopes the caller will delete this table after using it
+        self.execute_query_in_batches(sql)
 
 
     def fetch_specific_user_friends(self, screen_names):
@@ -420,16 +419,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=f"{self.dataset_address}.user_details_temp_{job_name}"
-        )
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH USER DETAILS):", type(job), job.job_id, job.state, job.location)
-        return job
+        self.execute_query_in_batches(sql)
 
     def fetch_retweeter_details_in_batches(self, limit=None):
         sql = f"""
@@ -459,13 +449,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        temp_table_name = f"{self.dataset_address}.retweeter_details_temp_{job_name}" # todo: delete me!
-        job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=temp_table_name)
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
-        return job
+        self.execute_query_in_batches(sql)
 
     def fetch_retweeters_by_topic_exclusive(self, topic):
         """
