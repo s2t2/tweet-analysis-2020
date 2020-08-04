@@ -225,9 +225,19 @@ JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
 
 #### Weekly Retweet Graphs
 
+Constructing retweet graphs for a given week in the dataset:
+
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 python -m app.retweet_graphs.bq_weekly_grapher
+#BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_grapher
 ```
+
+Load weekly retweet graphs to see how much memory it takes:
+
+```sh
+WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_loader
+```
+
 
 ### Bot Classification
 
@@ -239,54 +249,6 @@ JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
 This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ### KS Tests
@@ -307,11 +269,21 @@ Compare the distribution of user creation dates for those retweeting exclusively
 BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TOPIC="#MAGA" python -m app.ks_test.topic_pair_analyzer
 ```
 
-Load weekly retweet graphs to see how much memory it takes:
 
-```sh
-WEEK_ID="2020-12" python -m app.retweet_graphs.bq_weekly_graph_loader
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## Testing
