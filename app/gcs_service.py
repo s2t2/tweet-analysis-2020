@@ -7,6 +7,7 @@ from google.cloud import storage
 from dotenv import load_dotenv
 
 from conftest import TEST_DATA_DIR, TMP_DATA_DIR
+from app import seek_confirmation
 
 load_dotenv()
 
@@ -92,3 +93,35 @@ if __name__ == "__main__":
             blob = service.download(remote_filepath, tmp_local_filepath)
             print(os.path.isfile(tmp_local_filepath))
             os.remove(tmp_local_filepath)
+
+
+
+
+
+
+
+
+    exit()
+
+    #
+    # RENAMING THINGS.
+    # DO THIS AD-HOC, IF NECESSARY, FOR EXAMPLE IF YOU NEED TO ARCHIVE A BUNCH OF THINGS
+    #
+
+    gcs = GoogleCloudStorageService()
+
+    blobs = list(gcs.bucket.list_blobs())
+
+    blobs_to_rename = [blob for blob in blobs if "storage/data/2020-" in blob.name]
+
+    for blob in blobs_to_rename:
+        print(blob)
+
+    seek_confirmation()
+
+    for blob in blobs_to_rename:
+        #new_name = os.path.join("storage", "data", "archived_graphs", blob.name.split("storage/data")[1])
+        new_name = "storage/data/archived_graphs" + blob.name.split("storage/data")[1]
+        #> 'storage/data/archived_graphs/2020-05-25-1905/metadata.json'
+        print(new_name, "...")
+        new_blob = gcs.bucket.rename_blob(blob, new_name)
