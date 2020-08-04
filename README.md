@@ -102,6 +102,15 @@ Testing the Google Cloud Storage connection, saving some mock files in the speci
 python -m app.gcs_service
 ```
 
+If you need to rename any files on Google Cloud Storage, you can:
+
+```sh
+EXISTING_PATTERN="storage/data/2020-" EXISTING_DIRPATH="storage/data" NEW_DIRPATH="storage/data/archived_graphs" python -m app.gcs_file_renaming
+
+EXISTING_DIRPATH="storage/data/archived_graphs" NEW_DIRPATH="storage/data/archived" python -m app.gcs_file_renaming
+```
+
+
 Testing the local PostgreSQL database connection:
 
 ```sh
@@ -210,7 +219,7 @@ Observe the resulting job identifier (`JOB_ID`), and verify the graph and other 
 
 Once you have created a retweet graph, note its `JOB_ID`, and see how much memory it takes to load a given graph:
 
-```py
+```sh
 # right-leaning conversation graph
 JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.graph_analyzer
 JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.graph_analyzer
@@ -221,6 +230,21 @@ JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
 
 # neutral conversation retweet graph
 JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
+```
+
+#### Weekly Retweet Graphs
+
+Constructing retweet graphs for a given week in the dataset:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 python -m app.retweet_graphs.bq_weekly_grapher
+#BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_grapher
+```
+
+Load weekly retweet graphs to see how much memory it takes:
+
+```sh
+WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_loader
 ```
 
 
@@ -234,54 +258,6 @@ JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
 ```
 
 This will download the graph from Google Cloud Storage, if necessary, into its local storage directory, and then save a CSV file of bot probabilities in that directory as well.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ### KS Tests
@@ -303,12 +279,28 @@ BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TO
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Testing
 
 Run tests:
 
 ```sh
-pytest
+APP_ENV="test" pytest
 ```
 
 ## [Deploying](/DEPLOYING.md)

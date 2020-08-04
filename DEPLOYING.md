@@ -1,10 +1,14 @@
 # Deploying to Heroku
 
+## Server Setup
+
 Create a new app server (first time only):
 
 ```sh
 heroku create impeachment-tweet-analysis # (use your own app name here)
 ```
+
+## Server Config
 
 Provision and configure the Google Application Credentials Buildpack to generate a credentials file on the server:
 
@@ -22,18 +26,23 @@ heroku config:set APP_ENV="production"
 heroku config:set SERVER_NAME="impeachment-tweet-analysis-10" # or whatever yours is called
 
 heroku config:set BIGQUERY_DATASET_NAME="impeachment_production"
-heroku config:set MIN_USER_ID="17"
-heroku config:set MAX_USER_ID="49223966"
-heroku config:set USERS_LIMIT="10000"
-heroku config:set BATCH_SIZE="20"
-heroku config:set MAX_THREADS="20"
+heroku config:set GCS_BUCKET_NAME="impeachment-analysis-2020" -r heroku-4
 
 heroku config:set SENDGRID_API_KEY="_____________"
 heroku config:set MY_EMAIL_ADDRESS="me@example.com"
 
-heroku config:set GCS_BUCKET_NAME="impeachment-analysis-2020" -r heroku-4
-
+# EXAMPLE JOB-SPECIFIC CONFIG VARS...
+#heroku config:set MIN_USER_ID="17"
+#heroku config:set MAX_USER_ID="49223966"
+#heroku config:set USERS_LIMIT="10000"
+#heroku config:set BATCH_SIZE="20"
+#heroku config:set MAX_THREADS="20"
 ```
+
+
+
+
+## Deployment
 
 Deploy:
 
@@ -46,6 +55,8 @@ git push heroku master
 git checkout mybranch
 git push heroku mybranch:master
 ```
+
+## Usage
 
 Test everything is working in production:
 
@@ -71,7 +82,7 @@ Checking logs:
 heroku logs --ps friend_collector
 ```
 
-Running network grapher:
+Compiling friend graphs:
 
 ```sh
 heroku config:set BATCH_SIZE=1000 -r heroku-4
@@ -91,4 +102,22 @@ heroku config:set JOB_ID="2020-06-07-2056" -r heroku-4 # LEFT
 
 #heroku run:detached "python -m app.graph_analyzer" -r heroku-4
 heroku run graph_analyzer -r heroku-4
+```
+
+
+Compiling weekly retweet graphs:
+
+```sh
+heroku config:set BATCH_SIZE=2000 -r heroku-9
+heroku config:set WEEK_ID="2019-50" -r heroku-9
+heroku config:unset USERS_LIMIT -r heroku-9
+
+git push heroku-9 weekly-rt:master
+
+# "bq_weekly_rt_grapher" process dyno:
+#   + change size to "Standard-1X" for better metrics (JK: actually need "Performance-L" for enough memory, costs $500/mo ($16/day), so remember to shut off ASAP!)
+#   + turn on and monitor metrics
+
+# monitor the logs:
+heroku logs --tail -r heroku-9
 ```

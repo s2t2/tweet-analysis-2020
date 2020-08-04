@@ -66,14 +66,14 @@ class BaseGrapher():
         else:
             self.users_limit = None
 
-        self.local_dirpath = os.path.join(DATA_DIR, "graphs", self.job_id)
+        self.local_dirpath = os.path.join(DATA_DIR, "graphs", "archived", self.job_id)
         self.local_metadata_filepath = os.path.join(self.local_dirpath, "metadata.json")
         self.local_results_filepath = os.path.join(self.local_dirpath, "results.csv")
         self.local_edges_filepath = os.path.join(self.local_dirpath, "edges.gpickle")
         self.local_graph_filepath = os.path.join(self.local_dirpath, "graph.gpickle")
 
         self.gcs_service = (gcs_service or GoogleCloudStorageService())
-        self.gcs_dirpath = os.path.join("storage", "data", self.job_id)
+        self.gcs_dirpath = os.path.join("storage", "data", "archived", self.job_id)
         self.gcs_metadata_filepath = os.path.join(self.gcs_dirpath, "metadata.json")
         self.gcs_results_filepath = os.path.join(self.gcs_dirpath, "results.csv")
         self.gcs_edges_filepath = os.path.join(self.gcs_dirpath, "edges.gpickle")

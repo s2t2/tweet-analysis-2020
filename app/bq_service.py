@@ -3,8 +3,9 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
-from app import APP_ENV
+from app import APP_ENV, seek_confirmation
 from app.decorators.number_decorators import fmt_n
+from app.decorators.datetime_decorators import dt_to_date
 
 load_dotenv()
 
@@ -21,6 +22,9 @@ def generate_timestamp(): # todo: maybe a class method
     """Formats datetime for storing in BigQuery (consider moving)"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+def generate_temp_table_id(): # todo: maybe a class method
+    return datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
@@ -33,6 +37,16 @@ class BigQueryService():
         self.destructive = (destructive == True)
 
         self.client = bigquery.Client()
+
+        print("-------------------------")
+        print("BIGQUERY SERVICE...")
+        print("  DATASET ADDRESS:", self.dataset_address.upper())
+        print("  DESTRUCTIVE MIGRATIONS:", self.destructive)
+        print("  VERBOSE QUERIES:", self.verbose)
+        print("-------------------------")
+
+        seek_confirmation()
+
         # did this originally, but commenting out now to prevent accidental table deletions
         # if init_tables == True:
         #     self.init_tables()
@@ -43,6 +57,7 @@ class BigQueryService():
 
     @classmethod
     def cautiously_initialized(cls):
+        """ DEPRECATE ME """
         service = BigQueryService()
         if APP_ENV == "development":
             print("-------------------------")
@@ -72,6 +87,24 @@ class BigQueryService():
             print(sql)
         job = self.client.query(sql)
         return job.result()
+
+    def execute_query_in_batches(self, sql, temp_table_name=None):
+        """Param: sql (str)"""
+        if not temp_table_name:
+            temp_table_id = generate_temp_table_id()
+            temp_table_name = f"{self.dataset_address}.temp_{temp_table_id}"
+
+        # todo: consider deleting an existing temp table and then overwriting it,
+        # ... or figure out a good system for deleting the temp tables after they have been created
+
+        job_config = bigquery.QueryJobConfig(
+            priority=bigquery.QueryPriority.BATCH,
+            allow_large_results=True,
+            destination=temp_table_name
+        )
+        job = self.client.query(sql, job_config=job_config)
+        print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
+        return job
 
     def fetch_topics(self):
         sql = f"""
@@ -173,7 +206,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # CONSTRUCTING NETWORK GRAPHS
+    # FRIEND GRAPHS
     #
 
     def fetch_user_friends(self, min_id=None, max_id=None, limit=None):
@@ -197,16 +230,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=f"{self.dataset_address}.user_friends_temp_{job_name}"
-        )
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH USER FRIENDS):", type(job), job.job_id, job.state, job.location)
-        return job
+        return self.execute_query_in_batches(sql)
 
     def partition_user_friends(self, n=10):
         """Params n (int) the number of partitions, each will be of equal size"""
@@ -254,80 +278,45 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def fetch_retweet_counts(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
+    #
+    # RETWEET GRAPHS
+    #
+
+    def fetch_retweet_counts_in_batches(self, topic=None, start_at=None, end_at=None):
         """
-        Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
-            row per user per retweeted user, counting the number of times that user retweeted the other
+        For each retweeter, includes the number of times each they retweeted each other user.
+            Optionally about a given topic.
+            Optionally with within a given timeframe.
 
         Params:
 
-            topic (str) the topic they were tweeting about:
-                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
-                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
-                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
-
+            topic (str) the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
             start_at (str) a date string for the earliest tweet
-
             end_at (str) a date string for the latest tweet
-
-        See NOTES.md for more background about the timeline and topics collected.
         """
         sql = f"""
             SELECT
-                rt.user_id
-                ,rt.user_screen_name
-                ,rt.retweet_user_screen_name
+                user_id
+                ,user_screen_name
+                ,retweet_user_screen_name
                 ,count(distinct status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets` rt
-            WHERE upper(status_text) LIKE '%{topic.upper()}%'
+            FROM `{self.dataset_address}.retweets`
+            WHERE user_screen_name <> retweet_user_screen_name -- excludes people retweeting themselves
+        """
+        if topic:
+            sql+=f"""
+                AND upper(status_text) LIKE '%{topic.upper()}%'
+            """
+        if start_at and end_at:
+            sql+=f"""
                 AND (created_at BETWEEN '{start_at}' AND '{end_at}')
-                AND rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves, right?
+            """
+        sql += """
             GROUP BY 1,2,3
-            -- ORDER BY 4 desc
         """
-        return self.execute_query(sql)
 
-    def fetch_retweet_counts_in_batches(self, topic="impeach", start_at=DEFAULT_START, end_at=DEFAULT_END):
-        """
-        Fetches a list of users retweeting about a given topic during a given timeframe, returned as a
-            row per user per retweeted user, counting the number of times that user retweeted the other
+        return self.execute_query_in_batches(sql)
 
-        Params:
-
-            topic (str) the topic they were tweeting about:
-                        to be balanced, choose 'impeach', '#IGHearing', '#SenateHearing', etc.
-                        to be left-leaning, choose '#ImpeachAndConvict', '#ImpeachAndRemove', etc.
-                        to be right-leaning, choose '#ShamTrial', '#AquittedForever', '#MAGA', etc.
-
-            start_at (str) a date string for the earliest tweet
-
-            end_at (str) a date string for the latest tweet
-
-        See NOTES.md for more background about the timeline and topics collected.
-        """
-        sql = f"""
-            SELECT
-                rt.user_id
-                ,rt.user_screen_name
-                ,rt.retweet_user_screen_name
-                ,count(distinct status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets` rt
-            WHERE upper(status_text) LIKE '%{topic.upper()}%'
-                AND (created_at BETWEEN '{start_at}' AND '{end_at}')
-                AND rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves, right?
-            GROUP BY 1,2,3
-            -- ORDER BY 4 desc
-        """
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        temp_table_name = f"{self.dataset_address}.retweet_counts_temp_{job_name}"
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=temp_table_name
-        )
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH RETWEET COUNTS):", type(job), job.job_id, job.state, job.location)
-        return job #, temp_table_name # pass this back in hopes the caller will delete this table after using it
 
     def fetch_specific_user_friends(self, screen_names):
         sql = f"""
@@ -345,6 +334,41 @@ class BigQueryService():
             WHERE user_screen_name in {tuple(screen_names)} -- tuple conversion surrounds comma-separated screen_names in parens
                 -- AND user_screen_name <> retweet_user_screen_name -- exclude users who have retweeted themselves
             ORDER BY 2,3
+        """
+        return self.execute_query(sql)
+
+    def fetch_retweet_weeks(self, start_at=None, end_at=None):
+        """
+        Params:
+            start_at (str) like "2019-12-15 00:00:00"
+            end_at (str) like "2020-03-21 23:59:59"
+        """
+        sql = f"""
+            SELECT
+                CASE
+                    WHEN EXTRACT(week from created_at) = 0 THEN EXTRACT(year from created_at) - 1 -- treat first week of new year as the previous year
+                    ELSE EXTRACT(year from created_at)
+                    END  year
+
+                ,CASE
+                    WHEN EXTRACT(week from created_at) = 0 THEN 52 -- treat first week of new year as the previous week
+                    ELSE EXTRACT(week from created_at)
+                    END  week
+
+                ,count(DISTINCT EXTRACT(day from created_at)) as day_count
+                ,min(created_at) as min_created
+                ,max(created_at) as max_created
+                ,count(DISTINCT status_id) as retweet_count
+                ,count(DISTINCT user_id) as user_count
+            FROM `{self.dataset_address}.retweets`
+        """
+        if start_at and end_at:
+            sql += f"""
+            WHERE created_at BETWEEN '{start_at}' AND '{end_at}'
+            """
+        sql += """
+            GROUP BY 1,2
+            ORDER BY 1,2
         """
         return self.execute_query(sql)
 
@@ -396,16 +420,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        job_config = bigquery.QueryJobConfig(
-            priority=bigquery.QueryPriority.BATCH,
-            allow_large_results=True,
-            destination=f"{self.dataset_address}.user_details_temp_{job_name}"
-        )
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH USER DETAILS):", type(job), job.job_id, job.state, job.location)
-        return job
+        return self.execute_query_in_batches(sql)
 
     def fetch_retweeter_details_in_batches(self, limit=None):
         sql = f"""
@@ -435,13 +450,7 @@ class BigQueryService():
         if limit:
             sql += f"LIMIT {int(limit)};"
 
-        job_name = datetime.now().strftime('%Y_%m_%d_%H_%M_%S') # unique for each job
-        temp_table_name = f"{self.dataset_address}.retweeter_details_temp_{job_name}" # todo: delete me!
-        job_config = bigquery.QueryJobConfig(priority=bigquery.QueryPriority.BATCH, allow_large_results=True, destination=temp_table_name)
-
-        job = self.client.query(sql, job_config=job_config)
-        print("JOB (FETCH RETWEETER DETAILS):", type(job), job.job_id, job.state, job.location)
-        return job
+        return self.execute_query_in_batches(sql)
 
     def fetch_retweeters_by_topic_exclusive(self, topic):
         """
@@ -483,7 +492,28 @@ class BigQueryService():
         return self.execute_query(sql)
 
 
+class RetweetWeek:
+    def __init__(self, row):
+        """
+        A decorator for the rows returned by the fetch_retweet_weeks() query.
 
+        Param row (google.cloud.bigquery.table.Row)
+        """
+        self.row = row
+
+    @property
+    def week_id(self):
+        return f"{self.row.year}-{str(self.row.week).zfill(2)}" #> "2019-52", "2020-01", etc.
+
+    @property
+    def details(self):
+        details = ""
+        details += f"ID: {self.week_id} | "
+        details += f"FROM: '{dt_to_date(self.row.min_created)}' "
+        details += f"TO: '{dt_to_date(self.row.max_created)}' | "
+        details += f"DAYS: {fmt_n(self.row.day_count)} | "
+        details += f"USERS: {fmt_n(self.row.user_count)} | " + f"RETWEETS: {fmt_n(self.row.retweet_count)}"
+        return details
 
 if __name__ == "__main__":
 
