@@ -55,7 +55,7 @@ class BaseGrapher():
     def perform(self):
         """To be overridden by child class. Only the graph is required."""
         self.results = []
-        self.edges = []
+        #self.edges = []
         self.graph = DiGraph()
 
     def end(self):
@@ -73,9 +73,9 @@ class BaseGrapher():
         self.storage_service.write_results_to_file(self.results)
         self.storage_service.upload_results()
 
-    def save_edges(self):
-        self.storage_service.write_edges_to_file(self.edges)
-        self.storage_service.upload_edges()
+    #def save_edges(self):
+    #    self.storage_service.write_edges_to_file(self.edges)
+    #    self.storage_service.upload_edges()
 
     def save_graph(self):
         self.storage_service.write_graph_to_file(self.graph)

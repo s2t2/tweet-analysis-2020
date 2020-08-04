@@ -107,9 +107,7 @@ class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 
         self.end()
         self.report()
-
         self.save_results()
-        self.save_edges()
         self.save_graph()
 
 
