@@ -50,9 +50,9 @@ class GraphStorageService:
     def local_results_filepath(self):
         return os.path.join(self.local_dirpath, "results.csv")
 
-    @property
-    def local_edges_filepath(self):
-        return os.path.join(self.local_dirpath, "edges.gpickle")
+    #@property
+    #def local_edges_filepath(self):
+    #    return os.path.join(self.local_dirpath, "edges.gpickle")
 
     @property
     def local_graph_filepath(self):
@@ -74,13 +74,13 @@ class GraphStorageService:
         df = DataFrame(results)
         df.to_csv(self.local_results_filepath)
 
-    def write_edges_to_file(self, edges):
-        """
-        Params: edges (list of dict)
-        """
-        print(logstamp(), "WRITING EDGES...:")
-        with open(self.local_edges_filepath, "wb") as f:
-            pickle.dump(edges, f)
+    #def write_edges_to_file(self, edges):
+    #    """
+    #    Params: edges (list of dict)
+    #    """
+    #    print(logstamp(), "WRITING EDGES...:")
+    #    with open(self.local_edges_filepath, "wb") as f:
+    #        pickle.dump(edges, f)
 
     def write_graph_to_file(self, graph):
         """
@@ -105,9 +105,9 @@ class GraphStorageService:
     def gcs_results_filepath(self):
         return os.path.join(self.gcs_dirpath, "results.csv")
 
-    @property
-    def gcs_edges_filepath(self):
-        return os.path.join(self.gcs_dirpath, "edges.gpickle")
+    #@property
+    #def gcs_edges_filepath(self):
+    #    return os.path.join(self.gcs_dirpath, "edges.gpickle")
 
     @property
     def gcs_graph_filepath(self):
@@ -123,10 +123,10 @@ class GraphStorageService:
         blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
         print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
-    def upload_edges(self):
-        print(logstamp(), "UPLOADING EDGES...", self.gcs_edges_filepath)
-        blob = self.gcs_service.upload(self.local_edges_filepath, self.gcs_edges_filepath)
-        print(logstamp(), blob)
+    #def upload_edges(self):
+    #    print(logstamp(), "UPLOADING EDGES...", self.gcs_edges_filepath)
+    #    blob = self.gcs_service.upload(self.local_edges_filepath, self.gcs_edges_filepath)
+    #    print(logstamp(), blob)
 
     def upload_graph(self):
         print(logstamp(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
