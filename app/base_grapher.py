@@ -20,6 +20,8 @@ class BaseGrapher():
 
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, storage_service=None):
         self.users_limit = users_limit
+        if self.users_limit:
+            self.users_limit = int(self.users_limit)
         self.batch_size = batch_size
         self.storage_service = storage_service or GraphStorageService()
 

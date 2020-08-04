@@ -72,6 +72,8 @@ class GraphStorageService:
         """
         print(logstamp(), "WRITING RESULTS...")
         df = DataFrame(results)
+        df.index.rename("row_id")
+        df.index = df.index + 1
         df.to_csv(self.local_results_filepath)
 
     #def write_edges_to_file(self, edges):
