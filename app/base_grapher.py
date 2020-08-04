@@ -34,7 +34,7 @@ class BaseGrapher():
         self.counter = None
 
         self.results = None
-        self.edges = None
+        #self.edges = None
         self.graph = None
 
         self.end_at = None

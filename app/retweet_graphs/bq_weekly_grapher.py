@@ -1,15 +1,12 @@
 
 import os
-#from pprint import pprint
-#import random
 
 from dotenv import load_dotenv
-import numpy as np
 from networkx import DiGraph
 from memory_profiler import profile
 
 from app import DATA_DIR, seek_confirmation
-from app.decorators.datetime_decorators import dt_to_date, dt_to_s, logstamp
+from app.decorators.datetime_decorators import dt_to_s, logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_base_grapher import BigQueryBaseGrapher
 from app.bq_service import BigQueryService, RetweetWeek
