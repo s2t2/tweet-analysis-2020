@@ -8,7 +8,7 @@
 Testing the local PostgreSQL database connection:
 
 ```sh
-python -m app.models
+python -m app.pg_pipeline.models
 ```
 
 Downloading the "user_friends" table:

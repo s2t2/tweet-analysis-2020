@@ -7,7 +7,7 @@ from app import APP_ENV
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
+from app.pg_pipeline.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
 
 load_dotenv()
 

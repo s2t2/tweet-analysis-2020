@@ -4,7 +4,7 @@ from networkx import DiGraph
 from memory_profiler import profile
 
 from app import APP_ENV
-from app.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
+from app.pg_pipeline.models import DATABASE_URL, USER_FRIENDS_TABLE_NAME
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.friend_graphs.base_grapher import BaseGrapher, DRY_RUN, BATCH_SIZE, USERS_LIMIT
