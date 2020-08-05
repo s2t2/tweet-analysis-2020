@@ -1,4 +1,99 @@
 
+# Retweet Graphs
+
+Constructing retweet graphs:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="impeach" python -m app.retweet_graphs.bq_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 TOPIC="#MAGA" python -m app.retweet_graphs.bq_retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 "#ImpeachAndConvict" python -m app.retweet_graphs.bq_retweet_grapher
+```
+
+Observe the resulting job identifier (`JOB_ID`), and verify the graph and other artifacts are saved to local storage and/or Google Cloud Storage.
+
+Once you have created a retweet graph, note its `JOB_ID`, and see how much memory it takes to load a given graph:
+
+```sh
+# right-leaning conversation graph
+JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
+JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.friend_graphs.graph_analyzer
+
+# left-leaning conversation graph
+JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
+JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.friend_graphs.graph_analyzer
+
+# neutral conversation retweet graph
+JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
+```
+
+## Weekly Retweet Graphs
+
+Constructing retweet graphs for a given week in the dataset:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 python -m app.retweet_graphs.bq_weekly_grapher
+# BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=2500 WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_grapher
+```
+
+Load weekly retweet graphs to see how much memory it takes:
+
+```sh
+WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_loader
+```
+
+## Bot Classification
+
+Once you have created a retweet graph, note its `JOB_ID` or `WEEK_ID`, then compute bot probabilities for each node:
+
+```sh
+# JOB_ID="2020-06-15-2141" python -m app.botcode_v2.classifier
+JOB_ID="2020-06-15-2141" DRY_RUN="false" python -m app.botcode_v2.classifier
+```
+
+```sh
+# WEEK_ID="2019-52" python -m app.retweet_graphs.bq_weekly_graph_bot_classifier
+WEEK_ID="2019-52" DRY_RUN="false" python -m app.retweet_graphs.bq_weekly_graph_bot_classifier
+```
+
+## KS Tests
+
+### Retweeter Age Distribution By Topic
+
+Compare the distribution of user creation dates for those retweeting about a given topic, vs those not retweeting about that topic:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" TOPIC="#ImpeachAndConvict" python -m app.ks_test.topic_analyzer
+```
+
+### Retweeter Age Distribution By Topic Pair
+
+Compare the distribution of user creation dates for those retweeting exclusively about one of two different topics:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" X_TOPIC="#ImpeachAndConvict" Y_TOPIC="#MAGA" python -m app.ks_test.topic_pair_analyzer
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<hr>
+
+
+
+
+
 # Retweet Graph Notes
 
 Migrate and populate a few tables which we'll use to construct mention graphs.
@@ -140,7 +235,7 @@ Constructing Retweet Graphs:
 }
 ```
 
-# Version 2 Migrations
+# Updated Migrations
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.retweets;
