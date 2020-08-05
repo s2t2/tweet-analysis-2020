@@ -20,7 +20,7 @@ class GraphAnalyzer():
     def __init__(self, job_id=JOB_ID, storage_mode=STORAGE_MODE):
         """
 
-        DEPRECATE ME IN FAVOR OF NEW BASE GRAPHER
+        DEPRECATE ME IN FAVOR OF NEW GRAPH STORAGE SERVICE
 
         Params:
 

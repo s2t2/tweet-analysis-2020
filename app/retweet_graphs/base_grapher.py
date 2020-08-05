@@ -8,7 +8,7 @@ from networkx import DiGraph
 
 from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL
 from app.decorators.number_decorators import fmt_n
-from app.graph_storage_service import GraphStorageService
+from app.retweet_graphs.graph_storage_service import GraphStorageService
 from app.email_service import send_email
 
 load_dotenv()

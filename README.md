@@ -221,15 +221,15 @@ Once you have created a retweet graph, note its `JOB_ID`, and see how much memor
 
 ```sh
 # right-leaning conversation graph
-JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.graph_analyzer
-JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2049" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
+JOB_ID="2020-06-07-2049" STORAGE_MODE="remote" python -m app.friend_graphs.graph_analyzer
 
 # left-leaning conversation graph
-JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.graph_analyzer
-JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.graph_analyzer
+JOB_ID="2020-06-07-2056" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
+JOB_ID="2020-06-07-2056" STORAGE_MODE="remote" python -m app.friend_graphs.graph_analyzer
 
 # neutral conversation retweet graph
-JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.graph_analyzer
+JOB_ID="2020-06-15-2141" STORAGE_MODE="local" python -m app.friend_graphs.graph_analyzer
 ```
 
 #### Weekly Retweet Graphs

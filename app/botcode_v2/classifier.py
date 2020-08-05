@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from conftest import compile_mock_rt_graph
 from app import APP_ENV
 from app.decorators.number_decorators import fmt_n, fmt_pct
-from app.graph_analyzer import GraphAnalyzer
+from app.friend_graphs.graph_analyzer import GraphAnalyzer
 from app.botcode_v2.network_classifier_helper import getLinkDataRestrained as get_link_data_restrained # TODO: deprecate
 from app.botcode_v2.network_classifier_helper import psi as link_energy
 from app.botcode_v2.network_classifier_helper import computeH as compute_energy_graph
