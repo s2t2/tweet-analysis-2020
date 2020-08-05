@@ -37,15 +37,19 @@ pip install -r requirements.txt # (first time only)
 
 The tweets are stored in a Google BigQuery database, so we'll need BigQuery credentials to access the data. From the [Google Cloud console](https://console.cloud.google.com/), enable the BigQuery API, then generate and download the corresponding service account credentials. Move them into the root directory of this repo as "credentials.json", and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable accordingly (see environment variable setup below).
 
-#### Google Cloud Storage
+### Google Cloud Storage
 
 The network graph objects are so large that trying to construct them on a laptop is not feasible due to memory constraints. So we need to run various graph construction scripts on a larger remote server. Storage on Heroku servers is ephemeral, so we'll save the files to a Google Cloud Storage bucket instead. Create a new bucket or gain access to an existing bucket, and set the `GCS_BUCKET_NAME` environment variable accordingly (see environment variable setup below).
 
 FYI: in the bucket, there will also exist some temporary tables used by BigQuery during batch job performances, so we're namespacing the storage of graph data under "storage/data", with the thinking that the "storage/data" path can mirror the local "data" and/or "test/data" dirs in this repo.
 
-### Local Database Setup
+### SendGrid Emails
 
-We'll be downloading some of the data from BigQuery to a local database, for faster processing. So first create a local PostgreSQL database called "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
+The app will run scripts that take a long time. To have those scripts send emails when they are done, first obtain a [SendGrid API Key](https://app.sendgrid.com/settings/api_keys), then set it as an environment variable (see environment variable setup below).
+
+### Local Database
+
+To download some of the data from BigQuery into a local database, first create a local PostgreSQL database called "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
 
 ### Environment Variables
 
@@ -73,8 +77,8 @@ BIGQUERY_DATASET_NAME="impeachment_development"
 # EMAIL
 #
 
-SENDGRID_API_KEY="__________"
-MY_EMAIL_ADDRESS="hello@example.com"
+# SENDGRID_API_KEY="__________"
+# MY_EMAIL_ADDRESS="hello@example.com"
 
 #
 # JOB CONFIG VARS
@@ -93,7 +97,6 @@ Testing the Google BigQuery connection:
 
 ```sh
 python -m app.bq_service
-# DESTRUCTIVE_MIGRATIONS="true" python -m app.bq_service
 ```
 
 Testing the Google Cloud Storage connection, saving some mock files in the specified bucket:
@@ -111,6 +114,8 @@ EXISTING_DIRPATH="storage/data/archived_graphs" NEW_DIRPATH="storage/data/archiv
 ```
 
 ### Works In Progress
+
+This research is evolving in real time. Not all strategies are ultimately adopted. Here are some investigations tried so far. This code might not be as well maintained (more for archive purposes):
 
   + [Friend Collection v1](/app/friend_collection/README.md)
     + [Friend Graphs v1](/app/friend_graphs/README.md)
