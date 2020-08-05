@@ -1,16 +1,17 @@
 
 # Tweet Analysis (Python)
 
-So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic and stored them in Google BigQuery (see [Dataset Exploration Notes](/notes/dataset-exploration.md)). Now it's time to analyze them.
+So you've [collected](https://github.com/zaman-lab/tweet-collection-py) tens of millions of tweets about a given topic and stored them in Google BigQuery. Now it's time to analyze them.
 
 This research project builds upon the work of Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al., as described by the paper: ["Detecting Bots and Assessing Their Impact in Social Networks"](https://arxiv.org/abs/1810.12398).
 
+## Installation
+
 Dependencies:
 
+  + Git
   + Python 3.7
   + PostgreSQL
-
-## Installation
 
 Clone this repo onto your local machine and navigate there from the command-line:
 
@@ -21,14 +22,14 @@ cd tweet-analysis-py/
 Create and activate a virtual environment, using anaconda for example, if you like that kind of thing:
 
 ```sh
-conda create -n tweet-analyzer-env python=3.7 # (first time only)
+conda create -n tweet-analyzer-env python=3.7
 conda activate tweet-analyzer-env
 ```
 
 Install package dependencies:
 
 ```sh
-pip install -r requirements.txt # (first time only)
+pip install -r requirements.txt
 ```
 
 ## Setup
