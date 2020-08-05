@@ -5,7 +5,7 @@ Copyright 2019-2020 Zaman Labs team.
 
 Code in the "start" directory was shared by Tauhid Zaman, and is copyright of its original authors (Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al.), as described by [this paper](https://arxiv.org/abs/1810.12398).
 
-All other code written by MJ Rossetti <prof.mj.rossetti@gmail.com>, lots of it currently overlapping with https://github.com/zaman-lab/tweet-collection-py/.
+All other code written by MJ Rossetti <prof.mj.rossetti@gmail.com>, much adapted from the "start" dir, and some adapted from https://github.com/zaman-lab/tweet-collection-py/.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
