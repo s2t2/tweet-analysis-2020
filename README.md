@@ -102,7 +102,7 @@ Testing the Google Cloud Storage connection, saving some mock files in the speci
 python -m app.gcs_service
 ```
 
-If you need to rename any files on Google Cloud Storage, you can:
+Renaming files on Google Cloud Storage, if necessary:
 
 ```sh
 EXISTING_PATTERN="storage/data/2020-" EXISTING_DIRPATH="storage/data" NEW_DIRPATH="storage/data/archived_graphs" python -m app.gcs_file_renaming
@@ -110,13 +110,15 @@ EXISTING_PATTERN="storage/data/2020-" EXISTING_DIRPATH="storage/data" NEW_DIRPAT
 EXISTING_DIRPATH="storage/data/archived_graphs" NEW_DIRPATH="storage/data/archived" python -m app.gcs_file_renaming
 ```
 
-### [PG Pipeline](/app/pg_pipeline/README.md)
+### Works In Progress
 
-### [Friend Collection](/app/friend_collection/README.md)
-
-
-
-
+  + [Friend Collection v1](/app/friend_collection/README.md)
+    + [Friend Graphs v1](/app/friend_graphs/README.md)
+  + [PG Pipeline](/app/pg_pipeline/README.md) (Local Database Migrations)
+  + [Retweet Graphs v1](/app/retweet_graphs/README.md)
+    + [Bot Classification v1](/app/botcode)
+    + [Bot Classification v2](/app/retweet_graphs/README.md#Bot-Classification)
+    + [KS Tests v1](/app/retweet_graphs/README.md#KS-Tests)
 
 ## Testing
 
