@@ -1,5 +1,27 @@
+# Friend Collection
+
+> See: [Friend Collection Notes](/app/friend_collection/NOTES.md).
+
+Testing the Twitter scraper (doesn't need credentials):
+
+```sh
+python -m app.friend_collection.twitter_scraper
+# SCREEN_NAME="s2t2" python -m app.friend_collection.twitter_scraper
+# MAX_FRIENDS=5000 SCREEN_NAME="barackobama" python -m app.friend_collection.twitter_scraper
+```
+
+Fetching user friends (people they follow), and storing them in the "user_friends" table on BigQuery:
+
+```sh
+python -m app.friend_collection.batch_per_thread
+# USERS_LIMIT=100 MAX_THREADS=3 BATCH_SIZE=10 python -m app.friend_collection.batch_per_thread
+```
 
 
+
+
+
+<hr>
 
 
 # Friend Collection Notes

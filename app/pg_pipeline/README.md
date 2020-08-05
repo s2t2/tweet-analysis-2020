@@ -1,4 +1,45 @@
 
+# PG Pipeline
+
+## Local Database Migration
+
+> OPTIONAL, IF YOU WANT TO DOWNLOAD DATA FROM BIGQUERY TO LOCAL PG
+
+Testing the local PostgreSQL database connection:
+
+```sh
+python -m app.models
+```
+
+Downloading the "user_friends" table:
+
+```sh
+#python -m app.pg_pipeline.user_friends
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.pg_pipeline.user_friends
+```
+
+Downloading the "user_details" table:
+
+```sh
+#BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.pg_pipeline.user_details
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.pg_pipeline.user_details
+```
+
+Downloading the "retweeter_details" table:
+
+```sh
+
+# BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=300 python -m app.pg_pipeline.retweeter_details
+BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.pg_pipeline.retweeter_details
+```
+
+
+<hr>
+
+
+
+
+
 # User Analysis Notes
 
 ## User Details
