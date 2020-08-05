@@ -1,5 +1,5 @@
 
-from app.base_grapher import BaseGrapher, USERS_LIMIT, BATCH_SIZE
+from retweet_graphs.base_grapher import BaseGrapher, USERS_LIMIT, BATCH_SIZE
 from app.bq_service import BigQueryService
 
 class BigQueryBaseGrapher(BaseGrapher):

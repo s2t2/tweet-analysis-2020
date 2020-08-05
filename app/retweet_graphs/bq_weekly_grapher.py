@@ -6,15 +6,38 @@ from networkx import DiGraph
 from memory_profiler import profile
 
 from app import DATA_DIR, seek_confirmation
-from app.decorators.datetime_decorators import dt_to_s, logstamp
+from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date
 from app.decorators.number_decorators import fmt_n
-from app.bq_base_grapher import BigQueryBaseGrapher
-from app.bq_service import BigQueryService, RetweetWeek
-from app.graph_storage_service import GraphStorageService
+from app.bq_service import BigQueryService
+from retweet_graphs.bq_base_grapher import BigQueryBaseGrapher
+from app.retweet_graphs.graph_storage_service import GraphStorageService
 
 load_dotenv()
 
 WEEK_ID = os.getenv("WEEK_ID")
+
+class RetweetWeek:
+    def __init__(self, row):
+        """
+        A decorator for the rows returned by the fetch_retweet_weeks() query.
+
+        Param row (google.cloud.bigquery.table.Row)
+        """
+        self.row = row
+
+    @property
+    def week_id(self):
+        return f"{self.row.year}-{str(self.row.week).zfill(2)}" #> "2019-52", "2020-01", etc.
+
+    @property
+    def details(self):
+        details = ""
+        details += f"ID: {self.week_id} | "
+        details += f"FROM: '{dt_to_date(self.row.min_created)}' "
+        details += f"TO: '{dt_to_date(self.row.max_created)}' | "
+        details += f"DAYS: {fmt_n(self.row.day_count)} | "
+        details += f"USERS: {fmt_n(self.row.user_count)} | " + f"RETWEETS: {fmt_n(self.row.retweet_count)}"
+        return details
 
 class BigQueryWeeklyRetweetGrapher(BigQueryBaseGrapher):
 

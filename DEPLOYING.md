@@ -100,7 +100,7 @@ heroku config:set JOB_ID="2020-05-30-0338" -r heroku-4 # FIRST
 heroku config:set JOB_ID="2020-06-07-2049" -r heroku-4 # RIGHT
 heroku config:set JOB_ID="2020-06-07-2056" -r heroku-4 # LEFT
 
-#heroku run:detached "python -m app.graph_analyzer" -r heroku-4
+#heroku run:detached "python -m app.friend_graphs.graph_analyzer" -r heroku-4
 heroku run graph_analyzer -r heroku-4
 ```
 
