@@ -54,3 +54,15 @@ def to_dt(ts): # todo: rename as ts_to_dt
     Params: ts (float) seconds since epoch (like 1595759389.828663)
     """
     return datetime.utcfromtimestamp(ts)
+
+#
+# STRING DECORATORS
+#
+
+def s_to_dt(s):
+    """
+    Converts date string to datetime object
+
+    Params: s (str) like ... "2020-01-01 00:00:00"
+    """
+    return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
