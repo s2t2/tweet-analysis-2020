@@ -55,4 +55,8 @@ Only fetching ids for 17K users...
 
 ```sh
 python app.retweet_graphs_v2.lookup_user_ids
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2
+.lookup_user_ids # will probably hit rate limits, but will auto-sleep and restart when able
+
 ```

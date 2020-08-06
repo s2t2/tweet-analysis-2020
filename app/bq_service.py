@@ -511,6 +511,7 @@ class BigQueryService():
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_lookups`; "
         sql += f"""
             CREATE TABLE `{self.dataset_address}.user_id_lookups` (
+                counter INTEGER,
                 screen_name STRING,
                 user_id STRING,
                 message STRING
