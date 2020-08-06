@@ -49,7 +49,7 @@ if __name__ == "__main__":
         batch.append(lookup)
 
         if (len(batch) >= BATCH_SIZE) or (counter >= row_count): # if the batch is full or the row is last
-            print("SAVING BATCH...")
+            print("SAVING BATCH...", len(batch))
             bq_service.upload_user_id_lookups(batch)
             batch = [] # clear the batch
 
