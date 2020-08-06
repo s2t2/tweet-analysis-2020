@@ -20,7 +20,7 @@ DEFAULT_START = "2019-12-02 01:00:00" # the "beginning of time" for the impeachm
 DEFAULT_END = "2020-03-24 20:00:00" # the "end of time" for the impeachment dataset. todo: allow customization via env var
 
 def generate_timestamp(): # todo: maybe a class method
-    """Formats datetime for storing in BigQuery (consider moving)"""
+    """Formats datetime for storing in BigQuery"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def generate_temp_table_id(): # todo: maybe a class method
@@ -28,7 +28,7 @@ def generate_temp_table_id(): # todo: maybe a class method
 
 class BigQueryService():
 
-    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
+    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME,
                         verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS):
         self.project_name = project_name
         self.dataset_name = dataset_name
@@ -48,35 +48,9 @@ class BigQueryService():
 
         seek_confirmation()
 
-        # did this originally, but commenting out now to prevent accidental table deletions
-        # if init_tables == True:
-        #     self.init_tables()
-
     @property
     def metadata(self):
         return {"dataset_address": self.dataset_address, "destructive": self.destructive, "verbose": self.verbose}
-
-    #@classmethod
-    #def cautiously_initialized(cls):
-    #    """ DEPRECATE ME """
-    #    service = BigQueryService()
-    #    if APP_ENV == "development":
-    #        print("-------------------------")
-    #        print("BIGQUERY CONFIG...")
-    #        print("  DATASET ADDRESS:", service.dataset_address.upper())
-    #        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
-    #        print("  VERBOSE QUERIES:", service.verbose)
-    #        print("-------------------------")
-    #        if input("CONTINUE? (Y/N): ").upper() != "Y":
-    #            print("EXITING...")
-    #            exit()
-    #    # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
-    #    return service
-
-    #def init_tables(self):
-    #    """ Creates new tables for storing follower graphs """
-    #    self.migrate_populate_users()
-    #    self.migrate_user_friends()
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -535,7 +509,7 @@ class BigQueryService():
 
 if __name__ == "__main__":
 
-    service = BigQueryService.cautiously_initialized()
+    service = BigQueryService()
 
     print("--------------------")
     print("FETCHED TOPICS:")
