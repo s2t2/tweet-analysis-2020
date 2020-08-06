@@ -35,17 +35,18 @@ class GraphStorageService:
 
         print("----------------------")
         print("GRAPH STORAGE...")
-        print("   GCS DIR:", self.gcs_dirpath)
         print("   LOCAL DIR:", self.local_dirpath)
+        print("   GCS DIR:", self.gcs_dirpath)
         print("----------------------")
 
         seek_confirmation()
+
         self.make_local_dir()
 
     def compile_gcs_dirpath(self, local_dirpath):
         """
         Based on local directory path, compiles a corresponding directory on Google Cloud Storage.
-            local_dirpath (str or path-like) "/Users/USERNAME/path/to/repo/data/graphs/2020-08-02-1818"
+            local_dirpath (str) "data/graphs/2020-08-02-1818"
             gcs_dirpath (str) "storage/data/graphs/2020-08-02-1818"
         """
         stem = local_dirpath.split("data")[-1] #> '/graphs/example'
