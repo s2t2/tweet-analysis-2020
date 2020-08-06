@@ -132,3 +132,53 @@ UNION ALL
 )
 
 ```
+
+Of 17K users, 15K have user ids. What about the others?
+
+
+```sql
+/*select *
+from impeachment_production.retweets rt
+limit 10
+*/
+
+DROP TABLE IF EXISTS impeachment_production.idless_users;
+CREATE TABLE impeachment_production.idless_users as (
+  select
+    idl.screen_name
+    ,case when idl.message = 'User not found.' then 'NOT-FOUND'
+      when idl.message = 'User has been suspended.' then 'SUSPENDED'
+      end lookup_error
+  from impeachment_production.user_id_lookups idl
+  where idl.user_id is null and idl.message is not null
+  order by 1
+)
+
+```
+
+
+```sql
+SELECT
+  i.screen_name --- the retweeter
+  ,i.lookup_error
+  ,count(distinct rt.status_id) as retweet_count
+  ,count(distinct rt.user_id) as retweeter_count
+FROM impeachment_production.idless_users i
+LEFT JOIN impeachment_production.retweets rt ON upper(rt.user_screen_name) = upper(i.screen_name)
+GROUP BY 1,2
+ORDER by 3 desc
+-- only two users without ids have done any retweeting, and their tweet total is 2
+```
+
+```sql
+SELECT
+  i.screen_name -- the retweeted
+  ,i.lookup_error
+  ,count(distinct rt.status_id) as retweet_count
+  ,count(distinct rt.user_id) as retweeter_count
+FROM impeachment_production.idless_users i
+LEFT JOIN impeachment_production.retweets rt ON upper(rt.retweet_user_screen_name) = upper(i.screen_name)
+GROUP BY 1,2
+ORDER by 3 desc
+-- 2224 users without ids have been retweeted, some thousands of times. interesting. exporting to sheets.
+```
