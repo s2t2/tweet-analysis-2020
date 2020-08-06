@@ -5,10 +5,9 @@ import json
 from tweepy.error import TweepError
 from pandas import DataFrame
 
-from app import DATA_DIR
+from app import DATA_DIR, seek_confirmation
 from app.bq_service import BigQueryService
 from app.twitter_service import TwitterService
-
 
 if __name__ == "__main__":
 
@@ -36,7 +35,13 @@ if __name__ == "__main__":
 
     print("-------------")
     print("LOOKUPS COMPLETE!")
+
+    print("WRITING TO CSV...")
     df = DataFrame(lookups)
     print(df.head())
     csv_filepath = os.path.join(DATA_DIR, "user_id_lookups.csv")
     df.to_csv(csv_filepath, index=False)
+
+    print("UPLOADING TO BQ...")
+    bq_service.migrate_user_id_lookups()
+    bq_service.upload_user_id_lookups(lookups)

@@ -1,5 +1,7 @@
 from datetime import datetime
 import os
+from functools import lru_cache
+
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
@@ -54,31 +56,27 @@ class BigQueryService():
     def metadata(self):
         return {"dataset_address": self.dataset_address, "destructive": self.destructive, "verbose": self.verbose}
 
-    @classmethod
-    def cautiously_initialized(cls):
-        """ DEPRECATE ME """
-        service = BigQueryService()
-        if APP_ENV == "development":
-            print("-------------------------")
-            print("BIGQUERY CONFIG...")
-            print("  DATASET ADDRESS:", service.dataset_address.upper())
-            print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
-            print("  VERBOSE QUERIES:", service.verbose)
-            print("-------------------------")
-            if input("CONTINUE? (Y/N): ").upper() != "Y":
-                print("EXITING...")
-                exit()
-        # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
-        return service
+    #@classmethod
+    #def cautiously_initialized(cls):
+    #    """ DEPRECATE ME """
+    #    service = BigQueryService()
+    #    if APP_ENV == "development":
+    #        print("-------------------------")
+    #        print("BIGQUERY CONFIG...")
+    #        print("  DATASET ADDRESS:", service.dataset_address.upper())
+    #        print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
+    #        print("  VERBOSE QUERIES:", service.verbose)
+    #        print("-------------------------")
+    #        if input("CONTINUE? (Y/N): ").upper() != "Y":
+    #            print("EXITING...")
+    #            exit()
+    #    # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
+    #    return service
 
-    def init_tables(self):
-        """ Creates new tables for storing follower graphs """
-        self.migrate_populate_users()
-        self.migrate_user_friends()
-
-        #user_friends_table_ref = self.dataset_ref.table("user_friends")
-        #self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
-        self.user_friends_table = self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
+    #def init_tables(self):
+    #    """ Creates new tables for storing follower graphs """
+    #    self.migrate_populate_users()
+    #    self.migrate_user_friends()
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -172,6 +170,11 @@ class BigQueryService():
             sql += f"LIMIT {int(limit)};"
         results = self.execute_query(sql)
         return list(results)
+
+    @property
+    @lru_cache(maxsize=None)
+    def user_friends_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
 
     def insert_user_friends(self, records):
         """
@@ -501,6 +504,32 @@ class BigQueryService():
             WHERE t.user_id IS NULL
         """
         return self.execute_query(sql)
+
+    def migrate_user_id_lookups(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_lookups`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.user_id_lookups` (
+                screen_name STRING,
+                user_id STRING,
+                message STRING
+            );
+        """
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def user_id_lookups_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_id_lookups") # an API call (caches results for subsequent inserts)
+
+    def upload_user_id_lookups(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
+        return errors
 
 if __name__ == "__main__":
 
