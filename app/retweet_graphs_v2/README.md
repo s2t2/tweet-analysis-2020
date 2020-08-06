@@ -181,4 +181,22 @@ LEFT JOIN impeachment_production.retweets rt ON upper(rt.retweet_user_screen_nam
 GROUP BY 1,2
 ORDER by 3 desc
 -- 2224 users without ids have been retweeted, some thousands of times. interesting. exporting to sheets.
+
+
+```
+
+
+```sql
+-- it could be that these screen names are old and we have a match?
+
+SELECT
+  i.screen_name
+  ,i.lookup_error
+  ,count(distinct d.user_id) as user_id_count
+FROM impeachment_production.idless_users i
+JOIN impeachment_production.user_details d ON upper(i.screen_name) in UNNEST(d.screen_names)
+GROUP BY 1,2
+ORDER by 3 desc
+
+-- only two users match.
 ```
