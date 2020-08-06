@@ -60,3 +60,75 @@ DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" pyt
 .lookup_user_ids # will probably hit rate limits, but will auto-sleep and restart when able
 
 ```
+
+
+Analyzing the results...
+
+```sql
+/*
+select
+  count(screen_name) -- 17196
+  ,count(distinct screen_name) -- 17193
+
+  ,count(user_id) -- 14971
+  ,count(distinct user_id) -- 14969
+from impeachment_production.user_id_lookups idl
+*/
+
+
+/*
+select
+  screen_name
+  ,count(distinct user_id) as id_count
+from impeachment_production.user_id_lookups idl
+group by 1
+having id_count > 1
+-- no results GOOD
+ */
+
+select
+  user_id
+  ,count(distinct upper(screen_name)) as sn_count
+from impeachment_production.user_id_lookups idl
+group by 1
+having sn_count > 1
+-- null user id for 2224 screen names, but no others. would expect some to show up here
+
+```
+
+
+
+
+
+
+
+```sql
+
+-- TODO: need to make a master table of users
+-- TODO: make a screen name lookup table where you can get the corresponding user id of the screen name
+(
+
+    -- this isn't right. need to have uniqueness
+    SELECT
+        user_id
+        ,upper(user_screen_name) as screen_name
+    FROM impeachment_production.tweets
+    --ORDER BY user_id
+
+)
+UNION ALL
+(
+  select
+    /*case
+      when user_id is null then concat('DEACTIVE-', upper(screen_name))
+      else user_id
+      end user_id
+      */
+      user_id
+      ,upper(screen_name) as screen_name
+  from impeachment_production.user_id_lookups
+  where user_id is not null -- 14,971
+  -- order by user_id
+)
+
+```
