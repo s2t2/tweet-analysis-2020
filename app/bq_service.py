@@ -1,5 +1,7 @@
 from datetime import datetime
 import os
+from functools import lru_cache
+
 from dotenv import load_dotenv
 from google.cloud import bigquery
 
@@ -18,7 +20,7 @@ DEFAULT_START = "2019-12-02 01:00:00" # the "beginning of time" for the impeachm
 DEFAULT_END = "2020-03-24 20:00:00" # the "end of time" for the impeachment dataset. todo: allow customization via env var
 
 def generate_timestamp(): # todo: maybe a class method
-    """Formats datetime for storing in BigQuery (consider moving)"""
+    """Formats datetime for storing in BigQuery"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def generate_temp_table_id(): # todo: maybe a class method
@@ -26,7 +28,7 @@ def generate_temp_table_id(): # todo: maybe a class method
 
 class BigQueryService():
 
-    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME, init_tables=False,
+    def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME,
                         verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS):
         self.project_name = project_name
         self.dataset_name = dataset_name
@@ -46,39 +48,9 @@ class BigQueryService():
 
         seek_confirmation()
 
-        # did this originally, but commenting out now to prevent accidental table deletions
-        # if init_tables == True:
-        #     self.init_tables()
-
     @property
     def metadata(self):
         return {"dataset_address": self.dataset_address, "destructive": self.destructive, "verbose": self.verbose}
-
-    @classmethod
-    def cautiously_initialized(cls):
-        """ DEPRECATE ME """
-        service = BigQueryService()
-        if APP_ENV == "development":
-            print("-------------------------")
-            print("BIGQUERY CONFIG...")
-            print("  DATASET ADDRESS:", service.dataset_address.upper())
-            print("  DESTRUCTIVE MIGRATIONS:", service.destructive)
-            print("  VERBOSE QUERIES:", service.verbose)
-            print("-------------------------")
-            if input("CONTINUE? (Y/N): ").upper() != "Y":
-                print("EXITING...")
-                exit()
-        # service.init_tables() # did this originally, but commenting out now to prevent accidental table deletions
-        return service
-
-    def init_tables(self):
-        """ Creates new tables for storing follower graphs """
-        self.migrate_populate_users()
-        self.migrate_user_friends()
-
-        #user_friends_table_ref = self.dataset_ref.table("user_friends")
-        #self.user_friends_table = self.client.get_table(user_friends_table_ref) # an API call (caches results for subsequent inserts)
-        self.user_friends_table = self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
 
     def execute_query(self, sql):
         """Param: sql (str)"""
@@ -172,6 +144,11 @@ class BigQueryService():
             sql += f"LIMIT {int(limit)};"
         results = self.execute_query(sql)
         return list(results)
+
+    @property
+    @lru_cache(maxsize=None)
+    def user_friends_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_friends") # an API call (caches results for subsequent inserts)
 
     def insert_user_friends(self, records):
         """
@@ -316,7 +293,6 @@ class BigQueryService():
 
         return self.execute_query_in_batches(sql)
 
-
     def fetch_specific_user_friends(self, screen_names):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
@@ -372,7 +348,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # LOCAL ANALYSIS
+    # LOCAL ANALYSIS (PG PIPELINE)
     #
 
     def fetch_user_details_in_batches(self, limit=None):
@@ -490,10 +466,50 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    #
+    # RETWEET GRAPHS V2
+    #
+
+    def fetch_idless_screen_names(self):
+        sql = f"""
+            SELECT DISTINCT rt.retweet_user_screen_name as screen_name
+            FROM {self.dataset_address}.retweets rt
+            LEFT JOIN {self.dataset_address}.tweets t on t.user_screen_name = rt.retweet_user_screen_name
+            WHERE t.user_id IS NULL
+        """
+        return self.execute_query(sql)
+
+    def migrate_user_id_lookups(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_lookups`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.user_id_lookups` (
+                lookup_at TIMESTAMP,
+                counter INT64,
+                screen_name STRING,
+                user_id STRING,
+                message STRING
+            );
+        """
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def user_id_lookups_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_id_lookups") # an API call (caches results for subsequent inserts)
+
+    def upload_user_id_lookups(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
+        return errors
 
 if __name__ == "__main__":
 
-    service = BigQueryService.cautiously_initialized()
+    service = BigQueryService()
 
     print("--------------------")
     print("FETCHED TOPICS:")

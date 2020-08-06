@@ -30,7 +30,7 @@ def clean_string(dirty):
 class Pipeline():
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE,
                         pg_destructive=PG_DESTRUCTIVE, bq_service=None):
-        self.bq_service = (bq_service or BigQueryService.cautiously_initialized())
+        self.bq_service = bq_service or BigQueryService()
         if users_limit:
             self.users_limit = int(users_limit)
         else:
