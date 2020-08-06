@@ -200,3 +200,17 @@ ORDER by 3 desc
 
 -- only two users match.
 ```
+
+
+
+
+
+
+
+
+## Retweet Graphs
+
+Loading existing graphs based on
+```sh
+LOCAL_DIRPATH="data/graphs/weekly/2020-12" python -m app.retweet_graphs_v2.storage
+```
