@@ -252,17 +252,3 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
   WHERE retweet_status_id is not null
 );
 ```
-
-Begin to reverse-engineer retweeted user ids:
-
-```sql
-drop table if exists impeachment_development.retweeted_users;
-create table impeachment_development.retweeted_users as (
-  select
-      retweet_user_screen_name,
-      count(distinct status_id) as retweeted_count
-  from impeachment_development.retweets
-  group by 1
-  order by 2 desc
-)
-```

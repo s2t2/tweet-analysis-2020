@@ -37,7 +37,7 @@ class TwitterService:
         self.api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
     def get_user_id(self, screen_name):
-        user = self.api.get_user(SCREEN_NAME)
+        user = self.api.get_user(screen_name)
         return user.id
 
     def get_friends(self, screen_name=None, user_id=None, max_friends=2000):

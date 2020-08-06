@@ -316,7 +316,6 @@ class BigQueryService():
 
         return self.execute_query_in_batches(sql)
 
-
     def fetch_specific_user_friends(self, screen_names):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names, start_at, end_at
@@ -372,7 +371,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # LOCAL ANALYSIS
+    # LOCAL ANALYSIS (PG PIPELINE)
     #
 
     def fetch_user_details_in_batches(self, limit=None):
@@ -490,6 +489,18 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    #
+    # RETWEET GRAPHS V2
+    #
+
+    def fetch_idless_screen_names(self):
+        sql = f"""
+            SELECT DISTINCT rt.retweet_user_screen_name as screen_name
+            FROM {self.dataset_address}.retweets rt
+            LEFT JOIN {self.dataset_address}.tweets t on t.user_screen_name = rt.retweet_user_screen_name
+            WHERE t.user_id IS NULL
+        """
+        return self.execute_query(sql)
 
 if __name__ == "__main__":
 
