@@ -173,7 +173,6 @@ class TweetCollector(StreamListener):
 if __name__ == "__main__":
 
     listener = TweetCollector()
-
     seek_confirmation()
     listener.set_topics()
 

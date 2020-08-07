@@ -23,7 +23,7 @@ class LocalStorageService:
         self.tweets_csv_filepath = os.path.join(self.local_dirpath, "tweets.csv")
 
         print("--------------------")
-        print("LOCAL CSV STORAGE")
+        print("LOCAL CSV STORAGE...")
         print("  DIR:", os.path.abspath(self.local_dirpath))
         print("  TOPICS CSV:", os.path.abspath(self.topics_csv_filepath))
         print("  TWEETS CSV:", os.path.abspath(self.tweets_csv_filepath))

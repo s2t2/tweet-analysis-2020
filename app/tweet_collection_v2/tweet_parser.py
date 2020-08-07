@@ -1,6 +1,6 @@
 
 
-
+from app.decorators.datetime_decorators import dt_to_s
 
 def parse_status(status):
     """
@@ -23,7 +23,7 @@ def parse_status(status):
         "reply_user_id": status.in_reply_to_user_id_str,
         "is_quote": status.is_quote_status,
         "geo": status.geo,
-        "created_at": parse_timestamp(status.created_at),
+        "created_at": dt_to_s(status.created_at),
 
         "user_id": user.id_str,
         "user_name": user.name,
@@ -31,10 +31,11 @@ def parse_status(status):
         "user_description": parse_string(user.description),
         "user_location": user.location,
         "user_verified": user.verified,
-        "user_created_at": parse_timestamp(user.created_at),
-
-        # status.retweeted_status
-    } # IS THERE A WAY TO GET THE ID OF THE USER WHO WAS RETWEETED?
+        "user_created_at": dt_to_s(user.created_at),
+    }
+    # IS THERE A WAY TO GET THE ID OF THE USER WHO WAS RETWEETED?
+    # breakpoint()
+    # status.retweeted_status
     return row
 
 def parse_string(my_str):
