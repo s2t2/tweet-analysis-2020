@@ -22,10 +22,10 @@ STORAGE_ENV="local" EVENT_NAME="election_2020" python -m app.tweet_collection_v2
 
 Create the dataset "election_2020_development" on BigQuery.
 
-Migrate tables:
+Migrate tables and seed topics:
 
 ```sh
-
+BIGQUERY_DATASET_NAME="election_2020_development" EVENT_NAME="election_2020" python -m app.tweet_collection_v2.migrate_bq
 ```
 
 Collecting tweets:
