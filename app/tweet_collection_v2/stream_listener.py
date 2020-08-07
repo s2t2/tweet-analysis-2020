@@ -44,14 +44,16 @@ class TweetCollector(StreamListener):
             raise ValueError("Expecting the STORAGE_ENV to be 'local' or 'remote'. Please try again...")
 
         self.batch_size = batch_size
+        self.batch = []
+        self.counter = 0
 
         print("-------------------------------")
         print("STREAM LISTENER...")
-        print("STORAGE ENV:", self.storage_env)
-        print("STORAGE SERVICE:", self.storage_service)
-        print("BATCH SIZE:", self.batch_size)
-        self.batch = []
-        self.counter = 0
+        print("  STORAGE ENV:", self.storage_env.upper())
+        print("  STORAGE SERVICE:", type(self.storage_service))
+        print("  BATCH SIZE:", self.batch_size)
+        print("--------------------------------")
+
 
     def set_topics(self):
         self.topics = self.storage_service.fetch_topic_names()
@@ -171,7 +173,6 @@ class TweetCollector(StreamListener):
 if __name__ == "__main__":
 
     listener = TweetCollector()
-    print("LISTENER", type(listener))
 
     seek_confirmation()
     listener.set_topics()
