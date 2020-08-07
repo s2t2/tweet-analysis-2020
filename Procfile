@@ -1,3 +1,4 @@
+tweet_collector: python -m app.tweet_collection_v2.stream_listener
 friend_collector: python -m app.friend_collection.batch_per_thread
 bq_grapher: python -m app.friend_graphs.bq_grapher
 bq_list_grapher: python -m app.friend_graphs.bq_list_grapher
