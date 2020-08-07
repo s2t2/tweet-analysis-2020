@@ -144,7 +144,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     def fetch_topic_names(self):
-        return [row.topic for row in self.execute_query(sql)]
+        return [row.topic for row in self.fetch_topics()]
 
     def append_topics(self, topics):
         """

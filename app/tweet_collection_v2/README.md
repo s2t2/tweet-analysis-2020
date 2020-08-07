@@ -31,5 +31,5 @@ BIGQUERY_DATASET_NAME="election_2020_development" EVENT_NAME="election_2020" pyt
 Collecting tweets:
 
 ```sh
-STORAGE_ENV="remote" python -m app.tweet_collection_v2.stream_listener
+BIGQUERY_DATASET_NAME="election_2020_development" STORAGE_ENV="remote" python -m app.tweet_collection_v2.stream_listener
 ```
