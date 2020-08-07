@@ -8,11 +8,6 @@ from tweepy.streaming import StreamListener
 from tweepy import Stream
 from urllib3.exceptions import ProtocolError
 
-# from app import APP_ENV, STORAGE_ENV
-# from app.twitter_service import twitter_api, parse_status
-# from app.notification_service import send_email
-# from app.storage_service import local_topics, append_topics_to_csv, append_tweets_to_csv, BigQueryService
-
 from app import seek_confirmation
 from app.twitter_service import TwitterService
 from app.bq_service import BigQueryService, generate_timestamp

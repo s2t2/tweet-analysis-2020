@@ -78,14 +78,51 @@ class BigQueryService():
         return job
 
     #
-    # COLLECTING TWEETS
+    # COLLECTING TWEETS V2
     #
 
-    #def migrate_topics_table(self):
-    #    pass
+    def migrate_topics_table(self):
+        print("MIGRATING TOPICS TABLE...")
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.topics`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.topics` (
+                topic STRING NOT NULL,
+                created_at TIMESTAMP,
+            );
+        """
+        return list(self.execute_query(sql))
 
-    #def migrate_tweets_table(self):
-    #    pass
+    def migrate_tweets_table(self):
+        print("MIGRATING TWEETS TABLE...")
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.tweets`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.tweets` (
+                status_id           STRING,
+                status_text         STRING,
+                truncated           BOOLEAN,
+                retweeted_status_id STRING,
+                retweeted_user_id   STRING,
+                retweeted_user_screen_name   STRING,
+                reply_status_id     STRING,
+                reply_user_id       STRING,
+                is_quote            BOOLEAN,
+                geo                 STRING,
+                created_at          TIMESTAMP,
+
+                user_id             STRING,
+                user_name           STRING,
+                user_screen_name    STRING,
+                user_description    STRING,
+                user_location       STRING,
+                user_verified       BOOLEAN,
+                user_created_at     TIMESTAMP
+            );
+        """
+        return list(self.execute_query(sql))
 
     @property
     @lru_cache(maxsize=None)
