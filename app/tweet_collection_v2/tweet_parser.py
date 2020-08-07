@@ -2,23 +2,52 @@
 
 from app.decorators.datetime_decorators import dt_to_s
 
+#EXPECTED_COLUMNS = [
+#    "status_id",
+#    "status_text",
+#    "truncated",
+#    "retweeted_status_id",
+#    "retweeted_user_id",
+#    "retweeted_user_screen_name",
+#    "reply_status_id",
+#    "reply_user_id",
+#    "is_quote",
+#    "geo",
+#    "created_at",
+#
+#    "user_id",
+#    "user_name",
+#    "user_screen_name",
+#    "user_description",
+#    "user_location",
+#    "user_verified",
+#    "user_created_at"
+#] # should match what's happening in the parse_status() function
+
 def parse_status(status):
     """
     Param status (tweepy.models.Status)
-    Converts a nested status structure into a flat row of non-normalized status and user attributes
+
+    Converts a nested status structure into a flat row of non-normalized status and user attributes.
     """
 
-    if hasattr(status, "retweeted_status"):
-        retweet_of_status_id_str = status.retweeted_status.id_str
+    if hasattr(status, "retweeted_status") and status.retweeted_status:
+        retweeted_status_id = status.retweeted_status.id_str
+        retweeted_user_id = status.retweeted_status.user.id
+        retweeted_user_screen_name = status.retweeted_status.user.screen_name
     else:
-        retweet_of_status_id_str = None
+        retweeted_status_id = None
+        retweeted_user_id = None
+        retweeted_user_screen_name = None
 
     user = status.user
     row = {
         "status_id": status.id_str,
         "status_text": parse_string(parse_full_text(status)),
         "truncated": status.truncated,
-        "retweet_status_id": retweet_of_status_id_str,
+        "retweeted_status_id": retweeted_status_id,
+        "retweeted_user_id": retweeted_user_id,
+        "retweeted_user_screen_name": retweeted_user_screen_name,
         "reply_status_id": status.in_reply_to_status_id_str,
         "reply_user_id": status.in_reply_to_user_id_str,
         "is_quote": status.is_quote_status,
@@ -33,9 +62,6 @@ def parse_status(status):
         "user_verified": user.verified,
         "user_created_at": dt_to_s(user.created_at),
     }
-    # IS THERE A WAY TO GET THE ID OF THE USER WHO WAS RETWEETED?
-    # breakpoint()
-    # status.retweeted_status
     return row
 
 def parse_string(my_str):
