@@ -77,13 +77,63 @@ class BigQueryService():
         print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
         return job
 
+    #
+    # COLLECTING TWEETS
+    #
+
+    #def migrate_topics_table(self):
+    #    pass
+
+    #def migrate_tweets_table(self):
+    #    pass
+
+    @property
+    @lru_cache(maxsize=None)
+    def topics_table(self):
+        return self.client.get_table(f"{self.dataset_address}.topics") # an API call (caches results for subsequent inserts)
+
+    @property
+    @lru_cache(maxsize=None)
+    def tweets_table(self):
+        return self.client.get_table(f"{self.dataset_address}.tweets") # an API call (caches results for subsequent inserts)
+
     def fetch_topics(self):
+        """Returns a list of topic strings"""
         sql = f"""
             SELECT topic, created_at
             FROM `{self.dataset_address}.topics`
             ORDER BY created_at;
         """
         return self.execute_query(sql)
+
+    def fetch_topic_names(self):
+        return [row.topic for row in self.execute_query(sql)]
+
+    def append_topics(self, topics):
+        """
+        Inserts topics unless they already exist.
+        Param: topics (list of dict)
+        """
+        rows = self.fetch_topics()
+        existing_topics = [row.topic for row in rows]
+        new_topics = [topic for topic in topics if topic not in existing_topics]
+        if new_topics:
+            rows_to_insert = [[new_topic, generate_timestamp()] for new_topic in new_topics]
+            errors = self.client.insert_rows(self.topics_table, rows_to_insert)
+            return errors
+        else:
+            print("NO NEW TOPICS...")
+            return []
+
+    def append_tweets(self, tweets):
+        """Param: tweets (list of dict)"""
+        rows_to_insert = [list(d.values()) for d in tweets]
+        errors = self.client.insert_rows(self.tweets_table, rows_to_insert)
+        return errors
+
+    #
+    # COLLECTING USER FRIENDS
+    #
 
     def migrate_populate_users(self):
         """
@@ -122,10 +172,6 @@ class BigQueryService():
         """
         results = self.execute_query(sql)
         return list(results)
-
-    #
-    # COLLECTING USER FRIENDS
-    #
 
     def fetch_remaining_users(self, min_id=None, max_id=None, limit=None):
         """Returns a list of table rows"""
