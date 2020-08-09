@@ -64,7 +64,6 @@ class TweetCollector(StreamListener):
 
     def on_connect(self):
         print("LISTENER IS CONNECTED!")
-        #print("LISTENER WILL NOTIFY:", self.will_notify)
 
     def on_status(self, status):
         """Param status (tweepy.models.Status)"""
@@ -118,22 +117,13 @@ class TweetCollector(StreamListener):
         #  + urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool
         print("EXCEPTION:", type(exception))
         print(exception)
-        #if self.will_notify:
-        #    contents = f"{type(exception)}<br>{exception}"
-        #    send_email(subject="Tweet Collection - Exception", contents=contents)
 
     def on_error(self, status_code):
         print("ERROR:", status_code)
-        #if self.will_notify:
-        #    contents = f"{type(status_code)}<br>{status_code}"
-        #    send_email(subject="Tweet Collection - Error", contents=contents)
 
     def on_limit(self, track):
         """Param: track (int) starts low and subsequently increases"""
         print("RATE LIMITING", track)
-        #if self.will_notify:
-        #    contents = f"{type(track)}<br>{track}"
-        #    send_email(subject="Tweet Collection - Rate Limit", contents=contents)
         sleep_seconds = self.backoff_strategy(track)
         print("SLEEPING FOR:", sleep_seconds, "SECONDS...")
         sleep(sleep_seconds)
@@ -148,22 +138,14 @@ class TweetCollector(StreamListener):
 
     def on_timeout(self):
         print("TIMEOUT!")
-        #if self.will_notify:
-        #    send_email(subject="Tweet Collection - Timeout", contents="Restarting...")
         return True # don't kill the stream!
 
     def on_warning(self, notice):
         print("DISCONNECTION WARNING:", type(notice))
         print(notice)
-        #if self.will_notify:
-        #    contents = f"{type(notice)}<br>{notice}"
-        #    send_email(subject="Tweet Collection - Disconnect Warning", contents=contents)
 
     def on_disconnect(self, notice):
         print("DISCONNECT:", type(notice))
-        #if self.will_notify:
-        #    contents = f"{type(notice)}<br>{notice}"
-        #    send_email(subject="Tweet Collection - Disconnect", contents=contents)
 
 if __name__ == "__main__":
 
