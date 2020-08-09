@@ -2,7 +2,7 @@
 
 ## CSV File Storage
 
-Make a directory "data/tweet_collection_v2/election_2020". In it create a "topics.csv" file with contents like:
+Make a directory in the "data/tweet_collection_v2" dir called something like "election_2020", for your own event name. In it create a "topics.csv" file with contents like:
 
     topic
     Biden
@@ -11,8 +11,14 @@ Make a directory "data/tweet_collection_v2/election_2020". In it create a "topic
     #2020Election
     #MAGA
     #KAG2020
+    #creepyjoe
+    #sleepyjoe
+    #voteblue
 
-Collecting tweets:
+> FYI: the first row "topic" is a required column header. Twitter will match these topics case-insensitively and inclusively, so a topic of "rain" would include tweets about "#Rainbows".
+
+
+Collecting tweets locally (where `EVENT_NAME` is the directory where the local "topics.csv" file is stored):
 
 ```sh
 STORAGE_ENV="local" EVENT_NAME="election_2020" python -m app.tweet_collection_v2.stream_listener
@@ -20,15 +26,15 @@ STORAGE_ENV="local" EVENT_NAME="election_2020" python -m app.tweet_collection_v2
 
 ## BigQuery Storage (Development Database)
 
-Create the dataset "election_2020_development" on BigQuery.
+Create a development database on BigQuery called something like "election_2020_development".
 
-Migrate tables and seed topics:
+Migrate its tables and seed topics from the local CSV file:
 
 ```sh
 BIGQUERY_DATASET_NAME="election_2020_development" EVENT_NAME="election_2020" python -m app.tweet_collection_v2.bq_migrations
 ```
 
-Collecting tweets:
+Collecting tweets to the development database:
 
 ```sh
 BIGQUERY_DATASET_NAME="election_2020_development" STORAGE_ENV="remote" python -m app.tweet_collection_v2.stream_listener
@@ -36,30 +42,26 @@ BIGQUERY_DATASET_NAME="election_2020_development" STORAGE_ENV="remote" python -m
 
 # Deploying
 
-First create a new dataset called "election_2020_production" on BigQuery.
+First create a new production database on BigQuery called something like "election_2020_production".
 
-Migrate the tables on production, adding topics from the local CSV file (you can also run this anytime you need to add topics on production, just reset the tweet collector afterwards):
+Migrate its tables and seed topics from the local CSV file:
 
 ```sh
-BIGQUERY_DATASET_NAME="election_2020_production" EVENT_NAME="election_2020" python -
-m app.tweet_collection_v2.bq_migrations
+BIGQUERY_DATASET_NAME="election_2020_production" EVENT_NAME="election_2020" python -m app.tweet_collection_v2.bq_migrations
 ```
 
 Then set env vars on the server:
 
 ```sh
-heroku config:unset MAX_THREADS -r heroku
-heroku config:unset USERS_LIMIT -r heroku
+heroku config:set TWITTER_CONSUMER_KEY="__________"
+heroku config:set TWITTER_CONSUMER_SECRET="__________"
+heroku config:set TWITTER_ACCESS_TOKEN="____________"
+heroku config:set TWITTER_ACCESS_TOKEN_SECRET="_______________"
 
-heroku config:set BATCH_SIZE="125" -r heroku
+heroku config:set STORAGE_ENV="remote"
+heroku config:set BIGQUERY_DATASET_NAME="election_2020_production"
 
-heroku config:set TWITTER_CONSUMER_KEY="__________" -r heroku
-heroku config:set TWITTER_CONSUMER_SECRET="__________" -r heroku
-heroku config:set TWITTER_ACCESS_TOKEN="____________" -r heroku
-heroku config:set TWITTER_ACCESS_TOKEN_SECRET="_______________" -r heroku
-
-heroku config:set STORAGE_ENV="remote" -r heroku
-heroku config:set BIGQUERY_DATASET_NAME="election_2020_production" -r heroku
+heroku config:set BATCH_SIZE="125"
 ```
 
 Deploying:
@@ -69,8 +71,10 @@ git push heroku master
 # git push heroku collection-2:master -f
 ```
 
-Finally, manually turn on the "tweet_collector" dyno (Hobby tier is fine). And view logs as desired:
+Finally, manually turn on the "tweet_collector" dyno (Hobby tier is fine) to collect tweets to the production database.
+
+And view logs as desired:
 
 ```sh
-heroku logs --tail -r heroku
+heroku logs --tail
 ```
