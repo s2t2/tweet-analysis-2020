@@ -49,7 +49,6 @@ class TweetCollector(StreamListener):
         print("  BATCH SIZE:", self.batch_size)
         print("--------------------------------")
 
-
     def set_topics(self):
         self.topics = self.storage_service.fetch_topic_names()
         print("SET TOPICS:", self.topics)
@@ -59,7 +58,7 @@ class TweetCollector(StreamListener):
         raise TopicResetEvent("Let's trigger the listener to re-start in a kind of hacky way :-D")
 
     #
-    # CONNECT AND LISTEN FOR TWEETS
+    # LISTEN FOR TWEETS AND COLLECT THEM
     #
 
     def on_connect(self):
@@ -72,10 +71,6 @@ class TweetCollector(StreamListener):
             print("----------------")
             print(f"DETECTED AN INCOMING TWEET! ({self.counter} -- {status.id_str})")
             self.collect_in_batches(status)
-
-    #
-    # COLLECT SPECIFIED TWEETS
-    #
 
     @staticmethod
     def is_collectable(status):
