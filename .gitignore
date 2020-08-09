@@ -9,6 +9,8 @@ credentials.json
 
 data/*.csv
 
+data/tweet_collection_v2/*/*.csv
+
 data/graphs/archived/*/*.json
 data/graphs/archived/*/*.csv
 data/graphs/archived/*/*.gpickle

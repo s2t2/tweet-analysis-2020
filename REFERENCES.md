@@ -18,6 +18,7 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/running-queries#batch
   + https://cloud.google.com/bigquery/docs/paging-results
   + https://stackoverflow.com/a/27158310/670433
+  + https://cloud.google.com/bigquery/docs/schemas
 
 
 ## Twitter Resources
