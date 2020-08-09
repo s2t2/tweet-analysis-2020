@@ -41,7 +41,7 @@ if __name__ == "__main__":
     for date_range in get_date_ranges(start_date=START_DATE, k_days=K_DAYS, n_periods=N_PERIODS):
         #dirpath = f"data/retweet_graphs_v2/{EVENT_NAME}/k_days/{K_DAYS}/{dt_to_date(date_range['start_date'])}/"
         #dirpath = f"data/{EVENT_NAME}/retweet_graphs_v2/k_days/{K_DAYS}/{dt_to_date(date_range['start_date'])}/"
-        dirpath = f"retweet_graphs_v2/{K_DAYS}_days/{dt_to_date(date_range['start_date'])}/"
+        dirpath = f"retweet_graphs_v2/{K_DAYS}_days/{START_DATE}/{dt_to_date(date_range['start_date'])}/"
         #print(dirpath)
 
         graph_storage = GraphStorage(dirpath=dirpath)
