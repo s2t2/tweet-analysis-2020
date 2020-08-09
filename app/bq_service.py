@@ -550,7 +550,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # RETWEET GRAPHS V2
+    # RETWEET GRAPHS V2 - USER ID LOOKUPS
     #
 
     def fetch_idless_screen_names(self):
@@ -589,6 +589,12 @@ class BigQueryService():
         rows_to_insert = [list(d.values()) for d in records]
         errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
         return errors
+
+
+
+
+
+
 
 if __name__ == "__main__":
 

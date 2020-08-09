@@ -39,5 +39,5 @@ TODO
 Constructing retweet graphs on the basis of user ids instead of screen names.
 
 ```sh
-K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
 ```
