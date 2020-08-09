@@ -61,8 +61,3 @@ if __name__ == "__main__":
     #print(df.head())
     #csv_filepath = os.path.join(DATA_DIR, "user_id_lookups.csv")
     #df.to_csv(csv_filepath, index=False)
-
-    # google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/tweet-collector-py/datasets/impeachment_production/tables/user_id_lookups/insertAll: too many rows present in the request, limit: 10000 row count: 17196.
-    #bq_service.upload_user_id_lookups(lookups[0:9000])
-    #bq_service.upload_user_id_lookups(lookups[9000:18000])
-    # moving forward need to insert in batches less than 10000
