@@ -44,7 +44,6 @@ class BigQueryService():
         print("  DATASET ADDRESS:", self.dataset_address.upper())
         print("  DESTRUCTIVE MIGRATIONS:", self.destructive)
         print("  VERBOSE QUERIES:", self.verbose)
-        print("-------------------------")
 
         seek_confirmation()
 

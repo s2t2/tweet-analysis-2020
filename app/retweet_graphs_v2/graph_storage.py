@@ -3,6 +3,7 @@ import os
 import json
 import pickle
 from memory_profiler import profile
+from pprint import pprint
 
 from pandas import DataFrame
 from networkx import write_gpickle, read_gpickle
@@ -29,17 +30,25 @@ class GraphStorage:
         self.gcs_dirpath = os.path.join("storage", "data", self.dirpath)
         self.local_dirpath = os.path.join(DATA_DIR, self.dirpath) # TODO: to make compatible on windows, split the dirpath on "/" and re-join using os.sep
 
-        print("----------------------")
+        print("-------------------------")
         print("GRAPH STORAGE...")
         print("   DIRPATH:",  self.dirpath)
         print("   GCS DIRPATH:", self.gcs_dirpath)
         print("   LOCAL DIRPATH:", os.path.abspath(self.local_dirpath))
-        print("----------------------")
 
         seek_confirmation()
 
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
+
+    @property
+    def metadata(self):
+        return {
+            "dirpath": self.dirpath,
+            #"local_dirpath": os.path.abspath(self.local_dirpath),
+            #"gcs_dirpath": self.gcs_dirpath,
+            "gcs_service": self.gcs_service.metadata
+        }
 
     #
     # LOCAL STORAGE
