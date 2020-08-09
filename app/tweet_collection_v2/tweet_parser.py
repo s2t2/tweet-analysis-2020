@@ -2,28 +2,6 @@
 
 from app.decorators.datetime_decorators import dt_to_s
 
-#EXPECTED_COLUMNS = [
-#    "status_id",
-#    "status_text",
-#    "truncated",
-#    "retweeted_status_id",
-#    "retweeted_user_id",
-#    "retweeted_user_screen_name",
-#    "reply_status_id",
-#    "reply_user_id",
-#    "is_quote",
-#    "geo",
-#    "created_at",
-#
-#    "user_id",
-#    "user_name",
-#    "user_screen_name",
-#    "user_description",
-#    "user_location",
-#    "user_verified",
-#    "user_created_at"
-#] # should match what's happening in the parse_status() function
-
 def parse_status(status):
     """
     Param status (tweepy.models.Status)

@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from pandas import DataFrame, read_csv, concat
 
 from app import DATA_DIR, seek_confirmation
-#from app.tweet_collection_v2.tweet_parser import EXPECTED_COLUMNS
 
 load_dotenv()
 
@@ -58,8 +57,7 @@ class LocalStorageService:
         """
         Param: tweets (list of dict)
         """
-        #new_df = DataFrame(tweets, columns=EXPECTED_COLUMNS) # consider using list(tweets[0].keys())
-        new_df = DataFrame(tweets, columns=list(tweets[0].keys())) # be flexible
+        new_df = DataFrame(tweets, columns=list(tweets[0].keys()))
 
         csv_filepath = self.tweets_csv_filepath
         if os.path.isfile(csv_filepath):
