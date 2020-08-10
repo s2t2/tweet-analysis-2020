@@ -7,7 +7,8 @@ from memory_profiler import profile
 from dotenv import load_dotenv
 from networkx import DiGraph
 
-from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL
+from conftest import compile_mock_rt_graph
+from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL, seek_confirmation
 from app.decorators.number_decorators import fmt_n
 from app.decorators.datetime_decorators import dt_to_s
 from app.bq_service import BigQueryService
@@ -16,16 +17,19 @@ from app.email_service import send_email
 
 load_dotenv()
 
+TOPIC = os.getenv("TOPIC") # default is None
 USERS_LIMIT = os.getenv("USERS_LIMIT") # default is None
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="2500"))
 
-class RetweetGrapher():
+DRY_RUN = (os.getenv("DRY_RUN", default="false") == "true")
 
-    def __init__(self, graph_storage, bq_service=None,
-                        topic=None, tweets_start_at=None, tweets_end_at=None,
-                        users_limit=USERS_LIMIT, batch_size=BATCH_SIZE):
+class RetweetGrapher(GraphStorage):
+
+    def __init__(self, storage_dirpath=None, topic=TOPIC, tweets_start_at=None, tweets_end_at=None,
+                                        users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
+
+        super().__init__(dirpath=storage_dirpath)
         self.bq_service = bq_service or BigQueryService()
-        self.graph_storage = graph_storage
 
         # CONVERSATION PARAMS
 
@@ -33,8 +37,8 @@ class RetweetGrapher():
         if self.topic:
             self.topic = self.topic.upper()
 
-        self.tweets_start_at = tweets_start_at
-        self.tweets_end_at = tweets_end_at
+        self.tweets_start_at = tweets_start_at or datetime(2020,1,1)
+        self.tweets_end_at = tweets_end_at or datetime(2020,2,15)
 
         # PROCESSING PARAMS
 
@@ -49,21 +53,23 @@ class RetweetGrapher():
         print("  TOPIC:", self.topic)
         print("  TWEETS START:", self.tweets_start_at)
         print("  TWEETS END:", self.tweets_end_at)
+
         print("  USERS LIMIT:", self.users_limit)
         print("  BATCH SIZE:", self.batch_size)
+        print("  DRY RUN:", DRY_RUN)
+
+        seek_confirmation()
 
         self.start_at = None
         self.end_at = None
         self.duration_seconds = None
         self.counter = None
-        self.results = None
-        self.graph = None
 
     @property
     def metadata(self):
         return {
             "app_env": APP_ENV,
-            "graph_storage": self.graph_storage.metadata,
+            "storage_dirpath": self.dirpath,
             "bq_service": self.bq_service.metadata,
             "topic": self.topic,
             "tweets_start_at": dt_to_s(self.tweets_start_at),
@@ -80,12 +86,14 @@ class RetweetGrapher():
 
     @profile
     def perform(self):
-        #self.save_metadata()
-        #self.start()
         self.results = []
         self.graph = DiGraph()
 
-        for row in self.bq_service.fetch_retweet_counts_in_batches(start_at=dt_to_s(self.tweets_start_at), end_at=dt_to_s(self.tweets_end_at)):
+        breakpoint()
+        for row in self.bq_service.fetch_retweet_counts_in_batches(
+            topic=self.topic,
+            start_at=dt_to_s(self.tweets_start_at),
+            end_at=dt_to_s(self.tweets_end_at)):
 
             self.graph.add_edge(
                 row["user_screen_name"], # todo: user_id
@@ -108,11 +116,6 @@ class RetweetGrapher():
                 if self.users_limit and self.counter >= self.users_limit:
                     break
 
-        #self.end()
-        #self.report()
-        #self.save_results()
-        #self.save_graph()
-
     def end(self):
         print("-----------------")
         print("JOB COMPLETE!")
@@ -120,49 +123,44 @@ class RetweetGrapher():
         self.duration_seconds = round(self.end_at - self.start_at, 2)
         print(f"PROCESSED {fmt_n(self.counter)} ITEMS IN {fmt_n(self.duration_seconds)} SECONDS")
 
-    def save_metadata(self):
-        self.storage_service.write_metadata_to_file(self.metadata)
-        self.storage_service.upload_metadata()
+    #def send_completion_email(self, subject="[Tweet Analyzer] Graph Complete!"):
+    #    if APP_ENV == "production":
+    #        html = f"""
+    #            <h3>Nice!</h3>
+    #            <p>Server '{SERVER_NAME}' has completed its work.</p>
+    #            <p>So please shut it off so it can get some rest.</p>
+    #            <p>
+    #                <a href='{SERVER_DASHBOARD_URL}'>{SERVER_DASHBOARD_URL}</a>
+    #            </p>
+    #            <p>Thanks!</p>
+    #        """
+    #        response = send_email(subject, html)
+    #        return response
 
-    def save_results(self):
-        self.storage_service.write_results_to_file(self.results)
-        self.storage_service.upload_results()
-
-    #def save_edges(self):
-    #    self.storage_service.write_edges_to_file(self.edges)
-    #    self.storage_service.upload_edges()
-
-    def save_graph(self):
-        self.storage_service.write_graph_to_file(self.graph)
-        self.storage_service.upload_graph()
-
-    def report(self):
-        self.storage_service.report(self.graph)
-
-    def send_completion_email(self, subject="[Tweet Analyzer] Graph Complete!"):
-        if APP_ENV == "production":
-            html = f"""
-                <h3>Nice!</h3>
-                <p>Server '{SERVER_NAME}' has completed its work.</p>
-                <p>So please shut it off so it can get some rest.</p>
-                <p>
-                    <a href='{SERVER_DASHBOARD_URL}'>{SERVER_DASHBOARD_URL}</a>
-                </p>
-                <p>Thanks!</p>
-            """
-            response = send_email(subject, html)
-            return response
-
-    def sleep(self):
-        if APP_ENV == "production":
-            print("SLEEPING...")
-            time.sleep(6 * 60 * 60) # six hours, more than enough time to stop the server
+    #def sleep(self):
+    #    if APP_ENV == "production":
+    #        print("SLEEPING...")
+    #        time.sleep(6 * 60 * 60) # six hours, more than enough time to stop the server
 
 
 if __name__ == "__main__":
 
     grapher = RetweetGrapher()
+    grapher.save_metadata()
     grapher.start()
-    grapher.perform()
+
+    if DRY_RUN:
+        grapher.counter = 7500
+        grapher.results = [
+            {"ts": "2020-01-01 10:00:00", "counter": 2500, "nodes": 100_000, "edges": 150_000},
+            {"ts": "2020-01-01 10:00:00", "counter": 5000, "nodes": 200_000, "edges": 400_000},
+            {"ts": "2020-01-01 10:00:00", "counter": 7500, "nodes": 300_000, "edges": 900_000}
+        ]
+        grapher.graph = compile_mock_rt_graph()
+    else:
+        grapher.perform()
+
     grapher.end()
     grapher.report()
+    grapher.save_results()
+    grapher.save_graph()

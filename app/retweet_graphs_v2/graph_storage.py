@@ -7,26 +7,32 @@ from pprint import pprint
 
 from pandas import DataFrame
 from networkx import write_gpickle, read_gpickle
+from dotenv import load_dotenv
 
+from conftest import compile_mock_rt_graph
 from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.gcs_service import GoogleCloudStorageService
 from conftest import compile_mock_rt_graph
 
+load_dotenv()
+
+DIRPATH = os.getenv("DIRPATH", default="graphs/mock_graph")
+
 class GraphStorage:
 
-    def __init__(self, dirpath, gcs_service=None):
+    def __init__(self, dirpath=None, gcs_service=None):
         """
         Saves and loads artifacts from the networkx graph compilation process
             ...to and from local storage and/or Google Cloud Storage.
 
         Params:
-            dirpath (str) like "graphs/my_graph/123/"
+            dirpath (str) like "graphs/my_graph/123"
         """
         self.gcs_service = gcs_service or GoogleCloudStorageService()
 
-        self.dirpath = dirpath
+        self.dirpath = dirpath or DIRPATH
         self.gcs_dirpath = os.path.join("storage", "data", self.dirpath)
         self.local_dirpath = os.path.join(DATA_DIR, self.dirpath) # TODO: to make compatible on windows, split the dirpath on "/" and re-join using os.sep
 
@@ -40,6 +46,9 @@ class GraphStorage:
 
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
+
+        self.results = None
+        self.graph = None
 
     @property
     def metadata(self):
@@ -122,6 +131,22 @@ class GraphStorage:
         self.gcs_service.download(self.gcs_graph_filepath, self.local_graph_filepath)
 
     #
+    # CONVENIENCE METHODS
+    #
+
+    def save_metadata(self):
+        self.write_metadata_to_file()
+        self.upload_metadata()
+
+    def save_results(self):
+        self.write_results_to_file()
+        self.upload_results()
+
+    def save_graph(self):
+        self.write_graph_to_file()
+        self.upload_graph()
+
+    #
     # GRAPH LOADING AND ANALYSIS
     #
 
@@ -147,19 +172,10 @@ if __name__ == "__main__":
 
     storage = GraphStorage()
 
-    storage.metadata = {"a": 1, "b": {"c":True, "d": False}}
-    storage.write_metadata_to_file()
-    storage.upload_metadata()
-
-    storage.results = [
-        {"ts": "2020-01-01 10:00:00", "counter": 2500, "nodes": 100_000, "edges": 150_000},
-        {"ts": "2020-01-01 10:00:00", "counter": 5000, "nodes": 200_000, "edges": 400_000},
-        {"ts": "2020-01-01 10:00:00", "counter": 7500, "nodes": 300_000, "edges": 900_000}
-    ]
-    storage.write_results_to_file()
-    storage.upload_results()
-
     storage.graph = compile_mock_rt_graph()
     storage.report()
     storage.write_graph_to_file()
-    storage.upload_graph()
+
+    storage.graph = None
+    storage.load_graph()
+    storage.report()

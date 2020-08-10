@@ -34,7 +34,23 @@ DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" pyt
 
 TODO
 
+## Graph Storage
+
+
+
 ## Retweet Graphs
+
+Testing graph storage:
+
+```sh
+python -m app.retweet_graphs_v2.graph_storage
+```
+
+Testing graph storage:
+
+```sh
+DRY_RUN="true" python -m app.retweet_graphs_v2.retweet_grapher
+```
 
 Constructing retweet graphs on the basis of user ids instead of screen names.
 
