@@ -662,13 +662,38 @@ class BigQueryService():
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_details_v2` as (
                 SELECT
                     user_id
-                    ,count(DISTINCT upper(screen_name)) as screen_name_count
-                    ,ARRAY_AGG(DISTINCT upper(screen_name) IGNORE NULLS) as screen_names
+                    ,count(DISTINCT UPPER(screen_name)) as screen_name_count
+                    ,ARRAY_AGG(DISTINCT UPPER(screen_name) IGNORE NULLS) as screen_names
                     -- ,ANY_VALUE(screen_name) as screen_name
                 FROM `{self.dataset_address}.user_screen_names`
                 GROUP BY 1
                 ORDER BY 2 desc
                 -- LIMIT 100
+            );
+        """
+        return self.execute_query(sql)
+
+    def migrate_populate_retweets_table_v2(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.retweets_v2`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
+                SELECT
+                    rt.user_id
+                    ,rt.user_created_at
+                    ,UPPER(rt.user_screen_name) as user_screen_name
+
+                    ,ud.user_id as retweeted_user_id
+                    ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
+
+                    ,rt.status_id
+                    ,rt.status_text
+                    ,rt.created_at
+                FROM `{self.dataset_address}.retweets` rt
+                JOIN `{self.dataset_address}.user_details_v2` ud
+                    ON (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
+                WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
             );
         """
         return self.execute_query(sql)
@@ -680,36 +705,33 @@ class BigQueryService():
             Optionally with within a given timeframe.
 
         Params:
-
-            topic (str) the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
-            start_at (str) a date string for the earliest tweet
-            end_at (str) a date string for the latest tweet
+            topic (str) : the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
+            start_at (str) : a date string for the earliest tweet
+            end_at (str) : a date string for the latest tweet
         """
-        breakpoint()
         sql = f"""
-
-
+            -- 30,851,361 rows without join
+            --
             SELECT
-                user_id
-                ,retweeted_user_id
-                ,count(distinct status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets`
-            WHERE user_screen_name <> retweet_user_screen_name -- excludes people retweeting themselves
-
-
+                rt.user_id
+                --,upper(rt.retweet_user_screen_name) as retweeted_user_screen_name
+                ,ud.user_id as retweeted_user_id
+                ,count(distinct rt.status_id) as retweet_count
+            FROM `{self.dataset_address}.retweets` rt
+            JOIN `{self.dataset_address}.user_details_v2` ud on (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
+            WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
         """
         if topic:
             sql+=f"""
-                AND upper(status_text) LIKE '%{topic.upper()}%'
+                AND upper(rt.status_text) LIKE '%{topic.upper()}%'
             """
         if start_at and end_at:
             sql+=f"""
-                AND (created_at BETWEEN '{start_at}' AND '{end_at}')
+                AND (rt.created_at BETWEEN '{start_at}' AND '{end_at}')
             """
         sql += """
-            GROUP BY 1,2,3
+            GROUP BY 1,2
         """
-
         return self.execute_query_in_batches(sql)
 
 

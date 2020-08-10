@@ -58,6 +58,14 @@ New user details table (row per user id):
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_user_details_v2
 ```
 
+New retweets table (includes retweeted user id):
+
+```sh
+# python -m app.retweet_graphs_v2.migrate_retweets_v2
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_retweets_v2
+```
+
 ## Retweet Graphs
 
 Testing graph storage:
