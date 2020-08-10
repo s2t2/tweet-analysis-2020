@@ -20,6 +20,8 @@ load_dotenv()
 
 DIRPATH = os.getenv("DIRPATH", default="graphs/mock_graph")
 
+DRY_RUN = (os.getenv("DRY_RUN", default="false") == "true")
+
 class GraphStorage:
 
     def __init__(self, dirpath=None, gcs_service=None):
@@ -172,10 +174,11 @@ if __name__ == "__main__":
 
     storage = GraphStorage()
 
-    storage.graph = compile_mock_rt_graph()
-    storage.report()
-    storage.write_graph_to_file()
+    if DRY_RUN:
+        storage.graph = compile_mock_rt_graph()
+        storage.report()
+        storage.write_graph_to_file()
+        storage.graph = None
 
-    storage.graph = None
     storage.load_graph()
     storage.report()

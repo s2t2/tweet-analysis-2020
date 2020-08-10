@@ -87,7 +87,7 @@ BIGQUERY_DATASET_NAME="impeachment_production" DIRPATH="graphs/example/abc123" T
 
 # without topic:
 BIGQUERY_DATASET_NAME="impeachment_production" DIRPATH="graphs/example/3days" TWEETS_START_AT="2020-01-10"
-TWEETS_END_AT="2020-01-14" BATCH_SIZE=125 VERBOSE_QUERIES="true" python -m app.retweet_graphs_v2.retweet_grapher
+TWEETS_END_AT="2020-01-14" BATCH_SIZE=5000 VERBOSE_QUERIES="true" python -m app.retweet_graphs_v2.retweet_grapher
 ```
 
 ### K Days Graphs
