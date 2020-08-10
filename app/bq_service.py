@@ -589,6 +589,32 @@ class BigQueryService():
         errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
         return errors
 
+    def fetch_max_user_id_postlookup(self):
+        sql = f"""
+            SELECT max(user_id) as max_user_id -- 999999827600650240
+            FROM (
+                SELECT DISTINCT user_id FROM {self.dataset_address}.tweets -- 3,600,545
+                UNION ALL
+                SELECT DISTINCT user_id FROM {self.dataset_address}.user_id_lookups WHERE user_id IS NOT NULL -- 14,969
+            ) all_user_ids -- 3,615,409
+        """
+        results = list(self.execute_query(sql))
+        return int(results[0]["max_user_id"])
+
+    def fetch_idless_screen_names_postlookup(self):
+        sql = f"""
+            SELECT distinct upper(screen_name) as screen_name
+            FROM {self.dataset_address}.user_id_lookups
+            WHERE user_id is NULL
+            ORDER BY screen_name
+        """
+        return self.execute_query(sql)
+
+
+
+
+
+
     def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
         """
         For each retweeter, includes the number of times each they retweeted each other user.
@@ -601,6 +627,7 @@ class BigQueryService():
             start_at (str) a date string for the earliest tweet
             end_at (str) a date string for the latest tweet
         """
+        breakpoint()
         sql = f"""
 
 

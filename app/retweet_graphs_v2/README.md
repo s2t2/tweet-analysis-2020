@@ -30,9 +30,11 @@ Looking up user ids:
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.lookup_user_ids
 ```
 
-## More BigQuery Migrations
+## User Id BigQuery Migrations
 
-TODO
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" python app.retweet_graphs_v2.assign_user_ids
+```
 
 
 ## Retweet Graphs
