@@ -20,25 +20,26 @@ load_dotenv()
 TOPIC = os.getenv("TOPIC") # default is None
 USERS_LIMIT = os.getenv("USERS_LIMIT") # default is None
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="2500"))
+TWEETS_START_AT = os.getenv("TWEETS_START_AT") # default is None
+TWEETS_END_AT = os.getenv("TWEETS_END_AT") # default is None
 
 DRY_RUN = (os.getenv("DRY_RUN", default="false") == "true")
 
 class RetweetGrapher(GraphStorage):
 
-    def __init__(self, storage_dirpath=None, topic=TOPIC, tweets_start_at=None, tweets_end_at=None,
-                                        users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, bq_service=None):
+    def __init__(self, topic=TOPIC, tweets_start_at=TWEETS_START_AT, tweets_end_at=TWEETS_END_AT,
+                        users_limit=USERS_LIMIT, batch_size=BATCH_SIZE,
+                        storage_dirpath=None, bq_service=None):
 
         super().__init__(dirpath=storage_dirpath)
         self.bq_service = bq_service or BigQueryService()
+        self.fetch_edges = self.bq_service.fetch_retweet_edges_in_batches_v2 # just being less verbose. feels like javascript
 
-        # CONVERSATION PARAMS
+        # CONVERSATION PARAMS (OPTIONAL)
 
         self.topic = topic
-        if self.topic:
-            self.topic = self.topic.upper()
-
-        self.tweets_start_at = tweets_start_at or datetime(2020,1,1)
-        self.tweets_end_at = tweets_end_at or datetime(2020,2,15)
+        self.tweets_start_at = tweets_start_at
+        self.tweets_end_at = tweets_end_at
 
         # PROCESSING PARAMS
 
@@ -50,13 +51,14 @@ class RetweetGrapher(GraphStorage):
 
         print("-------------------------")
         print("RETWEET GRAPHER...")
-        print("  TOPIC:", self.topic)
-        print("  TWEETS START:", self.tweets_start_at)
-        print("  TWEETS END:", self.tweets_end_at)
-
         print("  USERS LIMIT:", self.users_limit)
         print("  BATCH SIZE:", self.batch_size)
         print("  DRY RUN:", DRY_RUN)
+        print("-------------------------")
+        print("  CONVERSATION PARAMS...")
+        print("    TOPIC:", self.topic)
+        print("    TWEETS START:", self.tweets_start_at)
+        print("    TWEETS END:", self.tweets_end_at)
 
         seek_confirmation()
 
@@ -72,8 +74,8 @@ class RetweetGrapher(GraphStorage):
             "storage_dirpath": self.dirpath,
             "bq_service": self.bq_service.metadata,
             "topic": self.topic,
-            "tweets_start_at": dt_to_s(self.tweets_start_at),
-            "tweets_end_at": dt_to_s(self.tweets_end_at),
+            "tweets_start_at": self.tweets_start_at,
+            "tweets_end_at": self.tweets_end_at,
             "users_limit": self.users_limit,
             "batch_size": self.batch_size
         }
@@ -89,32 +91,26 @@ class RetweetGrapher(GraphStorage):
         self.results = []
         self.graph = DiGraph()
 
-        breakpoint()
-        for row in self.bq_service.fetch_retweet_counts_in_batches(
-            topic=self.topic,
-            start_at=dt_to_s(self.tweets_start_at),
-            end_at=dt_to_s(self.tweets_end_at)):
+        for row in self.fetch_edges(topic=self.topic, start_at=self.tweets_start_at, end_at=self.tweets_end_at):
 
-            self.graph.add_edge(
-                row["user_screen_name"], # todo: user_id
-                row["retweet_user_screen_name"], # todo: retweet_user_id
-                weight=row["retweet_count"]
-            )
+            self.graph.add_edge(row["user_id"], row["retweeted_user_id"], weight=row["retweet_count"])
 
             self.counter += 1
             if self.counter % self.batch_size == 0:
-                rr = {
-                    "ts": logstamp(),
-                    "counter": self.counter,
-                    "nodes": self.graph.number_of_nodes(),
-                    "edges": self.graph.number_of_edges()
-                }
-                print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
-                self.results.append(rr)
+                self.results.append(self.running_results)
 
-                # gets us an approximate users limit but reached a fraction of the time (perhaps more performant when there are millions of rows)
                 if self.users_limit and self.counter >= self.users_limit:
                     break
+
+    @property
+    def running_results(self):
+        rr = {"ts": logstamp(),
+            "counter": self.counter,
+            "nodes": self.graph.number_of_nodes(),
+            "edges": self.graph.number_of_edges()
+        }
+        print(rr["ts"], "|", fmt_n(rr["counter"]), "|", fmt_n(rr["nodes"]), "|", fmt_n(rr["edges"]))
+        return rr
 
     def end(self):
         print("-----------------")

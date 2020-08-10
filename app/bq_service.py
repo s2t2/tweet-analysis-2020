@@ -589,8 +589,43 @@ class BigQueryService():
         errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
         return errors
 
+    def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
+        """
+        For each retweeter, includes the number of times each they retweeted each other user.
+            Optionally about a given topic.
+            Optionally with within a given timeframe.
+
+        Params:
+
+            topic (str) the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
+            start_at (str) a date string for the earliest tweet
+            end_at (str) a date string for the latest tweet
+        """
+        sql = f"""
 
 
+            SELECT
+                user_id
+                ,retweeted_user_id
+                ,count(distinct status_id) as retweet_count
+            FROM `{self.dataset_address}.retweets`
+            WHERE user_screen_name <> retweet_user_screen_name -- excludes people retweeting themselves
+
+
+        """
+        if topic:
+            sql+=f"""
+                AND upper(status_text) LIKE '%{topic.upper()}%'
+            """
+        if start_at and end_at:
+            sql+=f"""
+                AND (created_at BETWEEN '{start_at}' AND '{end_at}')
+            """
+        sql += """
+            GROUP BY 1,2,3
+        """
+
+        return self.execute_query_in_batches(sql)
 
 
 

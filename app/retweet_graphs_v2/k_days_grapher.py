@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta
 from pprint import pprint
+import time
 
 from dotenv import load_dotenv
 from pandas import date_range
@@ -72,6 +73,17 @@ if __name__ == "__main__":
             tweets_start_at=date_range.start_at,
             tweets_end_at=date_range.end_at,
         )
-        pprint(grapher.metadata)
+        #pprint(grapher.metadata)
+        #grapher.save_metadata()
+        #grapher.start()
         #grapher.perform()
-        #grapher.sleep()
+        #grapher.end()
+        #grapher.report()
+        #grapher.save_results()
+        #grapher.save_graph()
+        #grapher.sleep() # maybe mini nap for 3 minutes to cool memory?
+
+        del grapher # clear memory!
+
+    print("JOB COMPLETE!")
+    time.sleep(6 * 60 * 60) # 6 hours, enough time to stop the server before it restarts
