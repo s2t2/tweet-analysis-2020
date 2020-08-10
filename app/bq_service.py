@@ -680,11 +680,13 @@ class BigQueryService():
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
                 SELECT
-                    rt.user_id
-                    ,rt.user_created_at
+                    cast(rt.user_id as int64) as user_id
                     ,UPPER(rt.user_screen_name) as user_screen_name
-                    ,sn.user_id as retweeted_user_id
+                    ,rt.user_created_at
+
+                    ,cast(sn.user_id as int64) as retweeted_user_id
                     ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
+
                     ,rt.status_id
                     ,rt.status_text
                     ,rt.created_at

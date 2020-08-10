@@ -10,7 +10,7 @@ from networkx import DiGraph
 from conftest import compile_mock_rt_graph
 from app import APP_ENV, DATA_DIR, SERVER_NAME, SERVER_DASHBOARD_URL, seek_confirmation
 from app.decorators.number_decorators import fmt_n
-from app.decorators.datetime_decorators import dt_to_s
+from app.decorators.datetime_decorators import dt_to_s, logstamp
 from app.bq_service import BigQueryService
 from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.email_service import send_email
@@ -55,10 +55,10 @@ class RetweetGrapher(GraphStorage):
         print("  BATCH SIZE:", self.batch_size)
         print("  DRY RUN:", DRY_RUN)
         print("-------------------------")
-        print("  CONVERSATION PARAMS...")
-        print("    TOPIC:", self.topic)
-        print("    TWEETS START:", self.tweets_start_at)
-        print("    TWEETS END:", self.tweets_end_at)
+        print("CONVERSATION PARAMS...")
+        print("  TOPIC:", self.topic)
+        print("  TWEETS START:", self.tweets_start_at)
+        print("  TWEETS END:", self.tweets_end_at)
 
         seek_confirmation()
 
@@ -92,13 +92,12 @@ class RetweetGrapher(GraphStorage):
         self.graph = DiGraph()
 
         for row in self.fetch_edges(topic=self.topic, start_at=self.tweets_start_at, end_at=self.tweets_end_at):
-
+            #print(type(row["user_id"]), type(row["retweeted_user_id"]), type(row["retweet_count"]))
             self.graph.add_edge(row["user_id"], row["retweeted_user_id"], weight=row["retweet_count"])
 
             self.counter += 1
             if self.counter % self.batch_size == 0:
                 self.results.append(self.running_results)
-
                 if self.users_limit and self.counter >= self.users_limit:
                     break
 
