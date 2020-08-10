@@ -677,26 +677,47 @@ class BigQueryService():
         sql = ""
         if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.retweets_v2`; "
+        #sql += f"""
+        #    CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
+        #        SELECT
+        #            rt.user_id
+        #            ,rt.user_created_at
+        #            ,UPPER(rt.user_screen_name) as user_screen_name
+        #            ,ud.user_id as retweeted_user_id
+        #            ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
+        #            ,rt.status_id
+        #            ,rt.status_text
+        #            ,rt.created_at
+        #        FROM `{self.dataset_address}.retweets` rt
+        #        JOIN `{self.dataset_address}.user_details_v2` ud
+        #            ON (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
+        #        WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
+        #    );
+        #""" # TOO EXPENSIVE. NEVER FINISHES. LET'S SIMPLIFY!
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
                 SELECT
                     rt.user_id
                     ,rt.user_created_at
                     ,UPPER(rt.user_screen_name) as user_screen_name
-
-                    ,ud.user_id as retweeted_user_id
+                    ,sn.user_id as retweeted_user_id
                     ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
-
                     ,rt.status_id
                     ,rt.status_text
                     ,rt.created_at
                 FROM `{self.dataset_address}.retweets` rt
-                JOIN `{self.dataset_address}.user_details_v2` ud
-                    ON (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
+                JOIN `{self.dataset_address}.user_screen_names` sn
+                    ON UPPER(rt.retweet_user_screen_name) = UPPER(sn.screen_name)
                 WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
             );
         """
         return self.execute_query(sql)
+
+
+
+
+
+
 
     def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
         """
