@@ -677,23 +677,6 @@ class BigQueryService():
         sql = ""
         if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.retweets_v2`; "
-        #sql += f"""
-        #    CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
-        #        SELECT
-        #            rt.user_id
-        #            ,rt.user_created_at
-        #            ,UPPER(rt.user_screen_name) as user_screen_name
-        #            ,ud.user_id as retweeted_user_id
-        #            ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
-        #            ,rt.status_id
-        #            ,rt.status_text
-        #            ,rt.created_at
-        #        FROM `{self.dataset_address}.retweets` rt
-        #        JOIN `{self.dataset_address}.user_details_v2` ud
-        #            ON (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
-        #        WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
-        #    );
-        #""" # TOO EXPENSIVE. NEVER FINISHES. LET'S SIMPLIFY!
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
                 SELECT
@@ -713,12 +696,6 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-
-
-
-
-
-
     def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
         """
         For each retweeter, includes the number of times each they retweeted each other user.
@@ -731,16 +708,12 @@ class BigQueryService():
             end_at (str) : a date string for the latest tweet
         """
         sql = f"""
-            -- 30,851,361 rows without join
-            --
             SELECT
                 rt.user_id
-                --,upper(rt.retweet_user_screen_name) as retweeted_user_screen_name
-                ,ud.user_id as retweeted_user_id
+                ,rt.retweeted_user_id
                 ,count(distinct rt.status_id) as retweet_count
-            FROM `{self.dataset_address}.retweets` rt
-            JOIN `{self.dataset_address}.user_details_v2` ud on (UPPER(rt.retweet_user_screen_name) in UNNEST(ud.screen_names))
-            WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
+            FROM `{self.dataset_address}.retweets_v2` rt
+            WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
         """
         if topic:
             sql+=f"""
@@ -754,8 +727,6 @@ class BigQueryService():
             GROUP BY 1,2
         """
         return self.execute_query_in_batches(sql)
-
-
 
 
 if __name__ == "__main__":

@@ -68,26 +68,26 @@ DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" pyt
 
 ## Retweet Graphs
 
-Testing graph storage:
+Storing and loading a mock graph:
 
 ```sh
 python -m app.retweet_graphs_v2.graph_storage
+# DIRPATH="path/to/existing/dir" python -m app.retweet_graphs_v2.graph_storage
 ```
 
-Testing graph construction (mock graph):
+Constructing and storing example graphs:
 
 ```sh
-DRY_RUN="true" python -m app.retweet_graphs_v2.retweet_grapher
+BIGQUERY_DATASET_NAME="impeachment_production" DRY_RUN="true" python -m app.retweet_graphs_v2.retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" DIRPATH="graphs/example" USERS_LIMIT=1000 BATCH_SIZE=100 python -m app.retweet_graphs_v2.retweet_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" DIRPATH="graphs/example/abc123" TOPIC="#MAGA" TWEETS_START_AT="2020-01-10" TWEETS_END_AT="2020-01-11" BATCH_SIZE=125 VERBOSE_QUERIES="true" python -m app.retweet_graphs_v2.retweet_grapher
 ```
 
-Integration testing graph construction:
+### K Days Graphs
 
-```sh
-BIGQUERY_DATASET_NAME="impeachment_production" DIRPATH="graphs/example" USERS_LIMIT=1000 BATCH
-_SIZE=100 python -m app.retweet_graphs_v2.retweet_grapher
-```
-
-Constructing retweet graphs on the basis of user ids instead of screen names.
+Constructing retweet graphs:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" START_DATE="2020-01-01" K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
