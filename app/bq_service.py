@@ -635,7 +635,24 @@ class BigQueryService():
         errors = self.client.insert_rows(self.user_id_assignments_table, rows_to_insert)
         return errors
 
-
+    def migrate_populate_user_screen_names_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_screen_names`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_screen_names` as (
+                SELECT DISTINCT user_id, upper(screen_name) as screen_name
+                FROM (
+                    SELECT DISTINCT user_id, user_screen_name as screen_name FROM `{self.dataset_address}.tweets` -- 3,636,492
+                    UNION ALL
+                    SELECT DISTINCT user_id, screen_name FROM `{self.dataset_address}.user_id_lookups` WHERE user_id IS NOT NULL -- 14,969
+                    UNION ALL
+                    SELECT DISTINCT user_id, screen_name FROM `{self.dataset_address}.user_id_assignments` -- 2,224
+                ) all_user_screen_names -- 3,615,409
+                ORDER BY user_id, screen_name
+            );
+        """
+        return self.execute_query(sql)
 
     def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
         """
