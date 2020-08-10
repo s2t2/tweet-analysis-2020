@@ -561,7 +561,7 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def migrate_user_id_lookups(self):
+    def migrate_user_id_lookups_table(self):
         sql = ""
         if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_lookups`; "
@@ -610,8 +610,30 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def migrate_user_id_assignments_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_assignments`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.user_id_assignments` (
+                screen_name STRING,
+                user_id STRING,
+            );
+        """
+        return self.execute_query(sql)
 
+    @property
+    @lru_cache(maxsize=None)
+    def user_id_assignments_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_id_assignments") # an API call (caches results for subsequent inserts)
 
+    def upload_user_id_assignments(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.user_id_assignments_table, rows_to_insert)
+        return errors
 
 
 

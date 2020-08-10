@@ -28,7 +28,7 @@ if __name__ == "__main__":
     print("-------------------------")
 
     seek_confirmation()
-    bq_service.migrate_user_id_lookups()
+    bq_service.migrate_user_id_lookups_table()
 
     batch = []
     for index, row in enumerate(rows):

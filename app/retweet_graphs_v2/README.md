@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
 
 ## User Id Lookups
 
-Looking up user ids:
+The first verion of the tweet collector didn't include user ids for retweeted users, so we're looking them up:
 
 ```sh
 # python app.retweet_graphs_v2.lookup_user_ids
@@ -30,12 +30,15 @@ Looking up user ids:
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.lookup_user_ids
 ```
 
-## User Id BigQuery Migrations
+## User Id Assignments
+
+Some (2,224) of the users looked up were "not found" or "suspended", so we're assigning unique identifiers for those users (just to use during retweet graph compilation):
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" python app.retweet_graphs_v2.assign_user_ids
-```
+# python app.retweet_graphs_v2.assign_user_ids
 
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python app.retweet_graphs_v2.assign_user_ids
+```
 
 ## Retweet Graphs
 
