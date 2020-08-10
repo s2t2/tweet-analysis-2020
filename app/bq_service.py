@@ -60,6 +60,9 @@ class BigQueryService():
 
     def execute_query_in_batches(self, sql, temp_table_name=None):
         """Param: sql (str)"""
+        if self.verbose:
+            print(sql)
+
         if not temp_table_name:
             temp_table_id = generate_temp_table_id()
             temp_table_name = f"{self.dataset_address}.temp_{temp_table_id}"
