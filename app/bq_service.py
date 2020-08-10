@@ -654,6 +654,25 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def migrate_populate_user_details_table_v2(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_details_v2`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_details_v2` as (
+                SELECT
+                    user_id
+                    ,count(DISTINCT upper(screen_name)) as screen_name_count
+                    ,ARRAY_AGG(DISTINCT upper(screen_name) IGNORE NULLS) as screen_names
+                    -- ,ANY_VALUE(screen_name) as screen_name
+                FROM `{self.dataset_address}.user_screen_names`
+                GROUP BY 1
+                ORDER BY 2 desc
+                -- LIMIT 100
+            );
+        """
+        return self.execute_query(sql)
+
     def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
         """
         For each retweeter, includes the number of times each they retweeted each other user.

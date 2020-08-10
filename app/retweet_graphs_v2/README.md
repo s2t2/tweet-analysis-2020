@@ -42,10 +42,20 @@ DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" pyt
 
 ## More BigQuery Migrations
 
+User screen names table (one id has many screen names):
+
 ```sh
 # python -m app.retweet_graphs_v2.migrate_user_screen_names
 
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_user_screen_names
+```
+
+New user details table (row per user id):
+
+```sh
+# python -m app.retweet_graphs_v2.migrate_user_details_v2
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_user_details_v2
 ```
 
 ## Retweet Graphs
