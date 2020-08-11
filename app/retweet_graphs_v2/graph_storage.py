@@ -2,7 +2,8 @@
 import os
 import json
 import pickle
-from memory_profiler import profile
+from sys import getsizeof
+from memory_profiler import profile #, memory_usage
 from pprint import pprint
 
 from pandas import DataFrame
@@ -160,19 +161,39 @@ class GraphStorage:
 
         return self.read_graph_from_file()
 
+    @property
+    def node_count(self):
+        return self.graph.number_of_nodes()
+
+    @property
+    def edge_count(self):
+        return self.graph.number_of_edges()
+
     def report(self):
         if not self.graph:
             self.graph = self.load_graph()
 
-        node_count = self.graph.number_of_nodes()
-        edge_count = self.graph.number_of_edges()
         print("-------------------")
         print(type(self.graph))
-        print("  NODES:", fmt_n(node_count))
-        print("  EDGES:", fmt_n(edge_count))
+        print("  NODES:", fmt_n(self.node_count))
+        print("  EDGES:", fmt_n(self.edge_count))
         print("-------------------")
 
-        return {"nodes": node_count, "edges": edge_count} # TODO: add "memory_load_mb", from memory_profiler maybe? force a local graph load and see how much memory it takes to load the graph?
+    @property
+    def memory_report(self):
+        if not self.graph:
+            self.graph = self.load_graph()
+
+        #memory_load = memory_usage(self.read_graph_from_file, interval=.2, timeout=1)
+        file_size = os.path.getsize(self.local_graph_filepath) # in bytes
+        print("-------------------")
+        print(type(self.graph))
+        print("  NODES:", fmt_n(self.node_count))
+        print("  EDGES:", fmt_n(self.edge_count))
+        print("  FILE SIZE:", fmt_n(file_size))
+        print("-------------------")
+
+        return {"nodes": self.node_count, "edges": self.edge_count, "file_size": file_size}
 
 if __name__ == "__main__":
 

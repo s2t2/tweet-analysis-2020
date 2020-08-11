@@ -102,6 +102,15 @@ Constructing (daily) retweet graphs:
 APP_ENV="prodlike" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=10 python -m app.retweet_graphs_v2.k_days_grapher
 ```
 
+### K Days Graph Reporting
+
+Loop through graphs and generate a report of their sizes:
+
+```sh
+APP_ENV="prodlike" START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=10 python -m app.retweet_graphs_
+v2.k_days_reporter
+```
+
 ### K Days Bot Classification
 
 Classifying bots for each daily graph:
