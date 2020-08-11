@@ -164,11 +164,15 @@ class GraphStorage:
         if not self.graph:
             self.graph = self.load_graph()
 
+        node_count = self.graph.number_of_nodes()
+        edge_count = self.graph.number_of_edges()
         print("-------------------")
         print(type(self.graph))
-        print("  NODES:", fmt_n(self.graph.number_of_nodes()))
-        print("  EDGES:", fmt_n(self.graph.number_of_edges()))
+        print("  NODES:", fmt_n(node_count))
+        print("  EDGES:", fmt_n(edge_count))
         print("-------------------")
+
+        return {"nodes": node_count, "edges": edge_count} # TODO: add "memory_load_mb", from memory_profiler maybe? force a local graph load and see how much memory it takes to load the graph?
 
 if __name__ == "__main__":
 

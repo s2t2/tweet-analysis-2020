@@ -16,8 +16,11 @@ N_PERIODS = int(os.getenv("N_PERIODS", default="5")) # the number of periods to 
 
 class DateRangeGenerator:
     def __init__(self, start_date=START_DATE, k_days=K_DAYS, n_periods=N_PERIODS):
-        """Params:
-            start_date (str) date string like "2020-01-01"
+        """
+        Generates a list of date ranges.
+
+        Params:
+            start_date (str) the first period start date, like "2020-01-01"
             k_days (int) number of days in each period
             n_periods (int) number of periods
         """
@@ -55,7 +58,7 @@ class DateRangeGenerator:
 
 class DateRange:
     def __init__(self, start_at, end_at):
-        """Params: start_at, end_at (datetime)"""
+        """Params: start_at, end_at (datetime) like datetime(2020, 1, 31) """
         self.start_at = start_at
         self.end_at = end_at
 
