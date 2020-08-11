@@ -7,7 +7,7 @@ import time
 from dotenv import load_dotenv
 from pandas import date_range
 
-from app import seek_confirmation
+from app import seek_confirmation, server_sleep
 from app.decorators.datetime_decorators import dt_to_s, dt_to_date
 from app.bq_service import BigQueryService
 from app.retweet_graphs_v2.graph_storage import GraphStorage
@@ -53,28 +53,22 @@ class DateRange:
 
 if __name__ == "__main__":
 
-    bq_service = BigQueryService()
-
     print("-------------------------")
     print("DATE RANGES...")
     date_ranges = get_date_ranges(start_date=START_DATE, k_days=K_DAYS, n_periods=N_PERIODS)
     pprint(date_ranges)
     seek_confirmation()
 
+    bq_service = BigQueryService()
+
     for date_range in date_ranges:
-        print("\n \n")
+        storage_dirpath = f"retweet_graphs_v2/k_days/{K_DAYS}/{date_range.start_date}"
 
-        dirpath = f"retweet_graphs_v2/{K_DAYS}_days/{START_DATE}/{date_range.start_date}"
-        graph_storage = GraphStorage(dirpath=dirpath)
-
-        grapher = RetweetGrapher(
-            graph_storage=graph_storage,
-            bq_service=bq_service,
-            tweets_start_at=date_range.start_at,
-            tweets_end_at=date_range.end_at,
+        grapher = RetweetGrapher(storage_dirpath=storage_dirpath, bq_service=bq_service,
+            tweets_start_at=date_range.start_date, tweets_end_at=date_range.end_date,
         )
-        #pprint(grapher.metadata)
-        #grapher.save_metadata()
+        print(grapher.metadata)
+        grapher.save_metadata()
         #grapher.start()
         #grapher.perform()
         #grapher.end()
@@ -82,8 +76,8 @@ if __name__ == "__main__":
         #grapher.save_results()
         #grapher.save_graph()
         #grapher.sleep() # maybe mini nap for 3 minutes to cool memory?
-
-        del grapher # clear memory!
+        #del grapher.graph # clear memory!
 
     print("JOB COMPLETE!")
-    time.sleep(6 * 60 * 60) # 6 hours, enough time to stop the server before it restarts
+
+    server_sleep()

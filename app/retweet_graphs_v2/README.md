@@ -95,5 +95,7 @@ TWEETS_END_AT="2020-01-14" BATCH_SIZE=5000 VERBOSE_QUERIES="true" python -m app.
 Constructing retweet graphs:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" START_DATE="2020-01-01" K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
+#BIGQUERY_DATASET_NAME="impeachment_production" START_DATE="2020-01-01" K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
+
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days_grapher
 ```
