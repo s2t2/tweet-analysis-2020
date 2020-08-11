@@ -17,17 +17,14 @@ if __name__ == "__main__":
 
         clf = BotClassifier(storage.graph, weight_attr="weight")
 
-        csv_filename = f"bot_probabilities_{clf.lambda_00}_{clf.lambda_11}.csv"
-        local_csv_filepath = os.path.join(storage.local_dirpath, csv_filename)
-        remote_csv_filepath = os.path.join(storage.gcs_dirpath, csv_filename)
-        clf.bot_probabilities_df.to_csv(local_csv_filepath)
-        storage.upload_file(local_csv_filepath, remote_csv_filepath)
+        clf.bot_probabilities_df.to_csv(storage.local_bot_probabilities_filepath)
+        storage.upload_bot_probabilities()
 
-        img_filename = f"bot_probabilities_{clf.lambda_00}_{clf.lambda_11}_histogram.png"
-        local_img_filepath = os.path.join(storage.local_dirpath, img_filename)
-        remote_img_filepath = os.path.join(storage.gcs_dirpath, img_filename)
-        clf.generate_bot_probabilities_histogram(img_filepath=local_img_filepath, show_img=(APP_ENV=="development"))
-        storage.upload_file(local_img_filepath, remote_img_filepath)
+        clf.generate_bot_probabilities_histogram(
+            img_filepath=storage.local_bot_probabilities_histogram_filepath,
+            show_img=(APP_ENV=="development")
+        )
+        storage.upload_bot_probabilities_histogram()
 
         del storage # clear some memory maybe?
         del clf # clear some memory maybe?

@@ -1,11 +1,16 @@
 
-import os
+#import os
 
+from pandas import read_csv, DataFrame
+
+#from app import APP_ENV, server_sleep
 from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.retweet_graphs_v2.date_range_generator import DateRangeGenerator
-from app.botcode_v2.classifier import NetworkClassifier as BotClassifier
+
 
 if __name__ == "__main__":
+
+    combined_df = DataFrame()
 
     gen = DateRangeGenerator()
 
@@ -15,10 +20,7 @@ if __name__ == "__main__":
         storage_dirpath = f"retweet_graphs_v2/k_days/{gen.k_days}/{date_range.start_date}"
         storage = GraphStorage(dirpath=storage_dirpath)
 
-        if not os.path.isfile(storage.local_bot_probabilities_filepath):
-            storage.download_bot_probabilities()
+        df = read_csv(storage.local_bot_probabilities_filepath)
+        print(df.head())
 
-        if not os.path.isfile(storage.local_bot_probabilities_histogram_filepath):
-            storage.download_bot_probabilities_histogram()
-
-    print("DOWNLOADED ALL!")
+        breakpoint()

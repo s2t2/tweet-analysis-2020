@@ -78,6 +78,14 @@ class GraphStorage:
     def local_graph_filepath(self):
         return os.path.join(self.local_dirpath, "graph.gpickle")
 
+    @property
+    def local_bot_probabilities_filepath(self):
+        return os.path.join(self.local_dirpath, "bot_probabilities.csv")
+
+    @property
+    def local_bot_probabilities_histogram_filepath(self):
+        return os.path.join(self.local_dirpath, "bot_probabilities_histogram.png")
+
     def write_metadata_to_file(self):
         print(logstamp(), "WRITING METADATA...")
         with open(self.local_metadata_filepath, "w") as f:
@@ -123,6 +131,14 @@ class GraphStorage:
     def gcs_graph_filepath(self):
         return os.path.join(self.gcs_dirpath, "graph.gpickle")
 
+    @property
+    def gcs_bot_probabilities_filepath(self):
+        return os.path.join(self.gcs_dirpath, "bot_probabilities.csv")
+
+    @property
+    def gcs_bot_probabilities_histogram_filepath(self):
+        return os.path.join(self.gcs_dirpath, "bot_probabilities_histogram.png")
+
     def upload_metadata(self):
         self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
 
@@ -132,8 +148,20 @@ class GraphStorage:
     def upload_graph(self):
         self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
+    def upload_bot_probabilities(self):
+        self.download_file(self.local_bot_probabilities_filepath, self.gcs_bot_probabilities_filepath)
+
+    def upload_bot_probabilities_histogram(self):
+        self.download_file(self.local_bot_probabilities_histogram_filepath, self.gcs_bot_probabilities_histogram_filepath)
+
     def download_graph(self):
         self.download_file(self.gcs_graph_filepath, self.local_graph_filepath)
+
+    def download_bot_probabilities(self):
+        self.download_file(self.gcs_bot_probabilities_filepath, self.local_bot_probabilities_filepath)
+
+    def download_bot_probabilities_histogram(self):
+        self.download_file(self.gcs_bot_probabilities_histogram_filepath, self.local_bot_probabilities_histogram_filepath)
 
     #
     # CONVENIENCE METHODS
