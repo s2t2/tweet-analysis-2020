@@ -116,5 +116,7 @@ v2.k_days_reporter
 Classifying bots for each daily graph:
 
 ```sh
-START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days_classifier
+APP_ENV="prodlike" START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days_classifier
 ```
+
+> "Tag em and bag em"
