@@ -38,4 +38,4 @@ git push heroku-4 botz:master -f
 git push heroku-5 botz:master -f
 ```
 
-Then turn on the dynos.
+Then turn on the dynos, "Performance-M" tier might be ok, hopefully don't need "Performance-L".
