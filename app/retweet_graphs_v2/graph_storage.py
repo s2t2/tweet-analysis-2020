@@ -107,6 +107,10 @@ class GraphStorage:
         blob = self.gcs_service.upload(local_filepath, remote_filepath)
         print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
+    def download_file(self, remote_filepath, local_filepath):
+        print(logstamp(), "DOWNLOADING FILE...", remote_filepath)
+        self.gcs_service.download(remote_filepath, local_filepath)
+
     @property
     def gcs_metadata_filepath(self):
         return os.path.join(self.gcs_dirpath, "metadata.json")
@@ -129,8 +133,7 @@ class GraphStorage:
         self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
     def download_graph(self):
-        print(logstamp(), "DOWNLOADING GRAPH...", self.gcs_graph_filepath)
-        self.gcs_service.download(self.gcs_graph_filepath, self.local_graph_filepath)
+        self.download_file(self.gcs_graph_filepath, self.local_graph_filepath)
 
     #
     # CONVENIENCE METHODS

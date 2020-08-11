@@ -120,3 +120,18 @@ APP_ENV="prodlike" START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.re
 ```
 
 > "Tag em and bag em"
+
+
+### Downloading Classifications
+
+```sh
+START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.download_classifications
+```
+
+### Classification Combination
+
+Combining and uploading users whose bot classification scores rise above a given threshold:
+
+```sh
+BOT_MIN="0.8" START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.combine_classifications
+```
