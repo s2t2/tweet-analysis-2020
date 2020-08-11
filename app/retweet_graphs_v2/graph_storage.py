@@ -102,6 +102,11 @@ class GraphStorage:
     # REMOTE STORAGE
     #
 
+    def upload_file(self, local_filepath, remote_filepath):
+        print(logstamp(), "UPLOADING FILE...", os.path.abspath(local_filepath))
+        blob = self.gcs_service.upload(local_filepath, remote_filepath)
+        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+
     @property
     def gcs_metadata_filepath(self):
         return os.path.join(self.gcs_dirpath, "metadata.json")
@@ -115,19 +120,13 @@ class GraphStorage:
         return os.path.join(self.gcs_dirpath, "graph.gpickle")
 
     def upload_metadata(self):
-        print(logstamp(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
-        blob = self.gcs_service.upload(self.local_metadata_filepath, self.gcs_metadata_filepath)
-        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
 
     def upload_results(self):
-        print(logstamp(), "UPLOADING RESULTS...", self.gcs_results_filepath)
-        blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
-        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        self.upload_file(self.local_results_filepath, self.gcs_results_filepath)
 
     def upload_graph(self):
-        print(logstamp(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
-        blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
-        print(logstamp(), blob)
+        self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
     def download_graph(self):
         print(logstamp(), "DOWNLOADING GRAPH...", self.gcs_graph_filepath)
