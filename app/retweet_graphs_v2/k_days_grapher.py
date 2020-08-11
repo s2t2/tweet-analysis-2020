@@ -2,15 +2,12 @@
 import os
 from datetime import datetime, timedelta
 from pprint import pprint
-import time
 
 from dotenv import load_dotenv
-from pandas import date_range
 
 from app import seek_confirmation, server_sleep
 from app.decorators.datetime_decorators import dt_to_s, dt_to_date
 from app.bq_service import BigQueryService
-from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.retweet_graphs_v2.retweet_grapher import RetweetGrapher
 
 load_dotenv()
@@ -81,9 +78,8 @@ if __name__ == "__main__":
         grapher.save_results()
         grapher.save_graph()
 
+        del grapher # clearing graph from memory
         server_sleep(5*60) # maybe mini nap for 5 minutes to cool memory?
-        #del grapher # clearing graph from memory maybe helpful
-
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")
