@@ -25,7 +25,7 @@ heroku config:set START_DATE="2020-03-01"   -r heroku-4
 heroku config:set N_PERIODS="20"            -r heroku-4
 
 # classifiers (for periods already graphed on laptop):
-heroku config:set START_DATE="2020-01-01"   -r heroku-5
+heroku config:set START_DATE="2020-01-14"   -r heroku-5
 heroku config:set N_PERIODS="3"             -r heroku-5
 ```
 

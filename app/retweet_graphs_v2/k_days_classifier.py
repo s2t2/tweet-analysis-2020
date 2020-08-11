@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
         del storage # clear some memory maybe?
         del clf # clear some memory maybe?
-        server_sleep(5*60) # maybe mini nap for 5 minutes to cool memory?
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")
