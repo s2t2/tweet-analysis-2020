@@ -74,8 +74,8 @@ class RetweetGrapher(GraphStorage):
             "storage_dirpath": self.dirpath,
             "bq_service": self.bq_service.metadata,
             "topic": self.topic,
-            "tweets_start_at": self.tweets_start_at,
-            "tweets_end_at": self.tweets_end_at,
+            "tweets_start_at": str(self.tweets_start_at),
+            "tweets_end_at": str(self.tweets_end_at),
             "users_limit": self.users_limit,
             "batch_size": self.batch_size
         }

@@ -40,7 +40,7 @@ class DateRange:
         self.end_at = end_at
 
     def __repr__(self):
-        return f"<DateRange start_date={self.start_date} end_date={self.end_date} >"
+        return f"<DateRange start_at='{self.start_at}' end_at={self.end_at}>"
 
     @property
     def start_date(self):
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         storage_dirpath = f"retweet_graphs_v2/k_days/{K_DAYS}/{date_range.start_date}"
 
         grapher = RetweetGrapher(storage_dirpath=storage_dirpath, bq_service=bq_service,
-            tweets_start_at=date_range.start_date, tweets_end_at=date_range.end_date,
+            tweets_start_at=date_range.start_at, tweets_end_at=date_range.end_at,
         )
         print(grapher.metadata)
         grapher.save_metadata()
