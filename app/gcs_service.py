@@ -19,6 +19,10 @@ class GoogleCloudStorageService:
         self.bucket_name = bucket_name
         self.bucket = self.get_bucket()
 
+    @property
+    def metadata(self):
+        return {"bucket_name": self.bucket_name}
+
     def get_bucket(self):
         return self.client.bucket(self.bucket_name)
 

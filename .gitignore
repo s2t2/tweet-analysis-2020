@@ -7,27 +7,7 @@ __pycache__
 
 credentials.json
 
-data/*.csv
-
-data/tweet_collection_v2/*/*.csv
-
-data/graphs/archived/*/*.json
-data/graphs/archived/*/*.csv
-data/graphs/archived/*/*.gpickle
-data/graphs/archived/*/*/*.csv
-data/graphs/archived/*/*/*.png
-
-data/graphs/example/*.json
-data/graphs/example/*.csv
-data/graphs/example/*.gpickle
-
-data/graphs/weekly/*/*.json
-data/graphs/weekly/*/*.csv
-data/graphs/weekly/*/*.gpickle
-data/graphs/weekly/*/*/*.csv
-data/graphs/weekly/*/*/*.png
-
-data/ks_test/*.csv
+data/
 
 workbooks/*.twbx
 workbooks/*.twbr

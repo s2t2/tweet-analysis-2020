@@ -44,7 +44,6 @@ class BigQueryService():
         print("  DATASET ADDRESS:", self.dataset_address.upper())
         print("  DESTRUCTIVE MIGRATIONS:", self.destructive)
         print("  VERBOSE QUERIES:", self.verbose)
-        print("-------------------------")
 
         seek_confirmation()
 
@@ -61,6 +60,9 @@ class BigQueryService():
 
     def execute_query_in_batches(self, sql, temp_table_name=None):
         """Param: sql (str)"""
+        if self.verbose:
+            print(sql)
+
         if not temp_table_name:
             temp_table_id = generate_temp_table_id()
             temp_table_name = f"{self.dataset_address}.temp_{temp_table_id}"
@@ -550,7 +552,7 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # RETWEET GRAPHS V2
+    # RETWEET GRAPHS V2 - USER ID LOOKUPS
     #
 
     def fetch_idless_screen_names(self):
@@ -562,7 +564,7 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def migrate_user_id_lookups(self):
+    def migrate_user_id_lookups_table(self):
         sql = ""
         if self.destructive:
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_lookups`; "
@@ -589,6 +591,148 @@ class BigQueryService():
         rows_to_insert = [list(d.values()) for d in records]
         errors = self.client.insert_rows(self.user_id_lookups_table, rows_to_insert)
         return errors
+
+    def fetch_max_user_id_postlookup(self):
+        sql = f"""
+            SELECT max(user_id) as max_user_id -- 999999827600650240
+            FROM (
+                SELECT DISTINCT user_id FROM {self.dataset_address}.tweets -- 3,600,545
+                UNION ALL
+                SELECT DISTINCT user_id FROM {self.dataset_address}.user_id_lookups WHERE user_id IS NOT NULL -- 14,969
+            ) all_user_ids -- 3,615,409
+        """
+        results = list(self.execute_query(sql))
+        return int(results[0]["max_user_id"])
+
+    def fetch_idless_screen_names_postlookup(self):
+        sql = f"""
+            SELECT distinct upper(screen_name) as screen_name
+            FROM {self.dataset_address}.user_id_lookups
+            WHERE user_id is NULL
+            ORDER BY screen_name
+        """
+        return self.execute_query(sql)
+
+    def migrate_user_id_assignments_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_id_assignments`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.user_id_assignments` (
+                screen_name STRING,
+                user_id STRING,
+            );
+        """
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def user_id_assignments_table(self):
+        return self.client.get_table(f"{self.dataset_address}.user_id_assignments") # an API call (caches results for subsequent inserts)
+
+    def upload_user_id_assignments(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.user_id_assignments_table, rows_to_insert)
+        return errors
+
+    def migrate_populate_user_screen_names_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_screen_names`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_screen_names` as (
+                SELECT DISTINCT user_id, upper(screen_name) as screen_name
+                FROM (
+                    SELECT DISTINCT user_id, user_screen_name as screen_name FROM `{self.dataset_address}.tweets` -- 3,636,492
+                    UNION ALL
+                    SELECT DISTINCT user_id, screen_name FROM `{self.dataset_address}.user_id_lookups` WHERE user_id IS NOT NULL -- 14,969
+                    UNION ALL
+                    SELECT DISTINCT user_id, screen_name FROM `{self.dataset_address}.user_id_assignments` -- 2,224
+                ) all_user_screen_names -- 3,615,409
+                ORDER BY user_id, screen_name
+            );
+        """
+        return self.execute_query(sql)
+
+    def migrate_populate_user_details_table_v2(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.user_details_v2`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_details_v2` as (
+                SELECT
+                    user_id
+                    ,count(DISTINCT UPPER(screen_name)) as screen_name_count
+                    ,ARRAY_AGG(DISTINCT UPPER(screen_name) IGNORE NULLS) as screen_names
+                    -- ,ANY_VALUE(screen_name) as screen_name
+                FROM `{self.dataset_address}.user_screen_names`
+                GROUP BY 1
+                ORDER BY 2 desc
+                -- LIMIT 100
+            );
+        """
+        return self.execute_query(sql)
+
+    def migrate_populate_retweets_table_v2(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.retweets_v2`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.retweets_v2` as (
+                SELECT
+                    cast(rt.user_id as int64) as user_id
+                    ,UPPER(rt.user_screen_name) as user_screen_name
+                    ,rt.user_created_at
+
+                    ,cast(sn.user_id as int64) as retweeted_user_id
+                    ,UPPER(rt.retweet_user_screen_name) as retweeted_user_screen_name
+
+                    ,rt.status_id
+                    ,rt.status_text
+                    ,rt.created_at
+                FROM `{self.dataset_address}.retweets` rt
+                JOIN `{self.dataset_address}.user_screen_names` sn
+                    ON UPPER(rt.retweet_user_screen_name) = UPPER(sn.screen_name)
+                WHERE rt.user_screen_name <> rt.retweet_user_screen_name -- excludes people retweeting themselves
+            );
+        """
+        return self.execute_query(sql)
+
+    def fetch_retweet_edges_in_batches_v2(self, topic=None, start_at=None, end_at=None):
+        """
+        For each retweeter, includes the number of times each they retweeted each other user.
+            Optionally about a given topic.
+            Optionally with within a given timeframe.
+
+        Params:
+            topic (str) : the topic they were tweeting about, like 'impeach', '#MAGA', "@politico", etc.
+            start_at (str) : a date string for the earliest tweet
+            end_at (str) : a date string for the latest tweet
+        """
+        sql = f"""
+            SELECT
+                rt.user_id
+                ,rt.retweeted_user_id
+                ,count(distinct rt.status_id) as retweet_count
+            FROM `{self.dataset_address}.retweets_v2` rt
+            WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
+        """
+        if topic:
+            sql+=f"""
+                AND upper(rt.status_text) LIKE '%{topic.upper()}%'
+            """
+        if start_at and end_at:
+            sql+=f"""
+                AND (rt.created_at BETWEEN '{str(start_at)}' AND '{str(end_at)}')
+            """
+        sql += """
+            GROUP BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
+
 
 if __name__ == "__main__":
 
