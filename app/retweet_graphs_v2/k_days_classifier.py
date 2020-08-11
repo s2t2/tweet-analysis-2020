@@ -13,7 +13,9 @@ if __name__ == "__main__":
     for date_range in gen.date_ranges:
         storage_dirpath = f"retweet_graphs_v2/k_days/{gen.k_days}/{date_range.start_date}"
         storage = GraphStorage(dirpath=storage_dirpath)
-        clf = BotClassifier(storage.load_graph(), weight_attr="weight")
+        storage.report() # loads graph and provides size info
+
+        clf = BotClassifier(storage.graph, weight_attr="weight")
 
         csv_filename = f"bot_probabilities_{clf.lambda_00}_{clf.lambda_11}.csv"
         local_csv_filepath = os.path.join(storage.local_dirpath, csv_filename)
