@@ -69,14 +69,15 @@ if __name__ == "__main__":
         )
         print(grapher.metadata)
         grapher.save_metadata()
-        #grapher.start()
-        #grapher.perform()
-        #grapher.end()
-        #grapher.report()
-        #grapher.save_results()
-        #grapher.save_graph()
-        #grapher.sleep() # maybe mini nap for 3 minutes to cool memory?
-        #del grapher.graph # clear memory!
+        grapher.start()
+        grapher.perform()
+        grapher.end()
+        grapher.report()
+        grapher.save_results()
+        grapher.save_graph()
+
+        server_sleep(5*60) # maybe mini nap for 5 minutes to cool memory?
+        del grapher # clearing graph from memory maybe helpful
 
     print("JOB COMPLETE!")
 

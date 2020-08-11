@@ -99,5 +99,5 @@ Constructing retweet graphs:
 
 #BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days_grapher
 
-APP_ENV="production" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=10 python -m app.retweet_graphs_v2.k_days_grapher
+APP_ENV="prodlike" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=10 python -m app.retweet_graphs_v2.k_days_grapher
 ```
