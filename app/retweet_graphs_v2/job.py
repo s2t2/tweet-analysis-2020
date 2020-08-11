@@ -3,7 +3,7 @@ import time
 
 from app.decorators.number_decorators import fmt_n
 
-class BaseJob():
+class Job():
     def __init__(self):
         self.start_at = None
         self.end_at = None
