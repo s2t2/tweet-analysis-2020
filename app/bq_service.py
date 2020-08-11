@@ -726,7 +726,7 @@ class BigQueryService():
             """
         if start_at and end_at:
             sql+=f"""
-                AND (rt.created_at BETWEEN '{start_at}' AND '{end_at}')
+                AND (rt.created_at BETWEEN '{str(start_at)}' AND '{str(end_at)}')
             """
         sql += """
             GROUP BY 1,2

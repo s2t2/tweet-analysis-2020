@@ -54,6 +54,12 @@ class DateRange:
 if __name__ == "__main__":
 
     print("-------------------------")
+    print("K-DAYS GRAPHER...")
+    print("  START DATE:", START_DATE)
+    print("  K DAYS:", K_DAYS)
+    print("  N PERIODS:", N_PERIODS)
+
+    print("-------------------------")
     print("DATE RANGES...")
     date_ranges = get_date_ranges(start_date=START_DATE, k_days=K_DAYS, n_periods=N_PERIODS)
     pprint(date_ranges)
@@ -65,9 +71,8 @@ if __name__ == "__main__":
         storage_dirpath = f"retweet_graphs_v2/k_days/{K_DAYS}/{date_range.start_date}"
 
         grapher = RetweetGrapher(storage_dirpath=storage_dirpath, bq_service=bq_service,
-            tweets_start_at=date_range.start_at, tweets_end_at=date_range.end_at,
+            tweets_start_at=date_range.start_at, tweets_end_at=date_range.end_at
         )
-        print(grapher.metadata)
         grapher.save_metadata()
         grapher.start()
         grapher.perform()
@@ -77,7 +82,9 @@ if __name__ == "__main__":
         grapher.save_graph()
 
         server_sleep(5*60) # maybe mini nap for 5 minutes to cool memory?
-        del grapher # clearing graph from memory maybe helpful
+        #del grapher # clearing graph from memory maybe helpful
+
+        print("\n\n\n\n")
 
     print("JOB COMPLETE!")
 
