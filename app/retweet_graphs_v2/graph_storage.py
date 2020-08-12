@@ -149,10 +149,10 @@ class GraphStorage:
         self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
     def upload_bot_probabilities(self):
-        self.download_file(self.local_bot_probabilities_filepath, self.gcs_bot_probabilities_filepath)
+        self.upload_file(self.local_bot_probabilities_filepath, self.gcs_bot_probabilities_filepath)
 
     def upload_bot_probabilities_histogram(self):
-        self.download_file(self.local_bot_probabilities_histogram_filepath, self.gcs_bot_probabilities_histogram_filepath)
+        self.upload_file(self.local_bot_probabilities_histogram_filepath, self.gcs_bot_probabilities_histogram_filepath)
 
     def download_graph(self):
         self.download_file(self.gcs_graph_filepath, self.local_graph_filepath)
