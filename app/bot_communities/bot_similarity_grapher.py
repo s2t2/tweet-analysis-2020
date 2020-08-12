@@ -3,6 +3,7 @@ import os
 
 from networkx import jaccard_coefficient, Graph, write_gpickle
 
+from app import seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 
 def generate_bot_similarity_graph(V, Gretweet):
@@ -60,6 +61,8 @@ if __name__ == "__main__":
     print("FETCHED", len(bot_ids), "BOT IDS")
 
     bot_similarity_graph = generate_bot_similarity_graph(bot_ids, bot_retweet_graph)
+
+    seek_confirmation()
 
     print("SAVING SIMILARITY GRAPH...")
     local_similarity_graph_filepath = os.path.join(grapher.local_dirpath, "similarity_graph.gpickle")
