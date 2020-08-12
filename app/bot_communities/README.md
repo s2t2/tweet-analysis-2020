@@ -21,5 +21,5 @@ ORDER BY user_id
 ## Detection
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_retweet_grapher.py
+BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_retweet_grapher
 ```
