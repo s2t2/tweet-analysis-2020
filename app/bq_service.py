@@ -733,6 +733,70 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def migrate_daily_bot_probabilities_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.daily_bot_probabilities`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.daily_bot_probabilities` (
+                start_date STRING,
+                user_id INT64,
+                bot_probability FLOAT64,
+            );
+        """
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def daily_bot_probabilities_table(self):
+        return self.client.get_table(f"{self.dataset_address}.daily_bot_probabilities") # an API call (caches results for subsequent inserts)
+
+    def upload_daily_bot_probabilities(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
+        return errors
+
+    def sql_fetch_bot_ids(self, bot_min=0.8):
+        sql = f"""
+            SELECT DISTINCT bp.user_id
+            FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+            WHERE bp.bot_probability >= {float(bot_min)}
+        """
+        return sql
+
+    def fetch_bot_ids(self, bot_min=0.8):
+        """Returns any user who has ever had a bot score above the given threshold."""
+        return self.execute_query(self.sql_fetch_bot_ids(bot_min))
+
+    def fetch_bot_retweet_edges_in_batches(self, bot_min=0.8):
+        """
+        For each bot (user with any bot score greater than the specified threshold),
+            and each user they retweeted, includes the number of times the bot retweeted them.
+
+        Params:
+            bot_min (float) consider users with any score above this threshold as bots
+        """
+        sql = f"""
+            SELECT
+                rt.user_id
+                ,rt.retweeted_user_id
+                ,count(distinct rt.status_id) as retweet_count
+            FROM `{self.dataset_address}.retweets_v2` rt
+            JOIN (
+                {self.sql_fetch_bot_ids(bot_min)}
+            ) bp ON bp.user_id = rt.user_id
+            WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
+            GROUP BY 1,2
+            -- ORDER BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
+
+
+
+
 
 if __name__ == "__main__":
 
