@@ -15,10 +15,14 @@ if __name__ == "__main__":
         storage_dirpath = f"retweet_graphs_v2/k_days/{gen.k_days}/{date_range.start_date}"
         storage = GraphStorage(dirpath=storage_dirpath)
 
-        if not os.path.isfile(storage.local_bot_probabilities_filepath):
-            storage.download_bot_probabilities()
+        try:
+            if not os.path.isfile(storage.local_bot_probabilities_filepath):
+                storage.download_bot_probabilities()
 
-        if not os.path.isfile(storage.local_bot_probabilities_histogram_filepath):
-            storage.download_bot_probabilities_histogram()
+            if not os.path.isfile(storage.local_bot_probabilities_histogram_filepath):
+                storage.download_bot_probabilities_histogram()
+
+        except Exception as err:
+            print("OOPS", date_range.start_date, err)
 
     print("DOWNLOADED ALL!")

@@ -114,19 +114,10 @@ Assigning bot scores for all users in each daily retweet graph, and upload CSV t
 APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
 ```
 
-
-
-
-
-
-
-
-
-
-Downloading bot classifications (IN PROGRESS):
+Downloading bot classifications:
 
 ```sh
-K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
+APP_ENV="prodlike" K_DAYS=1 K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
 ```
 
 Combining and uploading users whose bot classification scores rise above a given threshold (IN PROGRESS):
