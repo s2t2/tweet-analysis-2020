@@ -68,6 +68,15 @@ New retweets table (includes retweeted user id):
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_retweets_v2
 ```
 
+Empty table which will store bot classifications:
+
+```sh
+# python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
+```
+
+
 ## Retweet Graphs
 
 Storing and loading a mock graph:
