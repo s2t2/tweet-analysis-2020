@@ -117,7 +117,7 @@ APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.r
 
 ### K Days Bot Classification
 
-Assigning bot scores for all users in each daily retweet graph, and upload CSV to Google Cloud Storage ("tag em and bag em"):
+Assigning bot scores for all users in each daily retweet graph, and upload CSV to Google Cloud Storage:
 
 ```sh
 APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
