@@ -19,19 +19,13 @@ if __name__ == "__main__":
         storage.report() # loads graph and provides size info
 
         clf = BotClassifier(storage.graph, weight_attr="weight")
+        df = clf.bot_probabilities_df
 
-        clf.bot_probabilities_df.to_csv(storage.local_bot_probabilities_filepath)
+        # UPLOAD COMPLETE CSV TO GOOGLE CLOUD STORAGE
+        df.to_csv(storage.local_bot_probabilities_filepath)
         storage.upload_bot_probabilities()
 
-        rows_to_insert = []
-        for row in clf.bot_probabilities_df[clf.bot_probabilities_df["bot_probability"] > 0.5]
-            rows_to_insert.append({
-                "start_date": date_range.start_date,
-                "user_id": row["user_id"],
-                "bot_probability": row["bot_probability"],
-            })
-        bq_service.upload_daily_bot_probabilities(rows_to_insert)
-
+        # UPLOAD COMPLETE HISTOGRAM TO GOOGLE CLOUD STORAGE
         clf.generate_bot_probabilities_histogram(
             img_filepath=storage.local_bot_probabilities_histogram_filepath,
             show_img=(APP_ENV=="development"),
@@ -39,8 +33,18 @@ if __name__ == "__main__":
         )
         storage.upload_bot_probabilities_histogram()
 
-        del storage # clear some memory maybe?
-        del clf # clear some memory maybe?
+        # UPLOAD SELECTED ROWS TO BIG QUERY
+        bots_df = df[df["bot_probability"] > 0.5]
+        records = [{**{"start_date": date_range.start_date}, **record} for record in bots_df.to_dict("records")]
+        print("UPLOADING", len(records), "BOT SCORES TO BQ...")
+        bq_service.upload_daily_bot_probabilities(records)
+
+        # CLEAR MEMORY
+        del storage
+        del clf
+        del df
+        del bots_df
+        del records
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")

@@ -733,6 +733,35 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def migrate_daily_bot_probabilities_table(self):
+        sql = ""
+        if self.destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.daily_bot_probabilities`; "
+        sql += f"""
+            CREATE TABLE `{self.dataset_address}.daily_bot_probabilities` (
+                start_date STRING,
+                user_id INT64,
+                bot_probability FLOAT64,
+            );
+        """
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def daily_bot_probabilities_table(self):
+        return self.client.get_table(f"{self.dataset_address}.daily_bot_probabilities") # an API call (caches results for subsequent inserts)
+
+    def upload_daily_bot_probabilities(self, records):
+        """
+        Param: records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
+        return errors
+
+
+
+
     #def fetch_bot_ids(self, min_score=0.9):
     #    """Returns any user who has ever had a bot score above the given threshold."""
     #    sql = f"""
