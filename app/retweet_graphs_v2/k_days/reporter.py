@@ -23,4 +23,4 @@ if __name__ == "__main__":
 
     df = DataFrame(reports)
     print(df.head())
-    df.to_csv(os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", "graph_reports.csv"))
+    df.to_csv(os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", gen.k_days, "graph_reports.csv"))

@@ -103,28 +103,34 @@ APP_ENV="prodlike" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=100
 Loop through all graphs, download them locally, and generate a report of their sizes:
 
 ```sh
-APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=70 python -m app.retweet_graphs_v2.k_days.reporter
+APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.reporter
 ```
 
 ### K Days Bot Classification
 
-Classifying bots for each daily graph:
+Assigning bot scores for all users in each daily retweet graph, and upload CSV to BigQuery ("tag em and bag em"):
 
 ```sh
-APP_ENV="prodlike" K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.classifier
+APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
 ```
 
-> "Tag em and bag em"
 
 
-Downloading bot classifications:
+
+
+
+
+
+
+
+Downloading bot classifications (IN PROGRESS):
 
 ```sh
-START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.download_classifications
+K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
 ```
 
-Combining and uploading users whose bot classification scores rise above a given threshold:
+Combining and uploading users whose bot classification scores rise above a given threshold (IN PROGRESS):
 
 ```sh
-BOT_MIN="0.8" START_DATE="2020-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.combine_classifications
+BOT_MIN="0.8" K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.combine_classifications
 ```
