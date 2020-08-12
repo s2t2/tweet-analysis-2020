@@ -131,7 +131,7 @@ class NetworkClassifier:
     @property
     @lru_cache(maxsize=None)
     def bot_probabilities_df(self):
-        df = DataFrame(list(self.bot_probabilities.items()), columns=["screen_name", "bot_probability"])
+        df = DataFrame(list(self.bot_probabilities.items()), columns=["user_id", "bot_probability"])
         df.index.name = "row_id"
         df.index = df.index + 1
         print("--------------------------")
