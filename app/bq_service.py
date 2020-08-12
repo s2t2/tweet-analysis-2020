@@ -759,8 +759,6 @@ class BigQueryService():
         errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
         return errors
 
-
-
     def sql_fetch_bot_ids(self, bot_min=0.8):
         sql = f"""
             SELECT DISTINCT bp.user_id

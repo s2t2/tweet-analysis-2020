@@ -1,8 +1,8 @@
 
+import os
+
 from networkx import jaccard_coefficient, Graph, write_gpickle
 
-#from app.bq_service import BigQueryService
-#from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 
 def generate_bot_similarity_graph(V, Gretweet):
@@ -59,10 +59,8 @@ if __name__ == "__main__":
 
     bot_similarity_graph = generate_bot_similarity_graph(bot_ids, bot_retweet_graph)
 
-    breakpoint()
-
     print("SAVING SIMILARITY GRAPH...")
-    local_similarity_graph_filepath = os.path.join(grapher.dirpath, "similarity_graph.gpickle")
+    local_similarity_graph_filepath = os.path.join(grapher.local_dirpath, "similarity_graph.gpickle")
     write_gpickle(bot_similarity_graph, local_similarity_graph_filepath)
 
     print("UPLOADING SIMILARITY GRAPH...")
