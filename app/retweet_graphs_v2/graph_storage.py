@@ -2,7 +2,8 @@
 import os
 import json
 import pickle
-from memory_profiler import profile
+from sys import getsizeof
+from memory_profiler import profile #, memory_usage
 from pprint import pprint
 
 from pandas import DataFrame
@@ -77,6 +78,14 @@ class GraphStorage:
     def local_graph_filepath(self):
         return os.path.join(self.local_dirpath, "graph.gpickle")
 
+    @property
+    def local_bot_probabilities_filepath(self):
+        return os.path.join(self.local_dirpath, "bot_probabilities.csv")
+
+    @property
+    def local_bot_probabilities_histogram_filepath(self):
+        return os.path.join(self.local_dirpath, "bot_probabilities_histogram.png")
+
     def write_metadata_to_file(self):
         print(logstamp(), "WRITING METADATA...")
         with open(self.local_metadata_filepath, "w") as f:
@@ -101,6 +110,15 @@ class GraphStorage:
     # REMOTE STORAGE
     #
 
+    def upload_file(self, local_filepath, remote_filepath):
+        print(logstamp(), "UPLOADING FILE...", os.path.abspath(local_filepath))
+        blob = self.gcs_service.upload(local_filepath, remote_filepath)
+        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+
+    def download_file(self, remote_filepath, local_filepath):
+        print(logstamp(), "DOWNLOADING FILE...", remote_filepath)
+        self.gcs_service.download(remote_filepath, local_filepath)
+
     @property
     def gcs_metadata_filepath(self):
         return os.path.join(self.gcs_dirpath, "metadata.json")
@@ -113,24 +131,37 @@ class GraphStorage:
     def gcs_graph_filepath(self):
         return os.path.join(self.gcs_dirpath, "graph.gpickle")
 
+    @property
+    def gcs_bot_probabilities_filepath(self):
+        return os.path.join(self.gcs_dirpath, "bot_probabilities.csv")
+
+    @property
+    def gcs_bot_probabilities_histogram_filepath(self):
+        return os.path.join(self.gcs_dirpath, "bot_probabilities_histogram.png")
+
     def upload_metadata(self):
-        print(logstamp(), "UPLOADING JOB METADATA...", self.gcs_metadata_filepath)
-        blob = self.gcs_service.upload(self.local_metadata_filepath, self.gcs_metadata_filepath)
-        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
 
     def upload_results(self):
-        print(logstamp(), "UPLOADING RESULTS...", self.gcs_results_filepath)
-        blob = self.gcs_service.upload(self.local_results_filepath, self.gcs_results_filepath)
-        print(logstamp(), blob) #> <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        self.upload_file(self.local_results_filepath, self.gcs_results_filepath)
 
     def upload_graph(self):
-        print(logstamp(), "UPLOADING GRAPH...", self.gcs_graph_filepath)
-        blob = self.gcs_service.upload(self.local_graph_filepath, self.gcs_graph_filepath)
-        print(logstamp(), blob)
+        self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
+
+    def upload_bot_probabilities(self):
+        self.download_file(self.local_bot_probabilities_filepath, self.gcs_bot_probabilities_filepath)
+
+    def upload_bot_probabilities_histogram(self):
+        self.download_file(self.local_bot_probabilities_histogram_filepath, self.gcs_bot_probabilities_histogram_filepath)
 
     def download_graph(self):
-        print(logstamp(), "DOWNLOADING GRAPH...", self.gcs_graph_filepath)
-        self.gcs_service.download(self.gcs_graph_filepath, self.local_graph_filepath)
+        self.download_file(self.gcs_graph_filepath, self.local_graph_filepath)
+
+    def download_bot_probabilities(self):
+        self.download_file(self.gcs_bot_probabilities_filepath, self.local_bot_probabilities_filepath)
+
+    def download_bot_probabilities_histogram(self):
+        self.download_file(self.gcs_bot_probabilities_histogram_filepath, self.local_bot_probabilities_histogram_filepath)
 
     #
     # CONVENIENCE METHODS
@@ -160,15 +191,39 @@ class GraphStorage:
 
         return self.read_graph_from_file()
 
+    @property
+    def node_count(self):
+        return self.graph.number_of_nodes()
+
+    @property
+    def edge_count(self):
+        return self.graph.number_of_edges()
+
     def report(self):
         if not self.graph:
             self.graph = self.load_graph()
 
         print("-------------------")
         print(type(self.graph))
-        print("  NODES:", fmt_n(self.graph.number_of_nodes()))
-        print("  EDGES:", fmt_n(self.graph.number_of_edges()))
+        print("  NODES:", fmt_n(self.node_count))
+        print("  EDGES:", fmt_n(self.edge_count))
         print("-------------------")
+
+    @property
+    def memory_report(self):
+        if not self.graph:
+            self.graph = self.load_graph()
+
+        #memory_load = memory_usage(self.read_graph_from_file, interval=.2, timeout=1)
+        file_size = os.path.getsize(self.local_graph_filepath) # in bytes
+        print("-------------------")
+        print(type(self.graph))
+        print("  NODES:", fmt_n(self.node_count))
+        print("  EDGES:", fmt_n(self.edge_count))
+        print("  FILE SIZE:", fmt_n(file_size))
+        print("-------------------")
+
+        return {"nodes": self.node_count, "edges": self.edge_count, "file_size": file_size}
 
 if __name__ == "__main__":
 

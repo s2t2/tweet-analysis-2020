@@ -1,6 +1,8 @@
 # Retweet Graphs v2
 
-## BigQuery Migrations
+## Prep
+
+### BigQuery Migrations
 
 We need to make graphs using user ids, not screen names. Because screen names can change. So let's construct some tables on BigQuery for user screen name to id conversion.
 
@@ -20,50 +22,50 @@ CREATE TABLE IF NOT EXISTS impeachment_production.retweets as (
 );
 ```
 
-## User Id Lookups
+### User Id Lookups
 
 The first verion of the tweet collector didn't include user ids for retweeted users, so we're looking them up:
 
 ```sh
-# python -m app.retweet_graphs_v2.lookup_user_ids
+# python -m app.retweet_graphs_v2.prep.lookup_user_ids
 
-DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.lookup_user_ids
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.lookup_user_ids
 ```
 
-## User Id Assignments
+### User Id Assignments
 
 Some (2,224) of the users looked up were "not found" or "suspended", so we're assigning unique identifiers for those users (just to use during retweet graph compilation):
 
 ```sh
-# python -m app.retweet_graphs_v2.assign_user_ids
+# python -m app.retweet_graphs_v2.prep.assign_user_ids
 
-DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.assign_user_ids
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.assign_user_ids
 ```
 
-## More BigQuery Migrations
+### More BigQuery Migrations
 
 User screen names table (one id has many screen names):
 
 ```sh
-# python -m app.retweet_graphs_v2.migrate_user_screen_names
+# python -m app.retweet_graphs_v2.prep.migrate_user_screen_names
 
-DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_user_screen_names
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_user_screen_names
 ```
 
 New user details table (row per user id):
 
 ```sh
-# python -m app.retweet_graphs_v2.migrate_user_details_v2
+# python -m app.retweet_graphs_v2.prep.migrate_user_details_v2
 
-DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_user_details_v2
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_user_details_v2
 ```
 
 New retweets table (includes retweeted user id):
 
 ```sh
-# python -m app.retweet_graphs_v2.migrate_retweets_v2
+# python -m app.retweet_graphs_v2.prep.migrate_retweets_v2
 
-DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.migrate_retweets_v2
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_retweets_v2
 ```
 
 ## Retweet Graphs
@@ -92,12 +94,34 @@ TWEETS_END_AT="2020-01-14" BATCH_SIZE=5000 VERBOSE_QUERIES="true" python -m app.
 
 ### K Days Graphs
 
-Constructing retweet graphs:
+Constructing retweet graphs for each (daily) date range:
 
 ```sh
-#BIGQUERY_DATASET_NAME="impeachment_production" START_DATE="2020-01-01" K_DAYS=3 N_PERIODS=5 python -m app.retweet_graphs_v2.k_days_grapher
+APP_ENV="prodlike" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=10 python -m app.retweet_graphs_v2.k_days.grapher
+```
 
-#BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=3 python -m app.retweet_graphs_v2.k_days_grapher
+Loop through all graphs, download them locally, and generate a report of their sizes:
 
-APP_ENV="prodlike" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=5000 START_DATE="2019-01-01" K_DAYS=1 N_PERIODS=10 python -m app.retweet_graphs_v2.k_days_grapher
+```sh
+APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.reporter
+```
+
+### K Days Bot Classification
+
+Assigning bot scores for all users in each daily retweet graph, and upload CSV to BigQuery ("tag em and bag em"):
+
+```sh
+APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
+```
+
+Downloading bot classifications:
+
+```sh
+APP_ENV="prodlike" K_DAYS=1 K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
+```
+
+Combining and uploading users whose bot classification scores rise above a given threshold (IN PROGRESS):
+
+```sh
+BOT_MIN="0.8" K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.combine_classifications
 ```
