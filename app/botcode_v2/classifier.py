@@ -48,7 +48,7 @@ class NetworkClassifier:
 
         # ARTIFACTS OF THE BOT CLASSIFICATION PROCESS...
         self.energy_graph = None
-        self.bot_names = None
+        self.bot_ids = None
         self.user_data = None
 
     @property
@@ -112,21 +112,21 @@ class NetworkClassifier:
 
     def compile_energy_graph(self):
         print("COMPILING ENERGY GRAPH...")
-        self.energy_graph, self.bot_names, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.link_energies, self.out_degrees, self.in_degrees)
-        #self.human_names = list(set(self.rt_graph.nodes()) - set(self.bot_names))
+        self.energy_graph, self.bot_ids, self.user_data = compute_energy_graph(self.rt_graph, self.prior_probabilities, self.link_energies, self.out_degrees, self.in_degrees)
+        #self.human_names = list(set(self.rt_graph.nodes()) - set(self.bot_ids))
         print("-----------------")
         print("ENERGY GRAPH:", type(self.energy_graph))
         print("NODE COUNT:", fmt_n(self.energy_graph.number_of_nodes()))
-        print(f"BOT COUNT: {fmt_n(len(self.bot_names))} ({fmt_pct(len(self.bot_names) / self.energy_graph.number_of_nodes())})")
-        print("USER DATA:", len(self.user_data.keys()))
+        print(f"BOT COUNT: {fmt_n(len(self.bot_ids))} ({fmt_pct(len(self.bot_ids) / self.energy_graph.number_of_nodes())})")
+        print("USER DATA:", fmt_n(len(self.user_data.keys())))
 
     @property
     @lru_cache(maxsize=None)
     def bot_probabilities(self):
-        if not self.energy_graph and not self.bot_names:
+        if not self.energy_graph and not self.bot_ids:
             self.compile_energy_graph()
 
-        return compute_bot_probabilities(self.rt_graph, self.energy_graph, self.bot_names)
+        return compute_bot_probabilities(self.rt_graph, self.energy_graph, self.bot_ids)
 
     @property
     @lru_cache(maxsize=None)
@@ -137,9 +137,10 @@ class NetworkClassifier:
         print("--------------------------")
         print("CLASSIFICATION COMPLETE!")
         print(df.head())
-        print("... < 50% (NOT BOTS):", len(df[df["bot_probability"] < 0.5]))
-        print("... = 50% (NOT BOTS):", len(df[df["bot_probability"] == 0.5]))
-        print("... > 50% (MAYBE BOTS):", len(df[df["bot_probability"] > 0.5]))
+        print("... < 50% (NOT BOTS):",    fmt_n(len(df[df["bot_probability"] < 0.5])))
+        print("... = 50% (NOT BOTS):",    fmt_n(len(df[df["bot_probability"] == 0.5])))
+        print("... > 50% (MAYBE BOTS):",  fmt_n(len(df[df["bot_probability"] > 0.5])))
+        print("... > 90% (LIKELY BOTS):", fmt_n(len(df[df["bot_probability"] > 0.9])))
         return df
 
     def generate_bot_probabilities_histogram(self, img_filepath=None, show_img=True, title="Bot Probability Scores (excludes 0.5)"):

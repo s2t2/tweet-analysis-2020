@@ -758,7 +758,7 @@ class BigQueryService():
             FROM `{self.dataset_address}.retweets_v2` rt
             JOIN (
                 SELECT DISTINCT bp.user_id
-                FROM `{self.dataset_address}.daily_bot_probabilities` bp
+                FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
                 WHERE bp.bot_probability >= {float(min_score)}
             ) bp ON bp.user_id = rt.user_id
             WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves

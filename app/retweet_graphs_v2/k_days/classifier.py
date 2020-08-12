@@ -17,8 +17,13 @@ if __name__ == "__main__":
 
         clf = BotClassifier(storage.graph, weight_attr="weight")
 
+        clf.bot_probabilities_df
+
+        breakpoint()
+
         clf.bot_probabilities_df.to_csv(storage.local_bot_probabilities_filepath)
         storage.upload_bot_probabilities()
+        # TODO: consider uploading bot_ids to BigQuery
 
         clf.generate_bot_probabilities_histogram(
             img_filepath=storage.local_bot_probabilities_histogram_filepath,
@@ -26,6 +31,11 @@ if __name__ == "__main__":
             title=f"Bot Probability Scores for Period '{date_range.start_date}' (excludes 0.5)"
         )
         storage.upload_bot_probabilities_histogram()
+
+
+
+
+
 
         del storage # clear some memory maybe?
         del clf # clear some memory maybe?
