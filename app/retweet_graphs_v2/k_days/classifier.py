@@ -22,7 +22,8 @@ if __name__ == "__main__":
 
         clf.generate_bot_probabilities_histogram(
             img_filepath=storage.local_bot_probabilities_histogram_filepath,
-            show_img=(APP_ENV=="development")
+            show_img=(APP_ENV=="development"),
+            title=f"Bot Probability Scores for Period '{date_range.start_date}' (excludes 0.5)"
         )
         storage.upload_bot_probabilities_histogram()
 
