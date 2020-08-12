@@ -12,6 +12,7 @@ def generate_bot_similarity_graph(V, Gretweet):
     Params:
         V (list) a unique list of bot ids, which should all be included as nodes in the bot retweet graph.
             The retweet graph will also contain retweeted users. So that's why we need a separate list.
+            The bot ids will be used as nodes in the similarity graph.
 
         Gretweet (networkx.DiGraph) a retweet graph generated from the bot list
 
@@ -30,7 +31,7 @@ def generate_bot_similarity_graph(V, Gretweet):
     preds = jaccard_coefficient(Gretweet.to_undirected(), ebunch)
     print(len(ebunch), " node pairs to check Jaccard index")
 
-    print("Create similarity graph between bots using Jacard index based on retweets")
+    print("Create similarity graph between bots using Jaccard index based on retweets")
     counter = 0
     Gsim = Graph()
     ne = 0
@@ -41,6 +42,7 @@ def generate_bot_similarity_graph(V, Gretweet):
             ne += 1
         if counter % 1e6 == 0:
             print(counter, ne, " positive weights")
+
     nv = Gsim.number_of_nodes()
     ne = Gsim.number_of_edges()
     print("Gsim has %s nodes, %s edges" % (nv, ne))
