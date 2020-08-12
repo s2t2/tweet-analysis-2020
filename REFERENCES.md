@@ -2,7 +2,7 @@
 
 ## Notebook Conversion
 
-Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
+From Google Colab, select "File" > "Download .py" and store the resulting file in the "start" dir.
 
 ## Google BigQuery
 

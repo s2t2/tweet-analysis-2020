@@ -20,6 +20,14 @@ ORDER BY user_id
 
 ## Detection
 
+Constructing bot retweet graph:
+
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_retweet_grapher
+```
+
+Constructing bot similarity graph:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 ```

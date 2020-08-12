@@ -761,15 +761,17 @@ class BigQueryService():
 
 
 
+    def sql_fetch_bot_ids(self, bot_min=0.8):
+        sql = f"""
+            SELECT DISTINCT bp.user_id
+            FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+            WHERE bp.bot_probability >= {float(bot_min)}
+        """
+        return sql
 
-    #def fetch_bot_ids(self, min_score=0.9):
-    #    """Returns any user who has ever had a bot score above the given threshold."""
-    #    sql = f"""
-    #        SELECT DISTINCT user_id
-    #        FROM `{self.dataset_address}`.daily_bot_probabilities
-    #        WHERE bot_score >= {float(min_score)}
-    #    """
-    #    return self.execute_query(sql)
+    def fetch_bot_ids(self, bot_min=0.8):
+        """Returns any user who has ever had a bot score above the given threshold."""
+        return self.execute_query(self.sql_fetch_bot_ids(bot_min))
 
     def fetch_bot_retweet_edges_in_batches(self, bot_min=0.8):
         """
@@ -786,9 +788,7 @@ class BigQueryService():
                 ,count(distinct rt.status_id) as retweet_count
             FROM `{self.dataset_address}.retweets_v2` rt
             JOIN (
-                SELECT DISTINCT bp.user_id
-                FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
-                WHERE bp.bot_probability >= {float(bot_min)}
+                {self.sql_fetch_bot_ids(bot_min)}
             ) bp ON bp.user_id = rt.user_id
             WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
             GROUP BY 1,2
