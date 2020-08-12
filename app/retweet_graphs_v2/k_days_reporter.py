@@ -14,8 +14,12 @@ if __name__ == "__main__":
     reports = []
     for date_range in gen.date_ranges:
         storage = GraphStorage(dirpath=f"retweet_graphs_v2/k_days/{gen.k_days}/{date_range.start_date}")
-        report = {**storage.memory_report, **{"k_days": gen.k_days, "start_date": date_range.start_date}}
-        reports.append(report)
+
+        try:
+            report = {**storage.memory_report, **{"k_days": gen.k_days, "start_date": date_range.start_date}}
+            reports.append(report)
+        except Exception as err:
+            print("OOPS", date_range.start_date, err)
 
     df = DataFrame(reports)
     print(df.head())
