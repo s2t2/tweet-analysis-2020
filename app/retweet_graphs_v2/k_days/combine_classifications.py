@@ -5,7 +5,7 @@ from pandas import read_csv, DataFrame
 
 #from app import APP_ENV, server_sleep
 from app.retweet_graphs_v2.graph_storage import GraphStorage
-from app.retweet_graphs_v2.date_range_generator import DateRangeGenerator
+from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator
 
 
 if __name__ == "__main__":

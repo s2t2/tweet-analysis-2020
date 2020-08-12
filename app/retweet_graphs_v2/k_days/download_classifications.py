@@ -2,7 +2,7 @@
 import os
 
 from app.retweet_graphs_v2.graph_storage import GraphStorage
-from app.retweet_graphs_v2.date_range_generator import DateRangeGenerator
+from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator
 from app.botcode_v2.classifier import NetworkClassifier as BotClassifier
 
 if __name__ == "__main__":

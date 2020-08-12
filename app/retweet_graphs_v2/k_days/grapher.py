@@ -1,8 +1,8 @@
 
 from app import server_sleep
 from app.bq_service import BigQueryService
-from app.retweet_graphs_v2.date_range_generator import DateRangeGenerator
 from app.retweet_graphs_v2.retweet_grapher import RetweetGrapher
+from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator
 
 
 if __name__ == "__main__":

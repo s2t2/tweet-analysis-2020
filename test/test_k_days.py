@@ -1,7 +1,7 @@
 
 from datetime import datetime
 
-from app.retweet_graphs_v2.k_days_grapher import get_date_ranges
+from app.retweet_graphs_v2.k_days.grapher import get_date_ranges
 
 def test_date_ranges():
     assert get_date_ranges(start_date="2020-01-01", k_days=3, n_periods=5) == [
