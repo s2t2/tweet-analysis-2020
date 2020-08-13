@@ -1,11 +1,17 @@
 
 import os
+import time
 
 from app import APP_ENV, server_sleep
 from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator
 from app.botcode_v2.classifier import NetworkClassifier as BotClassifier
 from app.bq_service import BigQueryService
+
+def split_into_batches(my_list, batch_size=9000):
+    """h/t: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks"""
+    for i in range(0, len(my_list), batch_size):
+        yield my_list[i : i + batch_size]
 
 if __name__ == "__main__":
 
@@ -37,7 +43,12 @@ if __name__ == "__main__":
         bots_df = df[df["bot_probability"] > 0.5]
         records = [{**{"start_date": date_range.start_date}, **record} for record in bots_df.to_dict("records")]
         print("UPLOADING", len(records), "BOT SCORES TO BQ...")
-        bq_service.upload_daily_bot_probabilities(records)
+        #bq_service.upload_daily_bot_probabilities(records)
+        #> google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll: too many rows present in the request, limit: 10000 row count: 36092.
+        batches = list(split_into_batches(records))
+        for batch in batches:
+            bq_service.upload_daily_bot_probabilities(batch)
+            time.sleep(5)
 
         # CLEAR MEMORY
         del storage
@@ -45,6 +56,7 @@ if __name__ == "__main__":
         del df
         del bots_df
         del records
+        del batches
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")
