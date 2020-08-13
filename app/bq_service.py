@@ -19,12 +19,17 @@ VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 DEFAULT_START = "2019-12-02 01:00:00" # the "beginning of time" for the impeachment dataset. todo: allow customization via env var
 DEFAULT_END = "2020-03-24 20:00:00" # the "end of time" for the impeachment dataset. todo: allow customization via env var
 
-def generate_timestamp(): # todo: maybe a class method
+def generate_timestamp():
     """Formats datetime for storing in BigQuery"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def generate_temp_table_id(): # todo: maybe a class method
+def generate_temp_table_id():
     return datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+
+def split_into_batches(my_list, batch_size=9000):
+    """Splits a list into evenly sized batches""" # h/t: h/t: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+    for i in range(0, len(my_list), batch_size):
+        yield my_list[i : i + batch_size]
 
 class BigQueryService():
 
@@ -756,7 +761,15 @@ class BigQueryService():
         Param: records (list of dictionaries)
         """
         rows_to_insert = [list(d.values()) for d in records]
-        errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
+        #errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
+        #> ... google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
+        #> ... too many rows present in the request, limit: 10000 row count: 36092.
+        #> ... see: https://cloud.google.com/bigquery/quotas#streaming_inserts
+
+        errors = []
+        batches = list(split_into_batches(rows_to_insert, batch_size=5000))
+        for batch in batches:
+            errors += self.client.insert_rows(self.daily_bot_probabilities_table, batch)
         return errors
 
     def sql_fetch_bot_ids(self, bot_min=0.8):

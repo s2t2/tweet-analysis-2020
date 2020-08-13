@@ -74,7 +74,10 @@ Empty table which will store bot classifications:
 # python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
 
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_test" python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
 ```
+
 
 
 ## Retweet Graphs
@@ -121,7 +124,11 @@ Assigning bot scores for all users in each daily retweet graph, and upload CSV t
 
 ```sh
 APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
+
+# SKIP_EXISTING="false" APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-19" N_PERIODS=1 python -m app.retweet_graphs_v2.k_days.classifier
 ```
+
+
 
 Downloading bot classifications:
 
