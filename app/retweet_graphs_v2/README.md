@@ -74,7 +74,10 @@ Empty table which will store bot classifications:
 # python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
 
 DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_production" python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
+
+DESTRUCTIVE_MIGRATIONS="true" BIGQUERY_DATASET_NAME="impeachment_test" python -m app.retweet_graphs_v2.prep.migrate_daily_bot_probabilities
 ```
+
 
 
 ## Retweet Graphs

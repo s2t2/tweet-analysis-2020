@@ -3,6 +3,8 @@ import os
 import pytest
 from networkx import DiGraph
 
+CI_ENV = (os.getenv("CI") == "true")
+
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test", "data")
 TMP_DATA_DIR = os.path.join(TEST_DATA_DIR, "tmp")
 
