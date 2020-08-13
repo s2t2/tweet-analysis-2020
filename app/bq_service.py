@@ -762,9 +762,10 @@ class BigQueryService():
         """
         rows_to_insert = [list(d.values()) for d in records]
         #errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
-        #> google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
+        #> ... google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
         #> ... too many rows present in the request, limit: 10000 row count: 36092.
-        # see also: https://cloud.google.com/bigquery/quotas#streaming_inserts
+        #> ... see: https://cloud.google.com/bigquery/quotas#streaming_inserts
+
         errors = []
         batches = list(split_into_batches(rows_to_insert, batch_size=5000))
         for batch in batches:

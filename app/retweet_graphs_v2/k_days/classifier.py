@@ -34,24 +34,21 @@ if __name__ == "__main__":
         )
         storage.upload_bot_probabilities_histogram()
 
-        ## UPLOAD SELECTED ROWS TO BIG QUERY
         try:
-
-
+            # UPLOAD SELECTED ROWS TO BIG QUERY (IF POSSIBLE, OTHERWISE CAN ADD FROM GCS LATER)
             df = clf.bot_probabilities_df
             bots_df = df[df["bot_probability"] > 0.5]
             records = [{**{"start_date": date_range.start_date}, **record} for record in bots_df.to_dict("records")]
             print("UPLOADING", len(records), "BOT SCORES TO BQ...")
-            #bq_service.upload_daily_bot_probabilities(records)
+            bq_service.upload_daily_bot_probabilities(records)
+            del df
+            del bots_df
+            del records
+        except Exception as err:
+            print("OOPS", err)
 
-
-        # CLEAR MEMORY
         del storage
         del clf
-        #del df
-        #del bots_df
-        #del records
-        #del batches
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")
