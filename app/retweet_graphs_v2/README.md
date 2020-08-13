@@ -120,7 +120,7 @@ APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.r
 
 ### K Days Bot Classification
 
-Assigning bot scores for all users in each daily retweet graph, and upload CSV to Google Cloud Storage:
+Assigning bot scores for all users in each daily retweet graph, and upload CSV to Google Cloud Storage and BigQuery:
 
 ```sh
 APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.classifier
@@ -128,16 +128,22 @@ APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.r
 # SKIP_EXISTING="false" APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-19" N_PERIODS=1 python -m app.retweet_graphs_v2.k_days.classifier
 ```
 
+... and monitoring the results:
 
+```sql
+SELECT
+  start_date
+  ,count(distinct user_id) as over_50_count
+  ,count(distinct case when bot_probability >= 0.6 THEN user_id END) as over_60_count
+  ,count(distinct case when bot_probability >= 0.7 THEN user_id END) as over_70_count
+  ,count(distinct case when bot_probability >= 0.8 THEN user_id END) as over_80_count
+  ,count(distinct case when bot_probability >= 0.9 THEN user_id END) as over_90_count
+FROM impeachment_production.daily_bot_probabilities --_temp
+group by 1
+```
 
 Downloading bot classifications:
 
 ```sh
 APP_ENV="prodlike" K_DAYS=1 K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
-```
-
-Combining and uploading users whose bot classification scores rise above a given threshold (IN PROGRESS):
-
-```sh
-BOT_MIN="0.8" K_DAYS=1 START_DATE="2020-01-01" N_PERIODS=3 python -m app.retweet_graphs_v2.k_days.combine_classifications
 ```
