@@ -60,6 +60,10 @@ class GoogleCloudStorageService:
         blob.download_to_filename(local_filepath)
         return blob
 
+    def file_exists(self, remote_filepath):
+        print("FILE EXISTS?", remote_filepath)
+        blob = self.bucket.blob(remote_filepath)
+        return blob.exists()
 
 if __name__ == "__main__":
 
