@@ -1,6 +1,7 @@
 
 import os
 #import time
+import gc
 
 from dotenv import load_dotenv
 
@@ -61,6 +62,7 @@ if __name__ == "__main__":
 
         del storage
         del clf
+        gc.collect()
         print("\n\n\n\n")
 
     print("JOB COMPLETE!")

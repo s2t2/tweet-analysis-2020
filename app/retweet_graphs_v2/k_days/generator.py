@@ -66,6 +66,10 @@ class DateRange:
         return f"<DateRange start_at='{self.start_at}' end_at={self.end_at}>"
 
     @property
+    def metadata(self):
+        return {"start_date": self.start_date, "end_date": self.end_date}
+
+    @property
     def start_date(self):
         return dt_to_date(self.start_at)
 
