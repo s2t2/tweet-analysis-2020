@@ -147,3 +147,34 @@ Downloading bot classifications:
 ```sh
 APP_ENV="prodlike" K_DAYS=1 K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.retweet_graphs_v2.k_days.download_classifications
 ```
+
+
+One-time manual import of a preliminary round of classifications that weren't programmatically inserted into BigQuery. Step one: add new table, browse to the given CSV file, and import into table named "bot_probabilities_YYYMMDD". Step two: add them into the main table where the rest are being collected:
+
+```sql
+INSERT INTO impeachment_production.daily_bot_probabilities (start_date, user_id, bot_probability) (
+  SELECT "2019-12-12" as start_date, screen_name as user_id, bot_probability
+  FROM impeachment_production.bot_probabilities_20191212 WHERE bot_probability > 0.5
+
+  UNION ALL
+
+  SELECT "2019-12-25" as start_date, screen_name as user_id, bot_probability
+  FROM impeachment_production.bot_probabilities_20191225 WHERE bot_probability > 0.5
+
+  UNION ALL
+
+  SELECT "2020-01-01" as start_date, screen_name as user_id, bot_probability
+  FROM impeachment_production.bot_probabilities_20200101 WHERE bot_probability > 0.5
+
+  UNION ALL
+
+  SELECT "2020-01-02" as start_date, screen_name as user_id, bot_probability
+  FROM impeachment_production.bot_probabilities_20200102 WHERE bot_probability > 0.5
+)
+
+-- then OK to drop daily tables
+DROP TABLE impeachment_production.bot_probabilities_20191212;
+DROP TABLE impeachment_production.bot_probabilities_20191225;
+DROP TABLE impeachment_production.bot_probabilities_20200101;
+DROP TABLE impeachment_production.bot_probabilities_20200102;
+```
