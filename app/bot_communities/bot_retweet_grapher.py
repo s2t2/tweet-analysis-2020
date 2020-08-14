@@ -1,10 +1,8 @@
 
 import os
 
-#from pandas import read_csv
 from networkx import DiGraph
 
-#from app.bq_service import BigQueryService
 from app.retweet_graphs_v2.retweet_grapher import RetweetGrapher
 
 BOT_MIN = float(os.getenv("BOT_MIN", default="0.8"))

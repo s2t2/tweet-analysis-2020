@@ -4,13 +4,13 @@ First, allow all daily classifications to complete and populate the "daily_bot_p
 
 ## Detection
 
-Constructing bot retweet graph (for all users who were assigned any daily bot scores above the given threshold):
+Constructing bot retweet graph, for all users who were assigned any daily bot scores above the given threshold (i.e. the `BOT_MIN`):
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_retweet_grapher
 ```
 
-Constructing bot similarity graph:
+Constructing bot similarity graph (using the same `BOT_MIN` from the previous step):
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
