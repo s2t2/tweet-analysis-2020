@@ -1,6 +1,24 @@
 
 # PG Pipeline
 
+## Installing PostgreSQL
+
+```sh
+brew install postgresql
+brew services start postgresql
+createdb
+```
+
+## Creating Local Database
+
+```sh
+psql
+```
+
+```sql
+CREATE DATABASE impeachment_analysis;
+```
+
 ## Local Database Migration
 
 > OPTIONAL, IF YOU WANT TO DOWNLOAD DATA FROM BIGQUERY TO LOCAL PG
