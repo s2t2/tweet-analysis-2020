@@ -129,14 +129,6 @@ Testing the Google Cloud Storage connection, saving some mock files in the speci
 python -m app.gcs_service
 ```
 
-Renaming files on Google Cloud Storage, if necessary:
-
-```sh
-EXISTING_PATTERN="storage/data/2020-" EXISTING_DIRPATH="storage/data" NEW_DIRPATH="storage/data/archived_graphs" python -m app.gcs_file_renaming
-
-EXISTING_DIRPATH="storage/data/archived_graphs" NEW_DIRPATH="storage/data/archived" python -m app.gcs_file_renaming
-```
-
 ## Testing
 
 Run tests:
