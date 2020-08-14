@@ -133,13 +133,16 @@ APP_ENV="prodlike" K_DAYS=1 START_DATE="2019-12-12" N_PERIODS=60 python -m app.r
 ```sql
 SELECT
   start_date
-  ,count(distinct user_id) as over_50_count
-  ,count(distinct case when bot_probability >= 0.6 THEN user_id END) as over_60_count
-  ,count(distinct case when bot_probability >= 0.7 THEN user_id END) as over_70_count
-  ,count(distinct case when bot_probability >= 0.8 THEN user_id END) as over_80_count
-  ,count(distinct case when bot_probability >= 0.9 THEN user_id END) as over_90_count
-FROM impeachment_production.daily_bot_probabilities --_temp
+  ,count(distinct user_id) as over_50
+  ,count(distinct case when bot_probability >= 0.6 THEN user_id END) as over_60
+  ,count(distinct case when bot_probability >= 0.7 THEN user_id END) as over_70
+  ,count(distinct case when bot_probability >= 0.8 THEN user_id END) as over_80
+  ,count(distinct case when bot_probability >= 0.85 THEN user_id END) as over_85
+  ,count(distinct case when bot_probability >= 0.9 THEN user_id END) as over_90
+  ,count(distinct case when bot_probability >= 0.95 THEN user_id END) as over_95
+FROM impeachment_production.daily_bot_probabilities
 group by 1
+order by 1
 ```
 
 Downloading bot classifications:
