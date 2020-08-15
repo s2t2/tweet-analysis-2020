@@ -15,3 +15,10 @@ Constructing bot similarity graph (using the same `BOT_MIN` from the previous st
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 ```
+
+
+Detecting bot communities (using the same `BOT_MIN` from the previous step):
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BOT_MIN="0.8" python -m app.bot_communities.bot_community_detector
+```
