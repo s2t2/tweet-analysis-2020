@@ -19,6 +19,9 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/paging-results
   + https://stackoverflow.com/a/27158310/670433
   + https://cloud.google.com/bigquery/docs/schemas
+  + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
+  + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+  + https://stackoverflow.com/a/46012467/670433
 
 
 ## Twitter Resources
