@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from app import seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.clustering import spectral_clustering
+from app.bot_communities.helper import spectral_clustering
 
 load_dotenv()
 
