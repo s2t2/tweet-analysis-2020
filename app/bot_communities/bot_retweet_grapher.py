@@ -1,7 +1,7 @@
 
 import os
 
-from networkx import DiGraph
+from networkx import DiGraph, read_gpickle
 
 from app.retweet_graphs_v2.retweet_grapher import RetweetGrapher
 
