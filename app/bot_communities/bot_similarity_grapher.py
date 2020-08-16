@@ -48,7 +48,7 @@ class BotSimilarityGrapher(BotRetweetGrapher):
 
     def save_similarity_graph(self):
         self.write_similarity_graph()
-        self.upload_graph()
+        self.upload_similarity_graph()
 
     def similarity_graph_report(self):
         if not self.similarity_graph:
