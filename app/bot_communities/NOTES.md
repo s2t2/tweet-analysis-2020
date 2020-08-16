@@ -17,7 +17,7 @@ SELECT
   ,rt.retweeted_user_screen_name
 
   ,rt.status_id
-  ,rt.status_text
+  --,rt.status_text
   ,rt.created_at as status_created_at
 
 FROM impeachment_production.2_bot_communities bc -- 681
@@ -26,3 +26,5 @@ JOIN impeachment_production.retweets_v2 rt on rt.user_id = bc.user_id
 ```
 
 Then import that CSV into a new Tableau Workbook...
+
+Actually the downloads might be too big. Writing a download script instead...
