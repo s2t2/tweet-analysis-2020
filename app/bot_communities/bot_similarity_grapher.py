@@ -65,7 +65,7 @@ if __name__ == "__main__":
     grapher = BotSimilarityGrapher()
     grapher.retweet_graph_report()
 
-    bot_ids = list(grapher.bq_service.fetch_bot_ids(bot_min=grapher.bot_min))
+    bot_ids = [row.user_id for row in grapher.bq_service.fetch_bot_ids(bot_min=grapher.bot_min)]
     print("FETCHED", len(bot_ids), "BOT IDS")
 
     grapher.similarity_graph = generate_bot_similarity_graph(bot_ids, grapher.retweet_graph)
