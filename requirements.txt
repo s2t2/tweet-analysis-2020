@@ -10,7 +10,7 @@ google-cloud-storage # for interfacing with Google Cloud Storage
 sendgrid==6.0.5
 # mpi4py # errors installing on heroku?
 
-psycopg2
+# psycopg2 (OPTIONAL)
 sqlalchemy
 
 pandas

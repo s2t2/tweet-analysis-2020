@@ -9,19 +9,18 @@ brew services start postgresql
 createdb
 ```
 
-## Creating Local Database
-
 ```sh
-psql
+# inside the virtual environment:
+pip install psycopg2
 ```
+
+## Creating Local Database
 
 ```sql
 CREATE DATABASE impeachment_analysis;
 ```
 
 ## Local Database Migration
-
-> OPTIONAL, IF YOU WANT TO DOWNLOAD DATA FROM BIGQUERY TO LOCAL PG
 
 Testing the local PostgreSQL database connection:
 
