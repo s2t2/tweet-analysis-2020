@@ -1,9 +1,14 @@
 
+import os
+
 from pandas import DataFrame
 
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
-from app.decorators.datetime_decorators import dt_to_s
+from app.decorators.datetime_decorators import dt_to_s, logstamp
+from app.decorators.number_decorators import fmt_n
+
+BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
 
 if __name__ == "__main__":
 
@@ -33,9 +38,9 @@ if __name__ == "__main__":
         JOIN `{grapher.bq_service.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
         -- ORDER BY 1,2
     """
+    counter = 0
     records = []
-    #for row in grapher.bq_service.execute_query_in_batches(sql):
-    for row in grapher.bq_service.execute_query(sql):
+    for row in grapher.bq_service.execute_query_in_batches(sql):
         records.append({
             "community_id": row.community_id,
             "user_id": row.user_id,
@@ -50,6 +55,9 @@ if __name__ == "__main__":
             "status_text": row.status_text,
             "status_created_at": dt_to_s(row.status_created_at)
         })
+        counter+=1
+        if counter % BATCH_SIZE == 0:
+            print(logstamp(), fmt_n(counter))
 
     breakpoint()
     print("WRITING TO FILE...")
