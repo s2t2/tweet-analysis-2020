@@ -59,7 +59,6 @@ if __name__ == "__main__":
         if counter % BATCH_SIZE == 0:
             print(logstamp(), fmt_n(counter))
 
-    breakpoint()
     print("WRITING TO FILE...")
     local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # should be already made by cluster maker
     local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
