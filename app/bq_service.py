@@ -84,6 +84,18 @@ class BigQueryService():
         print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
         return job
 
+    def insert_records_in_batches(self, table, records):
+        rows_to_insert = [list(d.values()) for d in records]
+        #errors = self.client.insert_rows(table, rows_to_insert)
+        #> ... google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
+        #> ... too many rows present in the request, limit: 10000 row count: 36092.
+        #> ... see: https://cloud.google.com/bigquery/quotas#streaming_inserts
+        errors = []
+        batches = list(split_into_batches(rows_to_insert, batch_size=5000))
+        for batch in batches:
+            errors += self.client.insert_rows(table, batch)
+        return errors
+
     #
     # COLLECTING TWEETS V2
     #
@@ -751,6 +763,10 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    #
+    # RETWEET GRAPHS V2 - BOT CLASSIFICATIONS
+    #
+
     @property
     @lru_cache(maxsize=None)
     def daily_bot_probabilities_table(self):
@@ -807,8 +823,29 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    #
+    # RETWEET GRAPHS V2 - BOT COMMUNITIES
+    #
 
+    #@property
+    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of k_communities
+    def daily_bot_probabilities_table(self, k_communities):
+        return self.client.get_table(f"{self.dataset_address}.{k_communities}_bot_communities") # an API call (caches results for subsequent inserts)
 
+    def destructively_migrate_k_bot_communities_table(self, k_communities):
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.{k_communities}_bot_communities`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{k_communities}_bot_communities` (
+                user_id INT64,
+                community_id INT64,
+            );
+        """
+        return self.execute_query(sql)
+
+    def overwrite_k_bot_communities_table(self, k_communities, records):
+        self.destructively_migrate_k_bot_communities_table(k_communities)
+        table = self.daily_bot_probabilities_table(k_communities)
+        return self.insert_records_in_batches(table, records)
 
 
 if __name__ == "__main__":

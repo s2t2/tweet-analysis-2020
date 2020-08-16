@@ -49,8 +49,8 @@ if __name__ == "__main__":
     print("UPLOADING COMMUNITY ASSIGNMENTS TO GCS...")
     grapher.upload_file(local_bot_communities_filepath, gcs_bot_communities_filepath)
 
-    #print("SAVING COMMUNITY ASSIGNMENTS TO BQ...")
-    #grapher.insert_community_assignments(assignments)
+    print("SAVING COMMUNITY ASSIGNMENTS TO BQ...")
+    grapher.bq_service.overwrite_k_bot_communities_table(k_communities=K_COMMUNITIES, records=assignments)
 
     #
     # HISTOGRAM
