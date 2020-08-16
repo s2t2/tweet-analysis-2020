@@ -1,11 +1,12 @@
 
 import os
 
-from networkx import write_gpickle
+from networkx import write_gpickle, read_gpickle
 
 from app import seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.helper import generate_bot_similarity_graph
+from app.decorators.number_decorators import fmt_n
 
 class BotSimilarityGrapher(BotRetweetGrapher):
 
@@ -13,7 +14,6 @@ class BotSimilarityGrapher(BotRetweetGrapher):
     def retweet_graph(self):
         return self.graph
 
-    @property
     def retweet_graph_report(self):
         self.report()
 
@@ -31,9 +31,9 @@ class BotSimilarityGrapher(BotRetweetGrapher):
     def gcs_similarity_graph_filepath(self):
         return os.path.join(self.gcs_dirpath, "similarity_graph.gpickle")
 
-    def write_similarity_graph(self, bot_similarity_graph):
+    def write_similarity_graph(self):
         print("SAVING SIMILARITY GRAPH...")
-        write_gpickle(self.bot_similarity_graph, self.local_similarity_graph_filepath)
+        write_gpickle(self.similarity_graph, self.local_similarity_graph_filepath)
 
     def upload_similarity_graph(self):
         print("UPLOADING SIMILARITY GRAPH...")
