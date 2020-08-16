@@ -1,6 +1,5 @@
 
 from networkx import adjacency_matrix, jaccard_coefficient, Graph, write_gpickle
-import numpy as np
 from sklearn.cluster import SpectralClustering
 
 def generate_bot_similarity_graph(V, Gretweet):
