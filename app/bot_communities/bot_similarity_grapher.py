@@ -11,6 +11,10 @@ from app.decorators.number_decorators import fmt_n
 
 class BotSimilarityGrapher(BotRetweetGrapher):
 
+    def __init__(self):
+        super().__init__()
+        self.similarity_graph = None
+
     @property
     def retweet_graph(self):
         return self.graph
@@ -52,13 +56,12 @@ class BotSimilarityGrapher(BotRetweetGrapher):
         results = jaccard_coefficient(self.retweet_graph.to_undirected(), node_pairs)
         #> returns an iterator of 3-tuples in the form (u, v, p)
         #> where (u, v) is a pair of nodes and p is their Jaccard coefficient.
-
-        # can we get just the ones where results > 0
-        #positive_results = [r for r in results if r[2] > 0] # this takes a while, maybe let's just stick with the original iterator approach
+        print("JACCARD COEFFICIENT RESULTS:", fmt_n(len(results)))
 
         print("CONSTRUCTING SIMILARITY GRAPH...")
         self.similarity_graph = Graph()
         edge_count = 0
+        #positive_results = [r for r in results if r[2] > 0] # this takes a while, maybe let's just stick with the original iterator approach
         for bot_id, other_bot_id, similarity_score in results:
             if similarity_score > 0:
                 self.similarity_graph.add_edge(bot_id, other_bot_id, weight=similarity_score)
@@ -66,7 +69,7 @@ class BotSimilarityGrapher(BotRetweetGrapher):
 
             self.counter += 1
             if self.counter % self.batch_size == 0:
-                print(logstamp(), "|", fmt_n(self.counter), "|", fmt_n(edge_count) "EDGES")
+                print(logstamp(), "|", fmt_n(self.counter), "|", fmt_n(edge_count), "EDGES")
 
     #
     # BOT SIMILARITY GRAPH STORAGE
