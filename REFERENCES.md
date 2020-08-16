@@ -20,6 +20,7 @@ Working with BigQuery:
   + https://stackoverflow.com/a/27158310/670433
   + https://cloud.google.com/bigquery/docs/schemas
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#insert_statement
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/arrays#converting_arrays_to_strings
 
 
 ## Twitter Resources
