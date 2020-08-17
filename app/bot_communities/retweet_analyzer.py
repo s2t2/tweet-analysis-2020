@@ -121,8 +121,9 @@ if __name__ == "__main__":
         most_retweeted_df = most_retweeted_df[:25]
         print(most_retweeted_df)
 
-
-
+        most_retweeted_df.sort_values("retweet_count", ascending=True, inplace=True)
+        fig = px.bar(most_retweeted_df, x="retweet_count", y="retweeted_user_screen_name", orientation="h")
+        fig.show() # todo: save
 
 
         #most_retweeted = most_retweeted_df.to_dict("records")
@@ -135,23 +136,3 @@ if __name__ == "__main__":
         #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
         #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(date_string_conversion)
         #print(creation_dates_df.head())
-
-
-
-
-
-
-
-
-
-
-
-        #top_sellers = []
-        #rank = 1
-        #for i, row in product_totals.iterrows():
-        #    d = {"rank": rank, "name": row.name, "monthly_sales": row["sales price"]}
-        #    top_sellers.append(d)
-        #    rank = rank + 1
-
-        #fig = px.bar(df, x="total_bill", y="day", orientation='h')
-        #fig.show()
