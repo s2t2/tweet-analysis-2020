@@ -21,6 +21,7 @@ scikit-learn
 
 matplotlib
 plotly
+kaleido # required by plotly to save static images
 
 
 

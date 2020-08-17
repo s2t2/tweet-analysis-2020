@@ -147,3 +147,10 @@ Grouping and aggregation, working with annoying multi-indices:
 
   + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
   + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
+  + https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html
+
+## Plotly Express
+
+  + https://plotly.com/python/bar-charts/#horizontal-bar-charts
+  + https://plotly.com/python/orca-management/
+  + https://plotly.com/python/static-image-export/

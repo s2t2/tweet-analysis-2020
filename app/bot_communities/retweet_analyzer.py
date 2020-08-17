@@ -5,6 +5,7 @@ from pandas import DataFrame, read_csv
 import matplotlib as plt
 import plotly.express as px
 
+from app import APP_ENV
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
@@ -21,8 +22,13 @@ if __name__ == "__main__":
     print("K COMMUNITIES:", K_COMMUNITIES)
 
     grapher = BotRetweetGrapher()
-    local_csv_filepath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES), "retweets.csv") # dir should be already made by cluster maker
+    local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
+    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
     print(os.path.abspath(local_csv_filepath))
+
+    #
+    # LOAD DATA
+    #
 
     if os.path.isfile(local_csv_filepath):
         print("LOADING BOT COMMUNITY RETWEETS...")
@@ -76,6 +82,9 @@ if __name__ == "__main__":
         print("WRITING TO FILE...")
         df.to_csv(local_csv_filepath)
 
+    #
+    # ANALYZE DATA
+    #
 
     community_ids = list(df["community_id"].unique())
 
@@ -85,51 +94,30 @@ if __name__ == "__main__":
 
         # USERS MOST RETWEETED
 
-        #most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-        ##print(most_retweeted_df.columns.tolist()) #> [('user_id', 'nunique')]
-        #most_retweeted_df = most_retweeted_df.reset_index()
-        ##print(most_retweeted_df.columns.tolist()) #> [('retweeted_user_screen_name', ''), ('user_id', 'nunique')]
-#
-        #most_retweeted_df["retweeted_user_screen_name"] = most_retweeted_df[('retweeted_user_screen_name', '')]
-        #most_retweeted_df["retweeter_count"] = most_retweeted_df[('user_id', 'nunique')]
-        #most_retweeted_df.drop("user_id", axis="columns")
-        #most_retweeted_df = most_retweeted_df.sort_values(("user_id", "nunique"), ascending=False)
-        #most_retweeted_df = most_retweeted_df[:25]
-
-        #most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-        #new_df = most_retweeted_df.copy()
-        #breakpoint()
-
-        # clean up /reset weird multi-index columns. pandas you're killing me
-        #most_retweeted_df = most_retweeted_df.reset_index()
-        #most_retweeted_df["retweet_count"] = most_retweeted_df[("status_id", "nunique")]
-        #most_retweeted_df.drop("status_id", axis="columns")
-        #most_retweeted_df["retweeted_user_screen_name"] = most_retweeted_df[("retweeted_user_screen_name", "")]
-        #most_retweeted_df.drop("retweeted_user_screen_name", axis="columns")
-        #print(most_retweeted_df.head())
-        #breakpoint()
-        #most_retweeted_df["retweet_count"] = most_retweeted_df["status_id nunique"]
-        #most_retweeted_df = most_retweeted_df.drop("status_id nunique", axis="columns")
-
         most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-
         most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
         most_retweeted_df = most_retweeted_df.reset_index()
         most_retweeted_df.rename(columns={"status_id nunique": "retweet_count"}, inplace=True)
-
         most_retweeted_df.sort_values("retweet_count", ascending=False, inplace=True)
         most_retweeted_df = most_retweeted_df[:25]
         print(most_retweeted_df)
 
-        most_retweeted_df.sort_values("retweet_count", ascending=True, inplace=True)
-        fig = px.bar(most_retweeted_df, x="retweet_count", y="retweeted_user_screen_name", orientation="h")
-        fig.show() # todo: save
+        # prepare for charting...
+        most_retweeted_chart_df = most_retweeted_df.copy()
+        most_retweeted_chart_df.rename(columns={"retweet_count": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+        most_retweeted_chart_df.sort_values("Retweet Count", ascending=True, inplace=True)
 
-
-        #most_retweeted = most_retweeted_df.to_dict("records")
-
-
-
+        fig = px.bar(most_retweeted_chart_df,
+            x="Retweet Count",
+            y="Retweeted User",
+            orientation="h",
+            title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+        )
+        if APP_ENV != "production":
+            fig.show()
+        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
+        breakpoint()
+        fig.write_image(local_img_filepath) # The orca executable is required to export figures as static images
 
         # CREATION DATES
 
