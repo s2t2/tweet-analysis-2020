@@ -25,5 +25,5 @@ K_COMMUNITIES="3" BOT_MIN="0.8" python -m app.bot_communities.clustering
 Downloading retweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
 
 ```sh
-K_COMMUNITIES="3" BOT_MIN="0.8" python -m app.bot_communities.download_retweets
+K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_analyzer
 ```
