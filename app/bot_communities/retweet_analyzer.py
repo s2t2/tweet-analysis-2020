@@ -97,27 +97,42 @@ if __name__ == "__main__":
         most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
         most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
         most_retweeted_df = most_retweeted_df.reset_index()
-        most_retweeted_df.rename(columns={"status_id nunique": "retweet_count"}, inplace=True)
-        most_retweeted_df.sort_values("retweet_count", ascending=False, inplace=True)
+        most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+        most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
         most_retweeted_df = most_retweeted_df[:25]
         print(most_retweeted_df)
 
-        # prepare for charting...
-        most_retweeted_chart_df = most_retweeted_df.copy()
-        most_retweeted_chart_df.rename(columns={"retweet_count": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-        most_retweeted_chart_df.sort_values("Retweet Count", ascending=True, inplace=True)
-
-        fig = px.bar(most_retweeted_chart_df,
+        most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
+        fig = px.bar(most_retweeted_df,
             x="Retweet Count",
             y="Retweeted User",
             orientation="h",
             title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
         )
-        if APP_ENV != "production":
-            fig.show()
+        if APP_ENV == "development": fig.show()
         local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
-        breakpoint()
-        fig.write_image(local_img_filepath) # The orca executable is required to export figures as static images
+        fig.write_image(local_img_filepath)
+
+        # USERS WITH MOST RETWEETERS
+
+        most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
+        most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
+        most_retweeters_df = most_retweeters_df.reset_index()
+        most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+        most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
+        most_retweeters_df = most_retweeters_df[:25]
+        print(most_retweeters_df)
+
+        most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
+        fig_retweeters = px.bar(most_retweeters_df,
+            x="Retweeter Count",
+            y="Retweeted User",
+            orientation="h",
+            title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+        )
+        if APP_ENV == "development": fig_retweeters.show()
+        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
+        fig_retweeters.write_image(local_img_filepath)
 
         # CREATION DATES
 
