@@ -2,17 +2,18 @@
 import os
 
 from pandas import DataFrame, read_csv
+import matplotlib as plt
+import plotly.express as px
 
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
-from app.decorators.datetime_decorators import dt_to_s, logstamp
+from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
 from app.decorators.number_decorators import fmt_n
 
-#from matplotlib import plt
-import plotly.express as px
-df = px.data.tips()
-
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
+
+def date_string_conversion(dtstr):
+    return dt_to_date(s_to_dt(dtstr))
 
 if __name__ == "__main__":
 
@@ -70,24 +71,87 @@ if __name__ == "__main__":
             if counter % BATCH_SIZE == 0:
                 print(logstamp(), fmt_n(counter))
 
-        print("WRITING TO FILE...")
         df = DataFrame(records)
         print(df.head())
+        print("WRITING TO FILE...")
         df.to_csv(local_csv_filepath)
 
 
-    breakpoint()
+    community_ids = list(df["community_id"].unique())
 
-    # todo: dataviz of top retweeted users
+    for community_id in community_ids:
+
+        community_df = df[df["community_id"] == community_id]
+
+        # USERS MOST RETWEETED
+
+        #most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+        ##print(most_retweeted_df.columns.tolist()) #> [('user_id', 'nunique')]
+        #most_retweeted_df = most_retweeted_df.reset_index()
+        ##print(most_retweeted_df.columns.tolist()) #> [('retweeted_user_screen_name', ''), ('user_id', 'nunique')]
+#
+        #most_retweeted_df["retweeted_user_screen_name"] = most_retweeted_df[('retweeted_user_screen_name', '')]
+        #most_retweeted_df["retweeter_count"] = most_retweeted_df[('user_id', 'nunique')]
+        #most_retweeted_df.drop("user_id", axis="columns")
+        #most_retweeted_df = most_retweeted_df.sort_values(("user_id", "nunique"), ascending=False)
+        #most_retweeted_df = most_retweeted_df[:25]
+
+        #most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+        #new_df = most_retweeted_df.copy()
+        #breakpoint()
+
+        # clean up /reset weird multi-index columns. pandas you're killing me
+        #most_retweeted_df = most_retweeted_df.reset_index()
+        #most_retweeted_df["retweet_count"] = most_retweeted_df[("status_id", "nunique")]
+        #most_retweeted_df.drop("status_id", axis="columns")
+        #most_retweeted_df["retweeted_user_screen_name"] = most_retweeted_df[("retweeted_user_screen_name", "")]
+        #most_retweeted_df.drop("retweeted_user_screen_name", axis="columns")
+        #print(most_retweeted_df.head())
+        #breakpoint()
+        #most_retweeted_df["retweet_count"] = most_retweeted_df["status_id nunique"]
+        #most_retweeted_df = most_retweeted_df.drop("status_id nunique", axis="columns")
+
+        most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+
+        most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
+        most_retweeted_df = most_retweeted_df.reset_index()
+        most_retweeted_df.rename(columns={"status_id nunique": "retweet_count"}, inplace=True)
+
+        most_retweeted_df.sort_values("retweet_count", ascending=False, inplace=True)
+        most_retweeted_df = most_retweeted_df[:25]
+        print(most_retweeted_df)
 
 
-    retweeted_users = []
-
-    fig = px.bar(df, x="total_bill", y="day", orientation='h')
-    fig.show()
 
 
 
+        #most_retweeted = most_retweeted_df.to_dict("records")
 
 
-    # todo: dataviz of user creation dates for each community
+
+
+        # CREATION DATES
+
+        #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
+        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(date_string_conversion)
+        #print(creation_dates_df.head())
+
+
+
+
+
+
+
+
+
+
+
+        #top_sellers = []
+        #rank = 1
+        #for i, row in product_totals.iterrows():
+        #    d = {"rank": rank, "name": row.name, "monthly_sales": row["sales price"]}
+        #    top_sellers.append(d)
+        #    rank = rank + 1
+
+        #fig = px.bar(df, x="total_bill", y="day", orientation='h')
+        #fig.show()

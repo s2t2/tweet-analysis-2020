@@ -140,3 +140,10 @@ autopep8 --in-place --aggressive --recursive app/bot
 ## Tableau
 
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
+
+## Pandas
+
+Grouping and aggregation, working with annoying multi-indices:
+
+  + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
+  + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
