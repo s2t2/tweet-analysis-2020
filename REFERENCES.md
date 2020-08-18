@@ -140,6 +140,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 ## Tableau
 
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
+  + [Filter Top N Rows per Category](https://kb.tableau.com/articles/howto/finding-the-top-n-within-a-category)
 
 ## Pandas
 
