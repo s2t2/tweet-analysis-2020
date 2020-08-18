@@ -47,6 +47,7 @@ if __name__ == "__main__":
 
                 ,t.status_id
                 ,t.status_text
+                ,t.retweet_status_id
                 ,t.reply_user_id
                 ,t.is_quote as status_is_quote
                 ,t.geo as status_geo
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
             FROM `{grapher.bq_service.dataset_address}.{K_COMMUNITIES}_bot_communities` bc -- 681
             JOIN `{grapher.bq_service.dataset_address}.tweets` t on CAST(t.user_id as int64) = bc.user_id
-            WHERE t.retweet_status_id IS NULL
+            -- WHERE t.retweet_status_id IS NULL
             -- ORDER BY 1,2
 
         """
@@ -75,6 +76,7 @@ if __name__ == "__main__":
                 "status_id": row.status_id,
                 "status_text": row.status_text,
                 "reply_user_id": row.reply_user_id,
+                "retweet_status_id": row.retweet_status_id,
                 "status_is_quote": row.status_is_quote,
                 "status_geo": row.status_geo,
                 "status_created_at": dt_to_s(row.status_created_at)
