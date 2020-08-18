@@ -5,7 +5,7 @@ from pandas import DataFrame, read_csv
 import matplotlib as plt
 import plotly.express as px
 
-from app import APP_ENV
+from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
@@ -25,6 +25,8 @@ if __name__ == "__main__":
     local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
     local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
     print(os.path.abspath(local_csv_filepath))
+    if not os.path.exists(local_dirpath):
+        os.makedirs(local_dirpath)
 
     #
     # LOAD DATA
@@ -81,6 +83,8 @@ if __name__ == "__main__":
         print(df.head())
         print("WRITING TO FILE...")
         df.to_csv(local_csv_filepath)
+
+    seek_confirmation()
 
     #
     # ANALYZE DATA
