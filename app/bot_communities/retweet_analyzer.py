@@ -99,7 +99,7 @@ if __name__ == "__main__":
         most_retweeted_df = most_retweeted_df.reset_index()
         most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
         most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
-        most_retweeted_df = most_retweeted_df[:25]
+        most_retweeted_df = most_retweeted_df[:10]
         print(most_retweeted_df)
 
         most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         most_retweeters_df = most_retweeters_df.reset_index()
         most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
         most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
-        most_retweeters_df = most_retweeters_df[:25]
+        most_retweeters_df = most_retweeters_df[:10]
         print(most_retweeters_df)
 
         most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
