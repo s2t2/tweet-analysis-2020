@@ -16,13 +16,15 @@ Constructing bot similarity graph (using the same `BOT_MIN` from the previous st
 BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 ```
 
-### Community Assignment
+## Assignment
 
 Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `K_COMMUNITIES`):
 
 ```sh
 K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.clustering
 ```
+
+## Analysis
 
 Downloading retweets / tweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
 
