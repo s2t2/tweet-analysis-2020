@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 from functools import lru_cache
+from pprint import pprint
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
@@ -16,8 +17,10 @@ DATASET_NAME = os.getenv("BIGQUERY_DATASET_NAME", default="impeachment_developme
 DESTRUCTIVE_MIGRATIONS = (os.getenv("DESTRUCTIVE_MIGRATIONS", default="false") == "true")
 VERBOSE_QUERIES = (os.getenv("VERBOSE_QUERIES", default="false") == "true")
 
-DEFAULT_START = "2019-12-02 01:00:00" # the "beginning of time" for the impeachment dataset. todo: allow customization via env var
-DEFAULT_END = "2020-03-24 20:00:00" # the "end of time" for the impeachment dataset. todo: allow customization via env var
+CLEANUP_MODE = (os.getenv("CLEANUP_MODE", default="true") == "true")
+
+DEFAULT_START = "2019-12-02 01:00:00" # @deprectated, the "beginning of time" for the impeachment dataset. todo: allow customization via env var
+DEFAULT_END = "2020-03-24 20:00:00" # @deprectated, the "end of time" for the impeachment dataset. todo: allow customization via env var
 
 def generate_timestamp():
     """Formats datetime for storing in BigQuery"""
@@ -72,9 +75,6 @@ class BigQueryService():
             temp_table_id = generate_temp_table_id()
             temp_table_name = f"{self.dataset_address}.temp_{temp_table_id}"
 
-        # todo: consider deleting an existing temp table and then overwriting it,
-        # ... or figure out a good system for deleting the temp tables after they have been created
-
         job_config = bigquery.QueryJobConfig(
             priority=bigquery.QueryPriority.BATCH,
             allow_large_results=True,
@@ -95,6 +95,25 @@ class BigQueryService():
         for batch in batches:
             errors += self.client.insert_rows(table, batch)
         return errors
+
+    def delete_temp_tables_older_than(self, days=3):
+        """Deletes all tables that:
+            have "temp_" in their name (product of the batch jobs), and were
+            created at least X days ago (safely avoid deleting tables being used by in-progress batch jobs)
+        """
+        cutoff_date = datetime.now(tz=timezone.utc) - timedelta(days=days)
+        print("CUTOFF DATE:", cutoff_date)
+
+        tables = list(self.client.list_tables(self.dataset_name)) # API call
+        tables_to_delete = [t for t in tables if "temp_" in t.table_id and t.created < cutoff_date]
+        print("TABLES TO DELETE:")
+        pprint([t.table_id for t in tables_to_delete])
+        seek_confirmation()
+
+        print("DELETING...")
+        for old_temp_table in tables_to_delete:
+            print("  ", old_temp_table.table_id)
+            self.client.delete_table(old_temp_table)
 
     #
     # COLLECTING TWEETS V2
@@ -851,6 +870,11 @@ class BigQueryService():
 if __name__ == "__main__":
 
     service = BigQueryService()
+
+    print(f"  CLEANUP MODE: {CLEANUP_MODE}")
+    if CLEANUP_MODE:
+        service.delete_temp_tables_older_than(days=3)
+        seek_confirmation()
 
     print("--------------------")
     print("FETCHED TOPICS:")
