@@ -36,3 +36,16 @@ K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_analyzer
 ```sh
 K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.tweet_analyzer
 ```
+
+### Word Clouds
+
+First time only, download english stopwords:
+
+```py
+import nltk
+nltk.download("stopwords")
+```
+
+```sh
+K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_wordclouds
+```

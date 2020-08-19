@@ -1,4 +1,6 @@
 
+# TODO: move this into the clustering.py file
+
 from networkx import adjacency_matrix, Graph
 from sklearn.cluster import SpectralClustering
 
