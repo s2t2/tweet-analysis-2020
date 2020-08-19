@@ -8,7 +8,8 @@ import re
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 #import spacy
-from spacy.tokenizer import Tokenizer
+#from spacy.tokenizer import Tokenizer
+from spacy.lang.en.stop_words import STOP_WORDS as SPACY_STOP_WORDS
 
 import matplotlib.pyplot as plt
 import squarify
@@ -20,7 +21,11 @@ from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
-STOP_WORDS = list(stopwords.words("english")) + ["rt"]
+CUSTOM_STOP_WORDS = ["rt", "trump", "impeach", "want", "like", "rep", "amp", "wit"]
+STOP_WORDS = set(list(stopwords.words("english")) + list(SPACY_STOP_WORDS) + CUSTOM_STOP_WORDS)
+#CUSTOM_STOP_WORDS = {"rt", "trump", "impeach", "want"}
+#STOP_WORDS = set(stopwords.words("english")) |= SPACY_STOP_WORDS |= CUSTOM_STOP_WORDS
+print(sorted(list(STOP_WORDS)))
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
@@ -40,7 +45,10 @@ def tokenize(doc):
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
-    return [ps.stem(token) for token in tokens if token not in STOP_WORDS] # stem and remove stopwords
+    stems = [ps.stem(token) for token in tokens if token not in STOP_WORDS]  # word stems only
+    stems = [stem for stem in stems if stem not in STOP_WORDS]  # remove stopwords
+    return stems
+
 
 
 def summarize(token_sets):
