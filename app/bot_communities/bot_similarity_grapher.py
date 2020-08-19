@@ -24,14 +24,14 @@ class BotSimilarityGrapher(BotRetweetGrapher):
 
     def perform(self):
         """
-        Params:
+        Given:
             bot_ids (list) a unique list of bot ids, which should all be included as nodes in the bot retweet graph.
                 The retweet graph will also contain retweeted users. So that's why we need a separate list.
                 The bot ids will be used as nodes in the similarity graph.
 
             bot_retweet_graph (networkx.DiGraph) a retweet graph generated from the bot list
 
-        Returns a similarity graph (networkx.Graph), where the similarity is based on the Jaccard index.
+        Returns: a similarity graph (networkx.Graph), where the similarity is based on the Jaccard index.
             For each pair of bots we calculate the Jaccard index based on the sets of people they retweet.
             If two bots retweet exactly the same users, their Jaccard index is one.
             If they don't retweet anyone in common, their Jaccard index is zero.
@@ -47,9 +47,8 @@ class BotSimilarityGrapher(BotRetweetGrapher):
             for other_bot_id in bot_ids[i+1:]:
                 if self.retweet_graph.has_node(other_bot_id) and self.retweet_graph.has_node(bot_id):
                     node_pairs.append((bot_id, other_bot_id))
-        # this step is maybe unnecessary because we
         # could maybe just take the combinations between all nodes in the bot graph
-        # (because we can assume they were assembled using the same bot ids as the ones here)
+        # because we can assume they were assembled using the same bot ids as the ones here
         # but the point is to be methodologically sound and it doesn't take that long
         print("NODE PAIRS:", fmt_n(len(node_pairs)))
 
