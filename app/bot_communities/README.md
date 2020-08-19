@@ -39,7 +39,7 @@ K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.tweet_analyzer
 
 ### Word Clouds
 
-First time only, download english stopwords:
+Downloading english stopwords (first time only):
 
 ```py
 import nltk
@@ -48,4 +48,10 @@ nltk.download("stopwords")
 
 ```sh
 K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_wordclouds
+```
+
+Downloading spacy english language model (first time only):
+
+```sh
+python -m spacy download en_core_web_lg
 ```

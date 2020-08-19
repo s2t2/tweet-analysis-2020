@@ -21,10 +21,19 @@ from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
-CUSTOM_STOP_WORDS = ["rt", "trump", "impeach", "want", "like", "rep", "amp", "wit"]
+CUSTOM_STOP_WORDS = [
+    "rt", "httpstco",
+    "trump", "impeach", "impeachment", "impeached", "president", "rep", "presidents",
+    # "articles", "trial", "house", "senate"
+    "today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "want", "wants", "like", "says", "told", "time"
+    "amp", "wit", "ago", "th", "im", #"hes", "cant", "dont"
+]
 STOP_WORDS = set(list(stopwords.words("english")) + list(SPACY_STOP_WORDS) + CUSTOM_STOP_WORDS)
 #CUSTOM_STOP_WORDS = {"rt", "trump", "impeach", "want"}
 #STOP_WORDS = set(stopwords.words("english")) |= SPACY_STOP_WORDS |= CUSTOM_STOP_WORDS
+STOP_WORDS = STOP_WORDS + [stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word] # adds "dont" version of "don't"
+
 print("----------------")
 print("STOP WORDS:", sorted(list(STOP_WORDS)))
 
