@@ -25,7 +25,8 @@ CUSTOM_STOP_WORDS = ["rt", "trump", "impeach", "want", "like", "rep", "amp", "wi
 STOP_WORDS = set(list(stopwords.words("english")) + list(SPACY_STOP_WORDS) + CUSTOM_STOP_WORDS)
 #CUSTOM_STOP_WORDS = {"rt", "trump", "impeach", "want"}
 #STOP_WORDS = set(stopwords.words("english")) |= SPACY_STOP_WORDS |= CUSTOM_STOP_WORDS
-print(sorted(list(STOP_WORDS)))
+print("----------------")
+print("STOP WORDS:", sorted(list(STOP_WORDS)))
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
@@ -35,9 +36,19 @@ ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 #        self.stop_words = STOP_WORDS
 
 
+def tokenize(doc):
+    """
+    Params: doc (str) the document to tokenize
+    Returns: a list of tokens like ["___", "_____", "____"]
+    """
+    doc = doc.lower() # normalize case
+    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
+    tokens = doc.split()
+    return [token for token in tokens if token not in STOP_WORDS]
+
 ps = PorterStemmer()
 
-def tokenize(doc):
+def token_stems(doc):
     """
     Params: doc (str) the document to tokenize
     Returns: a list of tokens like ["___", "_____", "____"]
