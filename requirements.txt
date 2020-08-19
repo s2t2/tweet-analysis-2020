@@ -20,7 +20,7 @@ scipy
 scikit-learn
 nltk
 spacy
-#gensim
+gensim
 
 matplotlib
 plotly

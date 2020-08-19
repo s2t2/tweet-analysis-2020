@@ -54,4 +54,5 @@ Downloading spacy english language model (first time only):
 
 ```sh
 python -m spacy download en_core_web_lg
+python -m spacy download en_core_web_md
 ```

@@ -5,11 +5,12 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 import re
+import spacy
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-#import spacy
-#from spacy.tokenizer import Tokenizer
 from spacy.lang.en.stop_words import STOP_WORDS as SPACY_STOP_WORDS
+from gensim.parsing.preprocessing import STOPWORDS as GENSIM_STOPWORDS
+#from spacy.tokenizer import Tokenizer
+from nltk.stem import PorterStemmer
 
 import matplotlib.pyplot as plt
 import squarify
@@ -21,16 +22,15 @@ from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
-CUSTOM_STOP_WORDS = {
+STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | GENSIM_STOPWORDS | {
     "rt", "httpstco", "amp",
     #"impeach", "impeachment", "impeached", "president", "rep", "presidents",
     # "trump", "articles", "trial", "house", "senate"
     "today", "tonight", "tomorrow", "time", "ago",
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
     "want", "wants", "like", "says", "told",
-    #"th", "im", "hes", "hi", "thi",
+    "th", "im", "hes", "hi", "thi"
 }
-STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | CUSTOM_STOP_WORDS
 STOP_WORDS = STOP_WORDS | set([stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word]) # adds "dont" version of "don't"
 
 print("----------------")
@@ -38,14 +38,27 @@ print("STOP WORDS:", sorted(list(STOP_WORDS)))
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
-ps = PorterStemmer()
-
 #class WordcloudMaker:
 #    def __init__(self):
 #        self.ps = PorterStemmer()
+#        self.nlp = spacy.load("en_core_web_md")
 #        self.stop_words = STOP_WORDS
 
-def tokens(doc):
+ps = PorterStemmer()
+print("PORTER STEMMER", type(ps))
+
+#nlp = spacy.load("en_core_web_lg")
+nlp = spacy.load("en_core_web_md")
+print("NLP", type(nlp))
+
+def custom_stem(token):
+    if token in ["impeach", "impeachment", "impeached"]:
+        token = "impeach"
+    if token in ["trump", "trumps"]:
+        token = "trump"
+    return token
+
+def tokenize(doc):
     """
     Params: doc (str) the document to tokenize
     Returns: a list of tokens like ["___", "_____", "____"]
@@ -53,30 +66,60 @@ def tokens(doc):
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
-    return tokens # [token for token in tokens if token not in STOP_WORDS] # remove stopwords
+    tokens = [token for token in tokens if token not in STOP_WORDS] # remove stopwords
+    return tokens
 
-#def token_stems(doc):
-#    """
-#    Params: doc (str) the document to tokenize
-#    Returns: a list of stems like ["___", "_____", "____"]
-#    """
-#    stems = [ps.stem(token) for token in tokens(doc)]  # word stems only
-#    stems = [stem for stem in stems if stem not in STOP_WORDS] # remove stopwords again
-#    return stems
-
-def custom_token_stems(doc):
+def tokenize_porter_stems(doc):
     """
     Params: doc (str) the document to tokenize
     Returns: a list of stems like ["___", "_____", "____"]
     """
-    stems = [custom_stem(token) for token in tokens(doc)]  # word stems only
+    doc = doc.lower() # normalize case
+    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
+    tokens = doc.split()
+    tokens = [token for token in tokens if token not in STOP_WORDS] # remove stopwords
+    stems = [ps.stem(token) for token in tokens]  # word stems only
     stems = [stem for stem in stems if stem not in STOP_WORDS] # remove stopwords again
     return stems
 
-def custom_stem(token):
-    if token in ["impeach", "impeachment", "impeached"]:
-        token = "impeach"
-    return token
+def tokenize_custom_stems(doc):
+    """
+    Params: doc (str) the document to tokenize
+    Returns: a list of stems like ["___", "_____", "____"]
+    """
+    doc = doc.lower() # normalize case
+    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
+    tokens = doc.split()
+    tokens = [token for token in tokens if token not in STOP_WORDS] # remove stopwords
+    stems = [custom_stem(token) for token in tokens]  # custom word stems only
+    stems = [stem for stem in stems if stem not in STOP_WORDS] # remove stopwords again
+    return stems
+
+def tokenize_spacy_lemmas(doc):
+    """
+    Params:
+        my_doc (str) the document to tokenize
+        my_nlp (spacy.lang.en.English) one of spacy's natural language models
+    Returns: a list of tokens
+    """
+    doc = nlp(doc) #> <class 'spacy.tokens.doc.Doc'>
+    lemmas = [token.lemma_.lower() for token in doc if token.is_stop == False
+                                                    and token.is_punct == False
+                                                    and token.is_space == False
+                                                    and token not in STOP_WORDS] # double stopword removal!!!
+
+    return lemmas
+
+
+
+
+
+
+
+
+
+
+
 
 def summarize(token_sets):
     """
@@ -117,8 +160,6 @@ def summarize(token_sets):
     return df.reindex(columns=ordered_columns).sort_values(by="rank")
 
 
-
-
 if __name__ == "__main__":
 
     print("----------------")
@@ -153,7 +194,7 @@ if __name__ == "__main__":
 
         # TOKENIZE
 
-        status_tokens = filtered_df["status_text"].apply(lambda txt: custom_token_stems(txt))
+        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize_spacy_lemmas(txt))
         print(status_tokens)
         status_tokens = status_tokens.values.tolist()
 
@@ -166,7 +207,7 @@ if __name__ == "__main__":
 
         print("PLOTTING TOP TOKENS...")
         chart_title = f"Word Cloud for Community {community_id} on '{date}'"
-        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
+        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"{date}-community-{community_id}.png")
         print(os.path.abspath(local_wordcloud_filepath))
 
         squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
