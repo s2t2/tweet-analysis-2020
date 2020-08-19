@@ -152,6 +152,11 @@ Grouping and aggregation, working with multi-indices:
   + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
   + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
   + https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html
+  + https://stackoverflow.com/a/49565811/670433
+
+## Matplotlib
+
+  + https://stackoverflow.com/questions/8213522/when-to-use-cla-clf-or-close-for-clearing-a-plot-in-matplotlib#
 
 ## Plotly Express
 
