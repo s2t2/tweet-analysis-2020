@@ -19,16 +19,17 @@ from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
+STOP_WORDS = list(stopwords.words("english")) + ["rt"]
+
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
 #class CloudMaker:
 #    def __init__(self):
 #        self.ps = PorterStemmer()
-#        self.stop_words = stopwords.words("english")
+#        self.stop_words = STOP_WORDS
+
 
 ps = PorterStemmer()
-stop_words = stopwords.words("english")
-stopwords.extend(["rt"]) # add stopwords
 
 def tokenize(doc):
     """
@@ -38,7 +39,7 @@ def tokenize(doc):
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
-    return [ps.stem(token) for token in tokens if token not in stop_words] # stem and remove stopwords
+    return [ps.stem(token) for token in tokens if token not in STOP_WORDS] # stem and remove stopwords
 
 
 def summarize(token_sets):
@@ -76,23 +77,12 @@ def summarize(token_sets):
     # df["doc_count"].apply(lambda x: x / total_docs)
     df["doc_pct"] = df["doc_count"] / total_docs
 
-    ordered_columns = ["token", "rank", "count",
-                       "pct", "running_pct", "doc_count", "doc_pct"]
+    ordered_columns = ["token", "rank", "count", "pct", "running_pct", "doc_count", "doc_pct"]
     return df.reindex(columns=ordered_columns).sort_values(by="rank")
 
 
-def plot_top_tokens(token_sets):
-    summary_table = summarize(token_sets)
-    top_tokens_table = summary_table[summary_table["rank"] <= 20]
-    print("PLOTTING TOP TOKENS...")
 
-    #sns.distplot(summary_table["pct"])
-    #plt.show()
 
-    squarify.plot(sizes=top_tokens_table["pct"],
-                  label=top_tokens_table["token"], alpha=0.8)
-    plt.axis("off")
-    plt.show()
 
 
 
@@ -107,15 +97,14 @@ if __name__ == "__main__":
         os.makedirs(local_dirpath)
 
     print("----------------")
-    print("LOADING RETWEETS:")
+    print("LOADING RETWEETS...")
     local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
     print(os.path.abspath(local_csv_filepath))
     df = pd.read_csv(local_csv_filepath)
     print(df.head())
-    seek_confirmation()
 
     print("----------------")
-    print("TRANSFORMING RETWEETS:")
+    print("TRANSFORMING RETWEETS...")
     df["status_created_date"] = df["status_created_at"].apply(s_to_date)
 
     print("----------------")
@@ -134,10 +123,25 @@ if __name__ == "__main__":
         local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}.png")
         print(os.path.abspath(local_wordcloud_filepath))
 
-        # PERFORMANCE
+        # TOKENIZE
 
         status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize(txt))
         print(status_tokens)
+        status_tokens = status_tokens.values.tolist()
 
-        breakpoint()
-        plot_top_tokens(status_tokens.values.tolist())
+        # SUMMARIZE
+
+        print("TOP TOKENS:")
+        pivot_df = summarize(status_tokens)
+        top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
+        print(top_tokens_df)
+
+        print("PLOTTING TOP TOKENS...")
+        squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
+        plt.title(f"Word Cloud for Community {community_id} on '{date}'")
+        plt.axis("off")
+        if APP_ENV == "development":
+            plt.show()
+        plt.savefig(local_wordcloud_filepath)
+
+        #seek_confirmation()
