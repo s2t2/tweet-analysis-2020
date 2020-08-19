@@ -8,13 +8,10 @@ import plotly.express as px
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
-from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
+from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
-
-def date_string_conversion(dtstr):
-    return dt_to_date(s_to_dt(dtstr))
 
 if __name__ == "__main__":
 
@@ -141,5 +138,5 @@ if __name__ == "__main__":
         # CREATION DATES
 
         #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
-        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(date_string_conversion)
+        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
         #print(creation_dates_df.head())

@@ -16,7 +16,7 @@ import squarify
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
-#from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
+from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
@@ -28,6 +28,7 @@ ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
 ps = PorterStemmer()
 stop_words = stopwords.words("english")
+stopwords.extend(["rt"]) # add stopwords
 
 def tokenize(doc):
     """
@@ -102,42 +103,41 @@ if __name__ == "__main__":
 
     grapher = BotRetweetGrapher()
     local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
-    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
-    print(os.path.abspath(local_csv_filepath))
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
 
     print("----------------")
     print("LOADING RETWEETS:")
+    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
+    print(os.path.abspath(local_csv_filepath))
     df = pd.read_csv(local_csv_filepath)
     print(df.head())
-
     seek_confirmation()
 
-    # TODO...
+    print("----------------")
+    print("TRANSFORMING RETWEETS:")
+    df["status_created_date"] = df["status_created_at"].apply(s_to_date)
 
-    # for each date
-    date = "2020-01-01"
-    local_wordclouds_dirpath = os.path.join(local_dirpath, "wordclouds", date)
-    if not os.path.exists(local_wordclouds_dirpath):
-        os.makedirs(local_wordclouds_dirpath)
+    print("----------------")
+    print("GENERATING WORDCLOUDS...")
 
-    # for each community
-    community_id = 0
-    local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}.png")
-    print(os.path.abspath(local_wordcloud_filepath))
+    for group_name, filtered_df in df.groupby(["status_created_date", "community_id"]):
+        date = group_name[0]
+        community_id = group_name[1]
+        print(date, community_id)
 
+        # SETUP
 
+        local_wordclouds_dirpath = os.path.join(local_dirpath, "wordclouds", date)
+        if not os.path.exists(local_wordclouds_dirpath):
+            os.makedirs(local_wordclouds_dirpath)
+        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}.png")
+        print(os.path.abspath(local_wordcloud_filepath))
 
-    breakpoint()
+        # PERFORMANCE
 
-    #print(df[["reviews.rating", "reviews.text"]])
-    #print("REVIEW RATINGS...")
-    #print(df["reviews.rating"].value_counts())
-#
-    #print("REVIEW TEXT...")
-    #print(df["reviews.text"].str.len().value_counts())
+        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize(txt))
+        print(status_tokens)
 
-    tokens = df["status_text"].apply(lambda txt: tokenize(txt))
-    print(tokens[0:5])
-    plot_top_tokens(df["nlp.tokens"].values.tolist())
+        breakpoint()
+        plot_top_tokens(status_tokens.values.tolist())
