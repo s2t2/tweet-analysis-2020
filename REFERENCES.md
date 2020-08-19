@@ -21,6 +21,9 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/schemas
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#insert_statement
   + https://cloud.google.com/bigquery/docs/reference/standard-sql/arrays#converting_arrays_to_strings
+  + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
+  + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+  + https://stackoverflow.com/a/46012467/670433
 
 
 ## Twitter Resources
