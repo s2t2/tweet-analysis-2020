@@ -12,6 +12,7 @@ from spacy.tokenizer import Tokenizer
 
 import matplotlib.pyplot as plt
 import squarify
+#import plotly.express as px
 
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
@@ -83,9 +84,6 @@ def summarize(token_sets):
 
 
 
-
-
-
 if __name__ == "__main__":
 
     print("----------------")
@@ -109,19 +107,14 @@ if __name__ == "__main__":
 
     print("----------------")
     print("GENERATING WORDCLOUDS...")
+    local_wordclouds_dirpath = os.path.join(local_dirpath, "wordclouds")
+    if not os.path.exists(local_wordclouds_dirpath):
+        os.makedirs(local_wordclouds_dirpath)
 
     for group_name, filtered_df in df.groupby(["status_created_date", "community_id"]):
         date = group_name[0]
         community_id = group_name[1]
         print(date, community_id)
-
-        # SETUP
-
-        local_wordclouds_dirpath = os.path.join(local_dirpath, "wordclouds", date)
-        if not os.path.exists(local_wordclouds_dirpath):
-            os.makedirs(local_wordclouds_dirpath)
-        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}.png")
-        print(os.path.abspath(local_wordcloud_filepath))
 
         # TOKENIZE
 
@@ -137,11 +130,23 @@ if __name__ == "__main__":
         print(top_tokens_df)
 
         print("PLOTTING TOP TOKENS...")
+        chart_title = f"Word Cloud for Community {community_id} on '{date}'"
+        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
+        print(os.path.abspath(local_wordcloud_filepath))
+
         squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
-        plt.title(f"Word Cloud for Community {community_id} on '{date}'")
+        plt.title(chart_title)
         plt.axis("off")
         if APP_ENV == "development":
             plt.show()
         plt.savefig(local_wordcloud_filepath)
+        # why are previous chart's words showing up? need to clear plt or something?
+        plt.clf()
 
-        #seek_confirmation()
+        #top_tokens_df.sort_values("Retweet Count", ascending=True, inplace=True)
+        #fig = px.treemap(top_tokens_df, values="token", title=chart_title)
+        #if APP_ENV == "development":
+        #    fig.show()
+        #fig.write_image(local_wordcloud_filepath)
+
+        seek_confirmation()
