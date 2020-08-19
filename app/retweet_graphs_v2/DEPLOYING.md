@@ -46,15 +46,6 @@ After all graphs are complete...
 Config:
 
 ```sh
-heroku config:set START_DATE="2019-12-25"   -r heroku-2
-heroku config:set N_PERIODS="6"             -r heroku-2
-
-#heroku config:set START_DATE="2020-01-02"   -r heroku-3
-#heroku config:set N_PERIODS="14"            -r heroku-3
-#
-#heroku config:set START_DATE="2020-01-16"   -r heroku-4
-#heroku config:set N_PERIODS="16"            -r heroku-4
-#
-#heroku config:set START_DATE="2020-02-01"   -r heroku-5
-#heroku config:set N_PERIODS="10"            -r heroku-5
+heroku config:set START_DATE="2019-12-12"   -r heroku-2
+heroku config:set N_PERIODS="7"             -r heroku-2
 ```

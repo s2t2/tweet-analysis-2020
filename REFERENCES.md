@@ -2,7 +2,7 @@
 
 ## Notebook Conversion
 
-Uploaded / imported [this notebook](/start/follower_network_collector.ipynb) [into colab](https://colab.research.google.com/drive/1T0ED71rbhiNF8HG-769aBqA0zZAJodcd), then selected "File" > "Download .py" and stored the [resulting python script](/start/follower_network_collector.py) in the "start" dir.
+From Google Colab, select "File" > "Download .py" and store the resulting file in the "start" dir.
 
 ## Google BigQuery
 
@@ -19,6 +19,8 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/paging-results
   + https://stackoverflow.com/a/27158310/670433
   + https://cloud.google.com/bigquery/docs/schemas
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#insert_statement
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/arrays#converting_arrays_to_strings
   + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
   + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
   + https://stackoverflow.com/a/46012467/670433
@@ -70,6 +72,7 @@ Locks and Semaphores:
   + https://networkx.github.io/documentation/latest/reference/readwrite/generated/networkx.readwrite.gpickle.read_gpickle.html
   + https://networkx.github.io/documentation/latest/reference/convert.html
   + https://networkx.github.io/documentation/latest/reference/generated/networkx.convert_matrix.from_pandas_edgelist.html
+  + https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.algorithms.link_prediction.jaccard_coefficient.html
 
 ## Google Cloud Storage
 
@@ -140,3 +143,18 @@ autopep8 --in-place --aggressive --recursive app/bot
 ## Tableau
 
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
+  + [Filter Top N Rows per Category](https://kb.tableau.com/articles/howto/finding-the-top-n-within-a-category)
+
+## Pandas
+
+Grouping and aggregation, working with multi-indices:
+
+  + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
+  + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
+  + https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html
+
+## Plotly Express
+
+  + https://plotly.com/python/bar-charts/#horizontal-bar-charts
+  + https://plotly.com/python/orca-management/
+  + https://plotly.com/python/static-image-export/

@@ -84,6 +84,23 @@ class BigQueryService():
         print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
         return job
 
+    def insert_records_in_batches(self, table, records):
+        """
+        Params:
+            table (table ID string, Table, or TableReference)
+            records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        #errors = self.client.insert_rows(table, rows_to_insert)
+        #> ... google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
+        #> ... too many rows present in the request, limit: 10000 row count: 36092.
+        #> ... see: https://cloud.google.com/bigquery/quotas#streaming_inserts
+        errors = []
+        batches = list(split_into_batches(rows_to_insert, batch_size=5000))
+        for batch in batches:
+            errors += self.client.insert_rows(table, batch)
+        return errors
+
     def delete_temp_tables_older_than(self, days=3):
         """Deletes all tables that:
             have "temp_" in their name (product of the batch jobs), and were
@@ -770,26 +787,17 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    #
+    # RETWEET GRAPHS V2 - BOT CLASSIFICATIONS
+    #
+
     @property
     @lru_cache(maxsize=None)
     def daily_bot_probabilities_table(self):
         return self.client.get_table(f"{self.dataset_address}.daily_bot_probabilities") # an API call (caches results for subsequent inserts)
 
     def upload_daily_bot_probabilities(self, records):
-        """
-        Param: records (list of dictionaries)
-        """
-        rows_to_insert = [list(d.values()) for d in records]
-        #errors = self.client.insert_rows(self.daily_bot_probabilities_table, rows_to_insert)
-        #> ... google.api_core.exceptions.BadRequest: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/.../tables/daily_bot_probabilities/insertAll:
-        #> ... too many rows present in the request, limit: 10000 row count: 36092.
-        #> ... see: https://cloud.google.com/bigquery/quotas#streaming_inserts
-
-        errors = []
-        batches = list(split_into_batches(rows_to_insert, batch_size=5000))
-        for batch in batches:
-            errors += self.client.insert_rows(self.daily_bot_probabilities_table, batch)
-        return errors
+        return self.insert_records_in_batches(self.daily_bot_probabilities_table, records)
 
     def sql_fetch_bot_ids(self, bot_min=0.8):
         sql = f"""
@@ -826,8 +834,29 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    #
+    # RETWEET GRAPHS V2 - BOT COMMUNITIES
+    #
 
+    #@property
+    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of k_communities
+    def k_bot_communities_table(self, k_communities):
+        return self.client.get_table(f"{self.dataset_address}.{k_communities}_bot_communities") # an API call (caches results for subsequent inserts)
 
+    def destructively_migrate_k_bot_communities_table(self, k_communities):
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.{k_communities}_bot_communities`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{k_communities}_bot_communities` (
+                user_id INT64,
+                community_id INT64,
+            );
+        """
+        return self.execute_query(sql)
+
+    def overwrite_k_bot_communities_table(self, k_communities, records):
+        self.destructively_migrate_k_bot_communities_table(k_communities)
+        table = self.k_bot_communities_table(k_communities)
+        return self.insert_records_in_batches(table, records)
 
 
 if __name__ == "__main__":

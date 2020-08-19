@@ -8,17 +8,20 @@ google-cloud-bigquery # for interfacing with the BigQuery API
 google-cloud-storage # for interfacing with Google Cloud Storage
 
 sendgrid==6.0.5
+# mpi4py # errors installing on heroku?
+
+# psycopg2 (OPTIONAL)
+sqlalchemy
 
 pandas
 networkx
-psycopg2
-sqlalchemy
-
-# mpi4py # errors installing on heroku?
 numpy
 scipy
+scikit-learn
 
 matplotlib
+plotly
+kaleido # required by plotly to save static images
 
 
 
