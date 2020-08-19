@@ -21,31 +21,31 @@ from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
 #from app.decorators.number_decorators import fmt_n
 
-CUSTOM_STOP_WORDS = [
-    "rt", "httpstco",
-    "trump", "impeach", "impeachment", "impeached", "president", "rep", "presidents",
-    # "articles", "trial", "house", "senate"
-    "today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-    "want", "wants", "like", "says", "told", "time"
-    "amp", "wit", "ago", "th", "im", #"hes", "cant", "dont"
-]
-STOP_WORDS = set(list(stopwords.words("english")) + list(SPACY_STOP_WORDS) + CUSTOM_STOP_WORDS)
-#CUSTOM_STOP_WORDS = {"rt", "trump", "impeach", "want"}
-#STOP_WORDS = set(stopwords.words("english")) |= SPACY_STOP_WORDS |= CUSTOM_STOP_WORDS
-STOP_WORDS = STOP_WORDS + [stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word] # adds "dont" version of "don't"
+CUSTOM_STOP_WORDS = {
+    "rt", "httpstco", "amp",
+    #"impeach", "impeachment", "impeached", "president", "rep", "presidents",
+    # "trump", "articles", "trial", "house", "senate"
+    "today", "tonight", "tomorrow", "time", "ago",
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "want", "wants", "like", "says", "told",
+    #"th", "im", "hes", "hi", "thi",
+}
+STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | CUSTOM_STOP_WORDS
+STOP_WORDS = STOP_WORDS | set([stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word]) # adds "dont" version of "don't"
 
 print("----------------")
 print("STOP WORDS:", sorted(list(STOP_WORDS)))
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 
-#class CloudMaker:
+ps = PorterStemmer()
+
+#class WordcloudMaker:
 #    def __init__(self):
 #        self.ps = PorterStemmer()
 #        self.stop_words = STOP_WORDS
 
-
-def tokenize(doc):
+def tokens(doc):
     """
     Params: doc (str) the document to tokenize
     Returns: a list of tokens like ["___", "_____", "____"]
@@ -53,23 +53,30 @@ def tokenize(doc):
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
-    return [token for token in tokens if token not in STOP_WORDS]
+    return tokens # [token for token in tokens if token not in STOP_WORDS] # remove stopwords
 
-ps = PorterStemmer()
+#def token_stems(doc):
+#    """
+#    Params: doc (str) the document to tokenize
+#    Returns: a list of stems like ["___", "_____", "____"]
+#    """
+#    stems = [ps.stem(token) for token in tokens(doc)]  # word stems only
+#    stems = [stem for stem in stems if stem not in STOP_WORDS] # remove stopwords again
+#    return stems
 
-def token_stems(doc):
+def custom_token_stems(doc):
     """
     Params: doc (str) the document to tokenize
-    Returns: a list of tokens like ["___", "_____", "____"]
+    Returns: a list of stems like ["___", "_____", "____"]
     """
-    doc = doc.lower() # normalize case
-    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
-    tokens = doc.split()
-    stems = [ps.stem(token) for token in tokens if token not in STOP_WORDS]  # word stems only
-    stems = [stem for stem in stems if stem not in STOP_WORDS]  # remove stopwords
+    stems = [custom_stem(token) for token in tokens(doc)]  # word stems only
+    stems = [stem for stem in stems if stem not in STOP_WORDS] # remove stopwords again
     return stems
 
-
+def custom_stem(token):
+    if token in ["impeach", "impeachment", "impeached"]:
+        token = "impeach"
+    return token
 
 def summarize(token_sets):
     """
@@ -146,7 +153,7 @@ if __name__ == "__main__":
 
         # TOKENIZE
 
-        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize(txt))
+        status_tokens = filtered_df["status_text"].apply(lambda txt: custom_token_stems(txt))
         print(status_tokens)
         status_tokens = status_tokens.values.tolist()
 
