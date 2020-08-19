@@ -147,7 +147,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 
 ## Pandas
 
-Grouping and aggregation, working with annoying multi-indices:
+Grouping and aggregation, working with multi-indices:
 
   + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
   + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
