@@ -36,12 +36,14 @@ print("NLP", type(nlp))
 print("----------------")
 STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | GENSIM_STOPWORDS | {
     "rt", "httpstco", "amp",
-    "rep", "president", "presidents",
+    "rep", "president", "presidents", "col",
     "today", "tonight", "tomorrow", "time", "ago",
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
     "want", "wants", "like", "get", "say", "says", "told",
     "th", "im", "hes", "hi", "thi", "go",
-    "thousand"
+    "thousand",
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
     #"impeach", "impeachment", "impeached",
     # "trump", "articles", "trial", "house", "senate"
 }
@@ -125,8 +127,6 @@ def tokenize_spacy_entities(doc):
     breakpoint()
 
     return lemmas
-
-tokenize = tokenize_spacy_lemmas
 
 
 
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
         print(logstamp(), date, community_id)
 
-        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize(txt))
+        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize_spacy_lemmas(txt))
         print(status_tokens)
         status_tokens = status_tokens.values.tolist()
         print("TOP TOKENS:")

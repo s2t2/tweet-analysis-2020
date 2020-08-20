@@ -2,7 +2,7 @@
 import os
 
 from pandas import DataFrame, read_csv
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import plotly.express as px
 import squarify
 
@@ -11,7 +11,7 @@ from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
-from app.bot_communities.retweet_wordclouds import tokenize, summarize
+from app.bot_communities.retweet_wordclouds import summarize, tokenize_custom_stems # tokenize is too slow to complete
 
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
         print(logstamp(), community_id)
 
-        status_tokens = community_df["status_text"].apply(lambda txt: tokenize(txt))
+        status_tokens = community_df["status_text"].apply(lambda txt: tokenize_custom_stems(txt))
         print(status_tokens)
         status_tokens = status_tokens.values.tolist()
         print("TOP TOKENS:")
