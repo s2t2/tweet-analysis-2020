@@ -184,6 +184,7 @@ if __name__ == "__main__":
 
     grapher = BotRetweetGrapher()
     local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
+    daily_top_tokens_filepath = os.path.join(local_dirpath, "daily_top_tokens.csv")
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
 
@@ -208,13 +209,13 @@ if __name__ == "__main__":
     if not os.path.exists(local_wordclouds_dirpath):
         os.makedirs(local_wordclouds_dirpath)
 
-    token_ranks = [] # for each token, add dates and ranks
+    daily_top_tokens = [] # for each token, add dates and ranks
 
     for group_name, filtered_df in df.groupby(["status_created_date", "community_id"]):
         date = group_name[0]
         community_id = group_name[1]
         chart_title = f"Word Cloud for Community {community_id} on '{date}' (rt_count={fmt_n(len(filtered_df))})"
-        local_top_tokens_csv_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.csv")
+        #local_top_tokens_csv_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.csv")
         local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
         print(logstamp(), date, community_id)
 
@@ -223,9 +224,9 @@ if __name__ == "__main__":
         status_tokens = status_tokens.values.tolist()
         print("TOP TOKENS:")
         pivot_df = summarize(status_tokens)
-        pivot_df.to_csv(local_top_tokens_csv_filepath)
 
         top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
+        #top_tokens_df.to_csv(local_top_tokens_csv_filepath)
         print(top_tokens_df)
 
         print("PLOTTING TOP TOKENS...")
@@ -238,8 +239,14 @@ if __name__ == "__main__":
         plt.savefig(local_wordcloud_filepath)
         plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
 
-        #breakpoint()
-        # top_tokens_df[["token", "rank"]]
-        #token_ranks.append({"token": token, "date": _______, "rank": ______})
+        print("SAVING TOP TOKENS...")
+        records = top_tokens_df.to_dict("records")
+        for record in records:
+            record["community_id"] = community_id
+            record["date"] = date
+        daily_top_tokens.append(records)
 
         seek_confirmation()
+
+    daily_top_tokens_df = DataFrame(daily_top_tokens)
+    daily_top_tokens_df.to_csv(daily_top_tokens_filepath)
