@@ -2,8 +2,9 @@ import os
 #from pprint import pprint
 from collections import Counter
 
+from dotenv import load_dotenv
 import numpy as np
-import pandas as pd
+from pandas import read_csv, DataFrame
 import re
 import spacy
 from nltk.corpus import stopwords
@@ -19,21 +20,31 @@ import squarify
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
-from app.decorators.datetime_decorators import s_to_date #dt_to_s, logstamp, dt_to_date, s_to_dt
-#from app.decorators.number_decorators import fmt_n
+from app.decorators.datetime_decorators import s_to_date, logstamp #dt_to_s, logstamp, dt_to_date, s_to_dt
+from app.decorators.number_decorators import fmt_n
 
-STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | GENSIM_STOPWORDS | {
-    "rt", "httpstco", "amp",
-    #"impeach", "impeachment", "impeached", "president", "rep", "presidents",
-    # "trump", "articles", "trial", "house", "senate"
-    "today", "tonight", "tomorrow", "time", "ago",
-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-    "want", "wants", "like", "says", "told",
-    "th", "im", "hes", "hi", "thi"
-}
-STOP_WORDS = STOP_WORDS | set([stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word]) # adds "dont" version of "don't"
+load_dotenv()
+
+ROWS_LIMIT = os.getenv("ROWS_LIMIT")
+MODEL_SIZE = os.getenv("MODEL_SIZE", default="sm")  # sm, md, lg
 
 print("----------------")
+nlp = spacy.load(f"en_core_web_{MODEL_SIZE}")
+print("NLP", type(nlp))
+
+print("----------------")
+STOP_WORDS = set(stopwords.words("english")) | SPACY_STOP_WORDS | GENSIM_STOPWORDS | {
+    "rt", "httpstco", "amp",
+    "rep", "president", "presidents",
+    "today", "tonight", "tomorrow", "time", "ago",
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "want", "wants", "like", "get", "say", "says", "told",
+    "th", "im", "hes", "hi", "thi", "go",
+    "thousand"
+    #"impeach", "impeachment", "impeached",
+    # "trump", "articles", "trial", "house", "senate"
+}
+STOP_WORDS = STOP_WORDS | set([stop_word.replace("'","") for stop_word in STOP_WORDS if "'" in stop_word]) # adds "dont" version of "don't"
 print("STOP WORDS:", sorted(list(STOP_WORDS)))
 
 ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
@@ -47,22 +58,18 @@ ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
 ps = PorterStemmer()
 print("PORTER STEMMER", type(ps))
 
-#nlp = spacy.load("en_core_web_lg")
-nlp = spacy.load("en_core_web_md")
-print("NLP", type(nlp))
-
 def custom_stem(token):
-    if token in ["impeach", "impeachment", "impeached"]:
+    if token in ["impeachment", "impeached"]:
         token = "impeach"
-    if token in ["trump", "trumps"]:
+    if token == "trumps":
         token = "trump"
+    if token == "pelosis":
+        token = "pelosi"
+    if token == "democrat":
+        token = "democrats"
     return token
 
 def tokenize(doc):
-    """
-    Params: doc (str) the document to tokenize
-    Returns: a list of tokens like ["___", "_____", "____"]
-    """
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
@@ -70,10 +77,6 @@ def tokenize(doc):
     return tokens
 
 def tokenize_porter_stems(doc):
-    """
-    Params: doc (str) the document to tokenize
-    Returns: a list of stems like ["___", "_____", "____"]
-    """
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
@@ -83,10 +86,6 @@ def tokenize_porter_stems(doc):
     return stems
 
 def tokenize_custom_stems(doc):
-    """
-    Params: doc (str) the document to tokenize
-    Returns: a list of stems like ["___", "_____", "____"]
-    """
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
     tokens = doc.split()
@@ -96,28 +95,38 @@ def tokenize_custom_stems(doc):
     return stems
 
 def tokenize_spacy_lemmas(doc):
-    """
-    Params:
-        my_doc (str) the document to tokenize
-        my_nlp (spacy.lang.en.English) one of spacy's natural language models
-    Returns: a list of tokens
-    """
-    doc = nlp(doc) #> <class 'spacy.tokens.doc.Doc'>
-    lemmas = [token.lemma_.lower() for token in doc if token.is_stop == False
-                                                    and token.is_punct == False
-                                                    and token.is_space == False
-                                                    and token not in STOP_WORDS] # double stopword removal!!!
+    doc = doc.lower() # normalize case
+    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
+    spacy_doc = nlp(doc)  #> <class 'spacy.tokens.doc.Doc'>
+
+    tokens = [token for token in spacy_doc if token.is_punct == False and token.is_space == False]
+    tokens = [token for token in tokens if token.is_stop == False and str(token) not in STOP_WORDS] # double stopword removal!!!
+
+    lemmas = [token.lemma_.lower() for token in tokens]
+    lemmas = [custom_stem(lemma) for lemma in lemmas]
+    return lemmas
+
+def tokenize_spacy_entities(doc):
+    #doc = doc.lower() # normalize case
+    doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters
+
+    spacy_doc = nlp(doc) #> <class 'spacy.tokens.doc.Doc'>
+    entities = spacy_doc.ents
+
+    breakpoint()
 
     return lemmas
 
+tokenize = tokenize_spacy_lemmas
 
 
 
 
-
-
-
-
+def topic_model(token_sets):
+    dictionary = Dictionary(token_sets)
+    bags_of_words = [dictionary.doc2bow(tokens) for tokens in token_sets]
+    lda = LdaMulticore(corpus=bags_of_words, id2word=dictionary, random_state=99, passes=10, workers=4)
+    response = lda.print_topics()
 
 
 
@@ -138,8 +147,8 @@ def summarize(token_sets):
     token_counts = zip(token_counter.keys(), token_counter.values())
     doc_counts = zip(doc_counter.keys(), doc_counter.values())
 
-    token_df = pd.DataFrame(token_counts, columns=["token", "count"])
-    doc_df = pd.DataFrame(doc_counts, columns=["token", "doc_count"])
+    token_df = DataFrame(token_counts, columns=["token", "count"])
+    doc_df = DataFrame(doc_counts, columns=["token", "doc_count"])
 
     df = doc_df.merge(token_df, on="token")
     total_tokens = df["count"].sum()
@@ -174,7 +183,11 @@ if __name__ == "__main__":
     print("LOADING RETWEETS...")
     local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
     print(os.path.abspath(local_csv_filepath))
-    df = pd.read_csv(local_csv_filepath)
+
+    if ROWS_LIMIT:
+        df = read_csv(local_csv_filepath, nrows=int(ROWS_LIMIT))
+    else:
+        df = read_csv(local_csv_filepath)
     print(df.head())
 
     print("----------------")
@@ -187,42 +200,36 @@ if __name__ == "__main__":
     if not os.path.exists(local_wordclouds_dirpath):
         os.makedirs(local_wordclouds_dirpath)
 
+    token_ranks = [] # for each token, add dates and ranks
+
     for group_name, filtered_df in df.groupby(["status_created_date", "community_id"]):
         date = group_name[0]
         community_id = group_name[1]
-        print(date, community_id)
+        chart_title = f"Word Cloud for Community {community_id} on '{date}' (rt_count={fmt_n(len(filtered_df))})"
+        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
+        print(logstamp(), date, community_id)
 
-        # TOKENIZE
-
-        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize_spacy_lemmas(txt))
+        status_tokens = filtered_df["status_text"].apply(lambda txt: tokenize(txt))
         print(status_tokens)
         status_tokens = status_tokens.values.tolist()
-
-        # SUMMARIZE
-
         print("TOP TOKENS:")
         pivot_df = summarize(status_tokens)
+
         top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
         print(top_tokens_df)
 
         print("PLOTTING TOP TOKENS...")
-        chart_title = f"Word Cloud for Community {community_id} on '{date}'"
-        local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"{date}-community-{community_id}.png")
-        print(os.path.abspath(local_wordcloud_filepath))
-
         squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
         plt.title(chart_title)
         plt.axis("off")
         if APP_ENV == "development":
             plt.show()
+        print(os.path.abspath(local_wordcloud_filepath))
         plt.savefig(local_wordcloud_filepath)
-        # why are previous chart's words showing up? need to clear plt or something?
-        plt.clf()
+        plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
 
-        #top_tokens_df.sort_values("Retweet Count", ascending=True, inplace=True)
-        #fig = px.treemap(top_tokens_df, values="token", title=chart_title)
-        #if APP_ENV == "development":
-        #    fig.show()
-        #fig.write_image(local_wordcloud_filepath)
+        #breakpoint()
+        # top_tokens_df[["token", "rank"]]
+        #token_ranks.append({"token": token, "date": _______, "rank": ______})
 
         seek_confirmation()
