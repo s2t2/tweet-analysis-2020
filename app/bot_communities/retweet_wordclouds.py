@@ -65,9 +65,16 @@ def custom_stem(token):
         token = "trump"
     if token == "pelosis":
         token = "pelosi"
-    if token == "democrat":
-        token = "democrats"
+    if token == "democrats":
+        token = "democrat"
+    if token == "republicans":
+        token = "republican"
     return token
+
+
+
+
+
 
 
 def tokenize(doc):
@@ -105,7 +112,7 @@ def tokenize_spacy_lemmas(doc):
 
     lemmas = [token.lemma_.lower() for token in tokens]
     lemmas = [custom_stem(lemma) for lemma in lemmas]
-    return lemmas
+    return [lemma for lemma in lemmas if lemma not in STOP_WORDS]
 
 def tokenize_spacy_entities(doc):
     #doc = doc.lower() # normalize case
@@ -207,6 +214,7 @@ if __name__ == "__main__":
         date = group_name[0]
         community_id = group_name[1]
         chart_title = f"Word Cloud for Community {community_id} on '{date}' (rt_count={fmt_n(len(filtered_df))})"
+        local_top_tokens_csv_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.csv")
         local_wordcloud_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.png")
         print(logstamp(), date, community_id)
 
@@ -215,6 +223,7 @@ if __name__ == "__main__":
         status_tokens = status_tokens.values.tolist()
         print("TOP TOKENS:")
         pivot_df = summarize(status_tokens)
+        pivot_df.to_csv(local_top_tokens_csv_filepath)
 
         top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
         print(top_tokens_df)
