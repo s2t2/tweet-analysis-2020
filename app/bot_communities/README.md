@@ -26,12 +26,13 @@ K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.clustering
 
 ## Analysis
 
-Downloading retweets / tweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
+Downloading retweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step), also generates wordcloud and top retweeted users dataviz per community:
 
 ```sh
 K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_analyzer
 ```
 
+Downloading tweets for each bot community:
 
 ```sh
 K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.tweet_analyzer

@@ -4,12 +4,15 @@ import os
 from pandas import DataFrame, read_csv
 import matplotlib as plt
 import plotly.express as px
+import squarify
 
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
+from app.bot_communities.retweet_wordclouds import tokenize, summarize
+
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
 
@@ -140,3 +143,33 @@ if __name__ == "__main__":
         #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
         #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
         #print(creation_dates_df.head())
+
+        # WORD CLOUDS
+
+        chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
+        #local_top_tokens_csv_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.csv")
+        local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
+        local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
+        print(logstamp(), community_id)
+
+        status_tokens = community_df["status_text"].apply(lambda txt: tokenize(txt))
+        print(status_tokens)
+        status_tokens = status_tokens.values.tolist()
+        print("TOP TOKENS:")
+        pivot_df = summarize(status_tokens)
+        top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
+        print(top_tokens_df)
+
+        print("SAVING TOP TOKENS...")
+        pivot_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
+        #top_tokens_df.to_csv(local_top_tokens_filepath)
+
+        print("PLOTTING TOP TOKENS...")
+        squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
+        plt.title(chart_title)
+        plt.axis("off")
+        if APP_ENV == "development":
+            plt.show()
+        print(os.path.abspath(local_wordcloud_filepath))
+        plt.savefig(local_wordcloud_filepath)
+        plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
