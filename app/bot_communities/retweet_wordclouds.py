@@ -69,6 +69,7 @@ def custom_stem(token):
         token = "democrats"
     return token
 
+
 def tokenize(doc):
     doc = doc.lower() # normalize case
     doc = re.sub(ALPHANUMERIC_PATTERN, "", doc)  # keep only alphanumeric characters

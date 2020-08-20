@@ -163,3 +163,14 @@ Grouping and aggregation, working with multi-indices:
   + https://plotly.com/python/bar-charts/#horizontal-bar-charts
   + https://plotly.com/python/orca-management/
   + https://plotly.com/python/static-image-export/
+
+## Spacy
+
+  + https://spacy.io/
+  + https://spacy.io/models/en
+  + https://spacy.io/usage/linguistic-features
+  + https://spacy.io/usage/linguistic-features#native-tokenizers
+  + https://spacy.io/api/token
+  + https://spacy.io/api/lemmatizer
+  + https://towardsdatascience.com/exploring-the-trump-twitter-archive-with-spacy-fe557810717c
+  + https://towardsdatascience.com/building-a-topic-modeling-pipeline-with-spacy-and-gensim-c5dc03ffc619

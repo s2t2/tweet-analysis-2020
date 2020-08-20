@@ -23,4 +23,6 @@ if __name__ == "__main__":
 
     df = DataFrame(reports)
     print(df.head())
-    df.to_csv(os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", gen.k_days, "graph_reports.csv"))
+    local_graph_report_filepath = os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", str(gen.k_days), "graph_reports.csv")
+    print("WRITING TO CSV...", os.path.abspath(local_graph_report_filepath))
+    df.to_csv(local_graph_report_filepath)
