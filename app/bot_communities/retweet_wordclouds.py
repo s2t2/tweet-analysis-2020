@@ -29,6 +29,7 @@ ROWS_LIMIT = os.getenv("ROWS_LIMIT")
 MODEL_SIZE = os.getenv("MODEL_SIZE", default="sm")  # sm, md, lg
 
 print("----------------")
+print("NLP MODEL SIZE:", MODEL_SIZE.upper())
 nlp = spacy.load(f"en_core_web_{MODEL_SIZE}")
 print("NLP", type(nlp))
 

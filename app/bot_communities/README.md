@@ -46,14 +46,15 @@ import nltk
 nltk.download("stopwords")
 ```
 
-```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_wordclouds
-```
 
-Downloading spacy english language model (first time only):
+Downloading spacy english language models (first time only):
 
 ```sh
 python -m spacy download en_core_web_lg
 python -m spacy download en_core_web_md
 python -m spacy download en_core_web_sm
+```
+
+```sh
+MODEL_SIZE="lg" APP_ENV="prodlike" K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_wordclouds
 ```
