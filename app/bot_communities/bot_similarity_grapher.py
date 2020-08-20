@@ -55,7 +55,7 @@ class BotSimilarityGrapher(BotRetweetGrapher):
         results = jaccard_coefficient(self.retweet_graph.to_undirected(), node_pairs)
         #> returns an iterator of 3-tuples in the form (u, v, p)
         #> where (u, v) is a pair of nodes and p is their Jaccard coefficient.
-        print("JACCARD COEFFICIENT RESULTS:", fmt_n(len(results)))
+        print("JACCARD COEFFICIENTS BETWEEN EACH NODE PAIR - COMPLETE!") #, fmt_n(len(list(results))))
 
         print("CONSTRUCTING SIMILARITY GRAPH...")
         self.similarity_graph = Graph()

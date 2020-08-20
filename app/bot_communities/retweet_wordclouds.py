@@ -244,7 +244,7 @@ if __name__ == "__main__":
         for record in records:
             record["community_id"] = community_id
             record["date"] = date
-        daily_top_tokens.append(records)
+        daily_top_tokens += records
 
         seek_confirmation()
 
