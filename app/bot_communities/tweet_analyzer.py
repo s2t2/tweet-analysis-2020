@@ -4,20 +4,21 @@ import os
 from pandas import DataFrame, read_csv
 
 from app import APP_ENV, seek_confirmation
-from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
 from app.decorators.number_decorators import fmt_n
+from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
+from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
+
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
 
 if __name__ == "__main__":
 
     print("----------------")
-    print("K COMMUNITIES:", K_COMMUNITIES)
+    print("K COMMUNITIES:", N_COMMUNITIES)
 
     grapher = BotRetweetGrapher()
-    local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
+    local_dirpath = os.path.join(grapher.local_dirpath, "n_communities", str(N_COMMUNITIES)) # dir should be already made by cluster maker
     local_csv_filepath = os.path.join(local_dirpath, "tweets.csv")
     print(os.path.abspath(local_csv_filepath))
     if not os.path.exists(local_dirpath):
@@ -53,7 +54,7 @@ if __name__ == "__main__":
                 ,t.geo as status_geo
                 ,t.created_at as status_created_at
 
-            FROM `{grapher.bq_service.dataset_address}.{K_COMMUNITIES}_bot_communities` bc -- 681
+            FROM `{grapher.bq_service.dataset_address}.{N_COMMUNITIES}_bot_communities` bc -- 681
             JOIN `{grapher.bq_service.dataset_address}.tweets` t on CAST(t.user_id as int64) = bc.user_id
             -- WHERE t.retweet_status_id IS NULL
             -- ORDER BY 1,2

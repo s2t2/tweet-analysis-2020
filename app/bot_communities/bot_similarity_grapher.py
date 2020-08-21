@@ -5,7 +5,6 @@ from networkx import write_gpickle, read_gpickle, jaccard_coefficient, Graph
 
 from app import seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-#from app.bot_communities.helper import generate_bot_similarity_graph
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 

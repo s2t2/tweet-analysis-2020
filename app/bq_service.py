@@ -839,23 +839,23 @@ class BigQueryService():
     #
 
     #@property
-    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of k_communities
-    def k_bot_communities_table(self, k_communities):
-        return self.client.get_table(f"{self.dataset_address}.{k_communities}_bot_communities") # an API call (caches results for subsequent inserts)
+    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of n_communities
+    def n_bot_communities_table(self, n_communities):
+        return self.client.get_table(f"{self.dataset_address}.{n_communities}_bot_communities") # an API call (caches results for subsequent inserts)
 
-    def destructively_migrate_k_bot_communities_table(self, k_communities):
+    def destructively_migrate_n_bot_communities_table(self, n_communities):
         sql = f"""
-            DROP TABLE IF EXISTS `{self.dataset_address}.{k_communities}_bot_communities`;
-            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{k_communities}_bot_communities` (
+            DROP TABLE IF EXISTS `{self.dataset_address}.{n_communities}_bot_communities`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{n_communities}_bot_communities` (
                 user_id INT64,
                 community_id INT64,
             );
         """
         return self.execute_query(sql)
 
-    def overwrite_k_bot_communities_table(self, k_communities, records):
-        self.destructively_migrate_k_bot_communities_table(k_communities)
-        table = self.k_bot_communities_table(k_communities)
+    def overwrite_n_bot_communities_table(self, n_communities, records):
+        self.destructively_migrate_n_bot_communities_table(n_communities)
+        table = self.n_bot_communities_table(n_communities)
         return self.insert_records_in_batches(table, records)
 
 

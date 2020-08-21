@@ -9,7 +9,7 @@ import squarify
 
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.clustering import K_COMMUNITIES
+from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
 from app.bot_communities.token_maker import CustomTokenMaker
 from app.decorators.datetime_decorators import s_to_date, logstamp #dt_to_s, logstamp, dt_to_date, s_to_dt
 from app.decorators.number_decorators import fmt_n
@@ -25,10 +25,10 @@ ROWS_LIMIT = os.getenv("ROWS_LIMIT")
 if __name__ == "__main__":
 
     print("----------------")
-    print("K COMMUNITIES:", K_COMMUNITIES)
+    print("K COMMUNITIES:", N_COMMUNITIES)
 
     grapher = BotRetweetGrapher()
-    local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
+    local_dirpath = os.path.join(grapher.local_dirpath, "n_communities", str(N_COMMUNITIES)) # dir should be already made by cluster maker
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
     daily_wordclouds_dirpath = os.path.join(local_dirpath, "daily_wordclouds")

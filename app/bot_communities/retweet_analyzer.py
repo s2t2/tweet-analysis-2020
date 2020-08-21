@@ -8,7 +8,7 @@ import squarify
 
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.clustering import K_COMMUNITIES
+from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
 from app.bot_communities.token_maker import CustomTokenMaker
@@ -19,12 +19,16 @@ CREATION_DATES_CHART = False
 TOKENIZE = True
 TOKEN_CLOUD = True
 
+class RetweetAnalyzer:
+    def __init__(self):
+        pass
+
 if __name__ == "__main__":
 
     print("----------------")
-    print("K COMMUNITIES:", K_COMMUNITIES)
+    print("K COMMUNITIES:", N_COMMUNITIES)
     grapher = BotRetweetGrapher()
-    local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
+    local_dirpath = os.path.join(grapher.local_dirpath, "n_communities", str(N_COMMUNITIES)) # dir should be already made by cluster maker
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
 
@@ -59,7 +63,7 @@ if __name__ == "__main__":
                 ,rt.status_text
                 ,rt.created_at as status_created_at
 
-            FROM `{grapher.bq_service.dataset_address}.{K_COMMUNITIES}_bot_communities` bc -- 681
+            FROM `{grapher.bq_service.dataset_address}.{N_COMMUNITIES}_bot_communities` bc -- 681
             JOIN `{grapher.bq_service.dataset_address}.user_details_v2` ud on CAST(ud.user_id  as int64) = bc.user_id
             JOIN `{grapher.bq_service.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
             -- ORDER BY 1,2
@@ -120,7 +124,7 @@ if __name__ == "__main__":
                 x="Retweet Count",
                 y="Retweeted User",
                 orientation="h",
-                title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+                title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {N_COMMUNITIES})"
             )
             if APP_ENV == "development":
                 fig.show()
@@ -144,7 +148,7 @@ if __name__ == "__main__":
                 x="Retweeter Count",
                 y="Retweeted User",
                 orientation="h",
-                title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+                title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {N_COMMUNITIES})"
             )
             if APP_ENV == "development":
                 fig_retweeters.show()

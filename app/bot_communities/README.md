@@ -18,24 +18,24 @@ BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 
 ## Assignment
 
-Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `K_COMMUNITIES`):
+Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `N_COMMUNITIES`):
 
 ```sh
-BOT_MIN="0.8" K_COMMUNITIES="2" python -m app.bot_communities.clustering
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clustermaker
 ```
 
 ## Analysis
 
-Downloading retweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
+Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):
 
 ```sh
-BOT_MIN="0.8" K_COMMUNITIES="2"  python -m app.bot_communities.retweet_analyzer
+BOT_MIN="0.8" N_COMMUNITIES="2"  python -m app.bot_communities.retweet_analyzer
 ```
 
 Downloading tweets for each bot community:
 
 ```sh
-BOT_MIN="0.8" K_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
 ```
 
 ### Word Clouds
@@ -56,5 +56,5 @@ python -m spacy download en_core_web_sm
 ```
 
 ```sh
-BOT_MIN="0.8" K_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.daily_retweet_wordclouds
+BOT_MIN="0.8" N_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.daily_retweet_wordclouds
 ```
