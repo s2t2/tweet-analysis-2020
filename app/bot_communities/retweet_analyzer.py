@@ -91,85 +91,93 @@ if __name__ == "__main__":
     #
 
     community_ids = list(df["community_id"].unique())
-
     for community_id in community_ids:
+        print(logstamp(), community_id)
 
         community_df = df[df["community_id"] == community_id]
 
-        # USERS MOST RETWEETED
+        if True: # USERS MOST RETWEETED
+            print("-------------------------")
+            print("USERS MOST RETWEETED")
+            most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+            most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
+            most_retweeted_df = most_retweeted_df.reset_index()
+            most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+            most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
+            most_retweeted_df = most_retweeted_df[:10]
+            print(most_retweeted_df)
 
-        most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-        most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
-        most_retweeted_df = most_retweeted_df.reset_index()
-        most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-        most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
-        most_retweeted_df = most_retweeted_df[:10]
-        print(most_retweeted_df)
+            most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
+            fig = px.bar(most_retweeted_df,
+                x="Retweet Count",
+                y="Retweeted User",
+                orientation="h",
+                title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+            )
+            if APP_ENV == "development":
+                fig.show()
 
-        most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
-        fig = px.bar(most_retweeted_df,
-            x="Retweet Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
-        )
-        if APP_ENV == "development": fig.show()
-        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
-        fig.write_image(local_img_filepath)
+            local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
+            fig.write_image(local_img_filepath)
 
-        # USERS WITH MOST RETWEETERS
+        if True: # USERS MOST RETWEETERS
+            print("-------------------------")
+            print("USERS MOST RETWEETERS")
+            most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
+            most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
+            most_retweeters_df = most_retweeters_df.reset_index()
+            most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+            most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
+            most_retweeters_df = most_retweeters_df[:10]
+            print(most_retweeters_df)
 
-        most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
-        most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
-        most_retweeters_df = most_retweeters_df.reset_index()
-        most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-        most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
-        most_retweeters_df = most_retweeters_df[:10]
-        print(most_retweeters_df)
+            most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
+            fig_retweeters = px.bar(most_retweeters_df,
+                x="Retweeter Count",
+                y="Retweeted User",
+                orientation="h",
+                title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
+            )
+            if APP_ENV == "development":
+                fig_retweeters.show()
 
-        most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
-        fig_retweeters = px.bar(most_retweeters_df,
-            x="Retweeter Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
-        )
-        if APP_ENV == "development": fig_retweeters.show()
-        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
-        fig_retweeters.write_image(local_img_filepath)
+            local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
+            fig_retweeters.write_image(local_img_filepath)
 
-        # CREATION DATES
+        if True: # CREATION DATES
+            pass
+            #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
+            #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
+            #print(creation_dates_df.head())
 
-        #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
-        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
-        #print(creation_dates_df.head())
+        if True: # TOKENIZE:
 
-        # WORD CLOUDS
+            print("-------------------------")
+            print("TOKENIZING (THE FAST WAY, NOT THE BEST WAY)...")
+            #status_tokens = community_df["status_text"].apply(lambda txt: tokenize_custom_stems(txt))
+            status_tokens = community_df["status_text"].apply(tokenize_custom_stems)
 
-        chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
-        #local_top_tokens_csv_filepath = os.path.join(local_wordclouds_dirpath, f"community-{community_id}-{date}.csv")
-        local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
-        local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
-        print(logstamp(), community_id)
+            print("-------------------------")
+            print("SUMMARIZING...")
+            token_ranks_df = summarize(status_tokens.values.tolist())
 
-        status_tokens = community_df["status_text"].apply(lambda txt: tokenize_custom_stems(txt))
-        print(status_tokens)
-        status_tokens = status_tokens.values.tolist()
-        print("TOP TOKENS:")
-        pivot_df = summarize(status_tokens)
-        top_tokens_df = pivot_df[pivot_df["rank"] <= 20]
-        print(top_tokens_df)
+            print("-------------------------")
+            print("SAVING TOKENS...")
+            local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
+            token_ranks_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
 
-        print("SAVING TOP TOKENS...")
-        pivot_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
-        #top_tokens_df.to_csv(local_top_tokens_filepath)
+            print("-------------------------")
+            print("GENERATING WORD CLOUD...")
+            wordcloud_df = token_ranks_df[token_ranks_df["rank"] <= 20]
+            chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
+            squarify.plot(sizes=wordcloud_df["pct"], label=wordcloud_df["token"], alpha=0.8)
+            plt.title(chart_title)
+            plt.axis("off")
+            if APP_ENV == "development":
+                plt.show()
 
-        print("PLOTTING TOP TOKENS...")
-        squarify.plot(sizes=top_tokens_df["pct"], label=top_tokens_df["token"], alpha=0.8)
-        plt.title(chart_title)
-        plt.axis("off")
-        if APP_ENV == "development":
-            plt.show()
-        print(os.path.abspath(local_wordcloud_filepath))
-        plt.savefig(local_wordcloud_filepath)
-        plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
+            local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
+            print(os.path.abspath(local_wordcloud_filepath))
+            plt.savefig(local_wordcloud_filepath)
+
+            plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
