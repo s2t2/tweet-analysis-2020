@@ -55,8 +55,8 @@ class CommunityTweetAnalyzer:
                 if counter % BATCH_SIZE == 0: print(logstamp(), fmt_n(counter))
 
             self.tweets_df = DataFrame(records)
-            df.index.name = "row_id"
-            df.index = df.index + 1
+            self.tweets_df.index.name = "row_id"
+            self.tweets_df.index = self.tweets_df.index + 1
             print("WRITING TO FILE...")
             self.tweets_df.to_csv(self.tweets_filepath)
 

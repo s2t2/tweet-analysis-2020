@@ -19,80 +19,64 @@ CREATION_DATES_CHART = False
 TOKENIZE = True
 TOKEN_CLOUD = True
 
-class RetweetAnalyzer:
+class CommunityAnalyzer:
     def __init__(self):
-        pass
+        self.clustermaker = SpectralClustermaker()
+        self.n_clusters = self.clustermaker.n_clusters
+
+        self.bq_service = self.clustermaker.grapher.bq_service
+
+        #self.tweets_filepath = os.path.join(self.clustermaker.local_dirpath, "tweets.csv")
+        self.retweets_filepath = os.path.join(self.clustermaker.local_dirpath, "retweets.csv")
+
+        self.retweet_charts_dirpath = os.path.join(local_dirpath, "retweet_charts")
+        if not os.path.exists(self.retweet_charts_dirpath):
+            os.makedirs(self.retweet_charts_dirpath)
+
+    def load_retweets(self):
+        """
+        Loads or downloads bot community tweets to/from CSV.
+        """
+
+        if os.path.isfile(self.retweets_filepath):
+            print("READING BOT COMMUNITY RETWEETS FROM CSV...")
+            self.retweets_df = read_csv(self.retweets_filepath) # DtypeWarning: Columns (6) have mixed types.Specify dtype option on import or set low_memory=False
+        else:
+            print("DOWNLOADING BOT COMMUNITY RETWEETS...")
+            counter = 0
+            records = []
+            for row in self.bq_service.download_n_bot_community_retweets_in_batches(self.n_clusters):
+                records.append({
+                    "community_id": row.community_id,
+                    "user_id": row.user_id,
+                    "user_screen_name_count": row.user_screen_name_count,
+                    "user_screen_names": row.user_screen_names,
+                    "user_created_at": dt_to_s(row.user_created_at),
+
+                    "retweeted_user_id": row.retweeted_user_id,
+                    "retweeted_user_screen_name": row.retweeted_user_screen_name,
+
+                    "status_id": row.status_id,
+                    "status_text": row.status_text,
+                    "status_created_at": dt_to_s(row.status_created_at)
+                })
+                counter+=1
+                if counter % BATCH_SIZE == 0: print(logstamp(), fmt_n(counter))
+
+            self.retweets_df = DataFrame(records)
+            self.retweets_df.index.name = "row_id"
+            self.retweets_df.index = self.retweets_df.index + 1
+            print("WRITING TO FILE...")
+            self.retweets_df.to_csv(self.retweets_filepath)
+
 
 if __name__ == "__main__":
 
-    print("----------------")
-    print("K COMMUNITIES:", N_COMMUNITIES)
-    grapher = BotRetweetGrapher()
-    local_dirpath = os.path.join(grapher.local_dirpath, "n_communities", str(N_COMMUNITIES)) # dir should be already made by cluster maker
-    if not os.path.exists(local_dirpath):
-        os.makedirs(local_dirpath)
+    analyzer = CommunityAnalyzer()
 
-    charts_dirpath = os.path.join(local_dirpath, "retweet_charts")
-    if not os.path.exists(charts_dirpath):
-        os.makedirs(charts_dirpath)
+    analyzer.load_retweets()
 
-    #
-    # LOAD DATA
-    #
-
-    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
-    print(os.path.abspath(local_csv_filepath))
-    if os.path.isfile(local_csv_filepath):
-        print("LOADING BOT COMMUNITY RETWEETS...")
-        df = read_csv(local_csv_filepath)
-    else:
-        print("DOWNLOADING BOT COMMUNITY RETWEETS...")
-        sql = f"""
-            SELECT
-                bc.community_id
-
-                ,ud.user_id
-                ,ud.screen_name_count as user_screen_name_count
-                ,ARRAY_TO_STRING(ud.screen_names, ' | ')  as user_screen_names
-                ,rt.user_created_at
-
-                ,rt.retweeted_user_id
-                ,rt.retweeted_user_screen_name
-
-                ,rt.status_id
-                ,rt.status_text
-                ,rt.created_at as status_created_at
-
-            FROM `{grapher.bq_service.dataset_address}.{N_COMMUNITIES}_bot_communities` bc -- 681
-            JOIN `{grapher.bq_service.dataset_address}.user_details_v2` ud on CAST(ud.user_id  as int64) = bc.user_id
-            JOIN `{grapher.bq_service.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
-            -- ORDER BY 1,2
-        """
-        counter = 0
-        records = []
-        for row in grapher.bq_service.execute_query_in_batches(sql):
-            records.append({
-                "community_id": row.community_id,
-                "user_id": row.user_id,
-                "user_screen_name_count": row.user_screen_name_count,
-                "user_screen_names": row.user_screen_names,
-                "user_created_at": dt_to_s(row.user_created_at),
-
-                "retweeted_user_id": row.retweeted_user_id,
-                "retweeted_user_screen_name": row.retweeted_user_screen_name,
-
-                "status_id": row.status_id,
-                "status_text": row.status_text,
-                "status_created_at": dt_to_s(row.status_created_at)
-            })
-            counter+=1
-            if counter % BATCH_SIZE == 0:
-                print(logstamp(), fmt_n(counter))
-
-        df = DataFrame(records)
-        print(df.head())
-        print("WRITING TO FILE...")
-        df.to_csv(local_csv_filepath)
+    print(analyzer.retweets_df.head())
 
     seek_confirmation()
 

@@ -886,6 +886,30 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def download_n_bot_community_retweets_in_batches(self, n_communities):
+        sql = f"""
+            SELECT
+                bc.community_id
+
+                ,ud.user_id
+                ,ud.screen_name_count as user_screen_name_count
+                ,ARRAY_TO_STRING(ud.screen_names, ' | ')  as user_screen_names
+                ,rt.user_created_at
+
+                ,rt.retweeted_user_id
+                ,rt.retweeted_user_screen_name
+
+                ,rt.status_id
+                ,rt.status_text
+                ,rt.created_at as status_created_at
+
+            FROM `{self.dataset_address}.{n_communities}_bot_communities` bc -- 681
+            JOIN `{self.dataset_address}.user_details_v2` ud on CAST(ud.user_id  as int64) = bc.user_id
+            JOIN `{self.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
+            -- ORDER BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
+
 if __name__ == "__main__":
 
     service = BigQueryService()
