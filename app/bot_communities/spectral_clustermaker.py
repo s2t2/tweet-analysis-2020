@@ -26,6 +26,13 @@ class SpectralClustermaker:
         self.local_bot_communities_filepath = os.path.join(self.local_dirpath, "community_assignments.csv")
         self.gcs_bot_communities_filepath = os.path.join(self.gcs_dirpath, "community_assignments.csv")
 
+        print("-----------------------")
+        print("SPECTRAL CLUSTERMAKER")
+        print("   N CLUSTERS:", self.n_clusters)
+        print("   CLASSIFIER:", type(self.classifier))
+        print("   LOCAL DIRPATH:", os.path.abspath(self.local_dirpath))
+        print("   GCS DIRPATH:", self.gcs_dirpath)
+
         seek_confirmation()
 
         if not os.path.exists(self.local_dirpath):

@@ -858,6 +858,33 @@ class BigQueryService():
         table = self.n_bot_communities_table(n_communities)
         return self.insert_records_in_batches(table, records)
 
+    def download_n_bot_community_tweets_in_batches(self, n_communities):
+        sql = f"""
+            SELECT
+                bc.community_id
+
+                ,t.user_id
+                ,t.user_name
+                ,t.user_screen_name
+                ,t.user_description
+                ,t.user_location
+                ,t.user_verified
+                ,t.user_created_at
+
+                ,t.status_id
+                ,t.status_text
+                ,t.retweet_status_id
+                ,t.reply_user_id
+                ,t.is_quote as status_is_quote
+                ,t.geo as status_geo
+                ,t.created_at as status_created_at
+
+            FROM `{self.dataset_address}.{n_communities}_bot_communities` bc -- 681
+            JOIN `{self.dataset_address}.tweets` t on CAST(t.user_id as int64) = bc.user_id
+            -- WHERE t.retweet_status_id IS NULL
+            -- ORDER BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
 
 if __name__ == "__main__":
 
