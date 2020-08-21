@@ -157,8 +157,8 @@ if __name__ == "__main__":
         if TOKENIZE:
 
             print("-------------------------")
-            print("TOKENIZING (THE FAST WAY, NOT THE BEST WAY)...")
-            #status_tokens = community_df["status_text"].apply(lambda txt: tokenize_custom_stems(txt))
+            print("TOKENIZING (NOT THE BEST WAY, BUT THE WAY THAT WILL ACTUALLY COMPLETE GIVEN THE LARGE VOLUME)...")
+            #status_tokens = community_df["status_text"].apply(lambda txt: token_maker.tokenize_custom_stems(txt))
             status_tokens = community_df["status_text"].apply(token_maker.tokenize_custom_stems)
 
             print("-------------------------")

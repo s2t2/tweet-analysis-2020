@@ -43,7 +43,7 @@ class TokenMaker:
             "th", "im", "hes", "hi", "thi",
         }
 
-    def custom_stem(token):
+    def custom_stem(self, token):
         """OVERWRITE IN CHILD CLASS AS DESIRED"""
         return token
 
@@ -88,7 +88,7 @@ class TokenMaker:
         txt = re.sub(ALPHANUMERIC_PATTERN, "", txt)  # keep only alphanumeric characters
         tokens = txt.split()
         tokens = [token for token in tokens if token not in self.stop_words] # remove stopwords
-        stems = [custom_stem(token) for token in tokens]  # custom word stems only
+        stems = [self.custom_stem(token) for token in tokens]  # custom word stems only
         stems = [stem for stem in stems if stem not in self.stop_words] # remove stopwords again
         return stems
 
@@ -101,7 +101,7 @@ class TokenMaker:
         tokens = [token for token in tokens if token.is_stop == False and str(token) not in self.stop_words] # double stopword removal!!!
 
         lemmas = [token.lemma_.lower() for token in tokens]
-        lemmas = [custom_stem(lemma) for lemma in lemmas]
+        lemmas = [self.custom_stem(lemma) for lemma in lemmas]
         return [lemma for lemma in lemmas if lemma not in self.stop_words]
 
     def tokenize_spacy_entities(self, txt):
@@ -162,13 +162,13 @@ class CustomTokenMaker(TokenMaker):
     @property
     @lru_cache(maxsize=None)
     def custom_stop_words(self):
-        return {**super().custom_stop_words, **{
+        return super().custom_stop_words | {
             "rep", "president", "presidents", "col",
             #"impeach", "impeachment", "impeached",
             # "trump", "articles", "trial", "house", "senate"
-        }}
+        }
 
-    def custom_stem(token):
+    def custom_stem(self, token):
         if token in ["impeachment", "impeached"]:
             token = "impeach"
         if token == "trumps":
