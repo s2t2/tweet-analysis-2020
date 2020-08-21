@@ -11,7 +11,8 @@ from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
-from app.bot_communities.token_maker import CustomTokenMaker
+from app.bot_communities.tokenizer import CustomTokenizer
+from app.bot_communities.token_analyzer import summarize_token_frequencies
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
 RETWEET_BENEFICIARY_CHARTS = True
@@ -19,19 +20,21 @@ CREATION_DATES_CHART = False
 TOKENIZE = True
 TOKEN_CLOUD = True
 
-class CommunityAnalyzer:
-    def __init__(self):
+class RetweetAnalyzer:
+    def __init__(self, tokenize=None):
         self.clustermaker = SpectralClustermaker()
         self.n_clusters = self.clustermaker.n_clusters
-
         self.bq_service = self.clustermaker.grapher.bq_service
+        self.local_dirpath = self.clustermaker.local_dirpath
 
-        #self.tweets_filepath = os.path.join(self.clustermaker.local_dirpath, "tweets.csv")
-        self.retweets_filepath = os.path.join(self.clustermaker.local_dirpath, "retweets.csv")
+        #self.tweets_filepath = os.path.join(self.local_dirpath, "tweets.csv")
+        self.retweets_filepath = os.path.join(self.local_dirpath, "retweets.csv")
 
-        self.retweet_charts_dirpath = os.path.join(local_dirpath, "retweet_charts")
+        self.retweet_charts_dirpath = os.path.join(self.local_dirpath, "retweet_charts")
         if not os.path.exists(self.retweet_charts_dirpath):
             os.makedirs(self.retweet_charts_dirpath)
+
+        self.tokenize = tokenize or CustomTokenizer().tokenize
 
     def load_retweets(self):
         """
@@ -69,10 +72,81 @@ class CommunityAnalyzer:
             print("WRITING TO FILE...")
             self.retweets_df.to_csv(self.retweets_filepath)
 
+    @property
+    def community_ids(self):
+        return list(self.retweets_df["community_id"].unique())
+
+    def generate_users_most_retweeted_chart(self, community_id, top_n=10):
+        community_df = self.retweets_df[self.retweets_df["community_id"] == community_id]
+
+        print("-------------------------")
+        print("USERS MOST RETWEETED")
+        most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+        most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
+        most_retweeted_df = most_retweeted_df.reset_index()
+        most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+
+        most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True) # sort for top
+        most_retweeted_df = most_retweeted_df[:top_n]
+        print(most_retweeted_df)
+
+        most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True) # re-sort for charting
+        fig = px.bar(most_retweeted_df,
+            x="Retweet Count",
+            y="Retweeted User",
+            orientation="h",
+            title=f"Users Most Retweeted by Bot Community {community_id} (n_communities={self.n_clusters})"
+        )
+        if APP_ENV == "development":
+            fig.show()
+
+        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"community-{community_id}-most-retweeted.png")
+        fig.write_image(local_img_filepath)
+
+    def generate_users_most_retweeters_chart(self, community_id, top_n=10):
+        community_df = self.retweets_df[self.retweets_df["community_id"] == community_id]
+
+        print("-------------------------")
+        print("USERS WITH MOST RETWEETERS")
+        most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
+        most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
+        most_retweeters_df = most_retweeters_df.reset_index()
+        most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+
+        most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True) # sort for top
+        most_retweeters_df = most_retweeters_df[:top_n]
+        print(most_retweeters_df)
+
+        most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True) # re-sort for chart
+        fig = px.bar(most_retweeters_df,
+            x="Retweeter Count",
+            y="Retweeted User",
+            orientation="h",
+            title=f"Users with Most Retweeters in Bot Community {community_id} (n_communities={self.n_clusters})"
+        )
+        if APP_ENV == "development":
+            fig.show()
+
+        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"community-{community_id}-most-retweeters.png")
+        fig.write_image(local_img_filepath)
+
+    def generate_creation_dates_histogram(self, community_id):
+        pass # TODO
+        #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
+        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
+        #print(creation_dates_df.head())
+
+    def generate_token_ranks_df(self, community_id):
+        community_df = self.retweets_df[self.retweets_df["community_id"] == community_id]
+        print("-------------------------")
+        print("TOKENIZING (NON-SPACY VERSION)...")
+        status_tokens = community_df["status_text"].apply(self.tokenize)
+        token_ranks_df = summarize_token_frequencies(status_tokens.values.tolist())
+        return token_ranks_df
 
 if __name__ == "__main__":
 
-    analyzer = CommunityAnalyzer()
+    analyzer = RetweetAnalyzer()
 
     analyzer.load_retweets()
 
@@ -80,87 +154,18 @@ if __name__ == "__main__":
 
     seek_confirmation()
 
-    #
-    # ANALYZE DATA
-    #
-
-    token_maker = CustomTokenMaker()
-
-    community_ids = list(df["community_id"].unique())
-    for community_id in community_ids:
+    for community_id in analyzer.community_ids:
         print(logstamp(), community_id)
 
-        community_df = df[df["community_id"] == community_id]
+        analyzer.generate_users_most_retweeted_chart(community_id=community_id)
 
-        if RETWEET_BENEFICIARY_CHARTS:
-            print("-------------------------")
-            print("USERS MOST RETWEETED")
-            most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-            most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
-            most_retweeted_df = most_retweeted_df.reset_index()
-            most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-            most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
-            most_retweeted_df = most_retweeted_df[:10]
-            print(most_retweeted_df)
+        analyzer.generate_users_most_retweeters_chart(community_id=community_id)
 
-            most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
-            fig = px.bar(most_retweeted_df,
-                x="Retweet Count",
-                y="Retweeted User",
-                orientation="h",
-                title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {N_COMMUNITIES})"
-            )
-            if APP_ENV == "development":
-                fig.show()
+        # analyzer.generate_creation_dates_histogram(community_id=community_id)
 
-            local_img_filepath = os.path.join(charts_dirpath, f"community-{community_id}-most-retweeted.png")
-            fig.write_image(local_img_filepath)
-
-        if RETWEET_BENEFICIARY_CHARTS:
-            print("-------------------------")
-            print("USERS MOST RETWEETERS")
-            most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
-            most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
-            most_retweeters_df = most_retweeters_df.reset_index()
-            most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-            most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
-            most_retweeters_df = most_retweeters_df[:10]
-            print(most_retweeters_df)
-
-            most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
-            fig_retweeters = px.bar(most_retweeters_df,
-                x="Retweeter Count",
-                y="Retweeted User",
-                orientation="h",
-                title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {N_COMMUNITIES})"
-            )
-            if APP_ENV == "development":
-                fig_retweeters.show()
-
-            local_img_filepath = os.path.join(charts_dirpath, f"community-{community_id}-most-retweeters.png")
-            fig_retweeters.write_image(local_img_filepath)
-
-        if CREATION_DATES_CHART:
-            pass
-            #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
-            #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
-            #print(creation_dates_df.head())
-
-        if TOKENIZE:
-
-            print("-------------------------")
-            print("TOKENIZING (NOT THE BEST WAY, BUT THE WAY THAT WILL ACTUALLY COMPLETE GIVEN THE LARGE VOLUME)...")
-            #status_tokens = community_df["status_text"].apply(lambda txt: token_maker.tokenize_custom_stems(txt))
-            status_tokens = community_df["status_text"].apply(token_maker.tokenize_custom_stems)
-
-            print("-------------------------")
-            print("SUMMARIZING...")
-            token_ranks_df = token_maker.summarize(status_tokens.values.tolist())
-
-            print("-------------------------")
-            print("SAVING TOKENS...")
-            local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
-            token_ranks_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
+        community_token_ranks_df = analyzer.generate_token_ranks_df(community_id=community_id)
+        local_top_tokens_filepath = os.path.join(analyzer.local_dirpath, f"community-{community_id}-top-tokens.csv")
+        token_ranks_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
 
             if TOKEN_CLOUD:
                 print("-------------------------")

@@ -10,7 +10,7 @@ import squarify
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
-from app.bot_communities.token_maker import CustomTokenMaker
+from app.bot_communities.token_maker import CustomTokenizer
 from app.decorators.datetime_decorators import s_to_date, logstamp #dt_to_s, logstamp, dt_to_date, s_to_dt
 from app.decorators.number_decorators import fmt_n
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
 
     daily_top_tokens = [] # for each token, add dates and ranks
-    token_maker = CustomTokenMaker()
+    token_maker = CustomTokenizer()
 
     for group_name, filtered_df in df.groupby(["status_created_date", "community_id"]):
         date = group_name[0]
