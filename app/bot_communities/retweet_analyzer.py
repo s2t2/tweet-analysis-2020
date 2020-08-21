@@ -11,20 +11,20 @@ from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
 from app.bot_communities.clustering import K_COMMUNITIES
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
-from app.bot_communities.retweet_wordclouds import summarize, tokenize_custom_stems # tokenize is too slow to complete
-
+from app.bot_communities.token_maker import CustomTokenMaker
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
+RETWEET_BENEFICIARY_CHARTS = True
+CREATION_DATES_CHART = False
+TOKENIZE = True
+TOKEN_CLOUD = True
 
 if __name__ == "__main__":
 
     print("----------------")
     print("K COMMUNITIES:", K_COMMUNITIES)
-
     grapher = BotRetweetGrapher()
     local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
-    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
-    print(os.path.abspath(local_csv_filepath))
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
 
@@ -32,6 +32,8 @@ if __name__ == "__main__":
     # LOAD DATA
     #
 
+    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
+    print(os.path.abspath(local_csv_filepath))
     if os.path.isfile(local_csv_filepath):
         print("LOADING BOT COMMUNITY RETWEETS...")
         df = read_csv(local_csv_filepath)
@@ -90,13 +92,15 @@ if __name__ == "__main__":
     # ANALYZE DATA
     #
 
+    token_maker = CustomTokenMaker()
+
     community_ids = list(df["community_id"].unique())
     for community_id in community_ids:
         print(logstamp(), community_id)
 
         community_df = df[df["community_id"] == community_id]
 
-        if True: # USERS MOST RETWEETED
+        if RETWEET_BENEFICIARY_CHARTS:
             print("-------------------------")
             print("USERS MOST RETWEETED")
             most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
@@ -120,7 +124,7 @@ if __name__ == "__main__":
             local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
             fig.write_image(local_img_filepath)
 
-        if True: # USERS MOST RETWEETERS
+        if RETWEET_BENEFICIARY_CHARTS:
             print("-------------------------")
             print("USERS MOST RETWEETERS")
             most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
@@ -144,40 +148,41 @@ if __name__ == "__main__":
             local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
             fig_retweeters.write_image(local_img_filepath)
 
-        if True: # CREATION DATES
+        if CREATION_DATES_CHART:
             pass
             #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
             #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(dts_to_date)
             #print(creation_dates_df.head())
 
-        if True: # TOKENIZE:
+        if TOKENIZE:
 
             print("-------------------------")
             print("TOKENIZING (THE FAST WAY, NOT THE BEST WAY)...")
             #status_tokens = community_df["status_text"].apply(lambda txt: tokenize_custom_stems(txt))
-            status_tokens = community_df["status_text"].apply(tokenize_custom_stems)
+            status_tokens = community_df["status_text"].apply(token_maker.tokenize_custom_stems)
 
             print("-------------------------")
             print("SUMMARIZING...")
-            token_ranks_df = summarize(status_tokens.values.tolist())
+            token_ranks_df = token_maker.summarize(status_tokens.values.tolist())
 
             print("-------------------------")
             print("SAVING TOKENS...")
             local_top_tokens_filepath = os.path.join(local_dirpath, f"community-{community_id}-top-tokens.csv")
             token_ranks_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
 
-            print("-------------------------")
-            print("GENERATING WORD CLOUD...")
-            wordcloud_df = token_ranks_df[token_ranks_df["rank"] <= 20]
-            chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
-            squarify.plot(sizes=wordcloud_df["pct"], label=wordcloud_df["token"], alpha=0.8)
-            plt.title(chart_title)
-            plt.axis("off")
-            if APP_ENV == "development":
-                plt.show()
+            if TOKEN_CLOUD:
+                print("-------------------------")
+                print("GENERATING WORD CLOUD...")
+                wordcloud_df = token_ranks_df[token_ranks_df["rank"] <= 20]
+                chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
+                squarify.plot(sizes=wordcloud_df["pct"], label=wordcloud_df["token"], alpha=0.8)
+                plt.title(chart_title)
+                plt.axis("off")
+                if APP_ENV == "development":
+                    plt.show()
 
-            local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
-            print(os.path.abspath(local_wordcloud_filepath))
-            plt.savefig(local_wordcloud_filepath)
+                local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
+                print(os.path.abspath(local_wordcloud_filepath))
+                plt.savefig(local_wordcloud_filepath)
 
-            plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
+                plt.clf() # clear the figure, to prevent topics from overlapping from previous plots

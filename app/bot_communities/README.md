@@ -21,21 +21,21 @@ BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `K_COMMUNITIES`):
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.clustering
+BOT_MIN="0.8" K_COMMUNITIES="2" python -m app.bot_communities.clustering
 ```
 
 ## Analysis
 
-Downloading retweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step), also generates wordcloud and top retweeted users dataviz per community:
+Downloading retweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_analyzer
+BOT_MIN="0.8" K_COMMUNITIES="2"  python -m app.bot_communities.retweet_analyzer
 ```
 
 Downloading tweets for each bot community:
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.tweet_analyzer
+BOT_MIN="0.8" K_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
 ```
 
 ### Word Clouds
@@ -47,7 +47,6 @@ import nltk
 nltk.download("stopwords")
 ```
 
-
 Downloading spacy english language models (first time only):
 
 ```sh
@@ -57,5 +56,5 @@ python -m spacy download en_core_web_sm
 ```
 
 ```sh
-MODEL_SIZE="lg" APP_ENV="prodlike" K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_wordclouds
+BOT_MIN="0.8" K_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.retweet_wordclouds
 ```
