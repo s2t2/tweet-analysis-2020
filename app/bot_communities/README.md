@@ -56,5 +56,5 @@ python -m spacy download en_core_web_sm
 ```
 
 ```sh
-BOT_MIN="0.8" K_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.retweet_wordclouds
+BOT_MIN="0.8" K_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.daily_retweet_wordclouds
 ```

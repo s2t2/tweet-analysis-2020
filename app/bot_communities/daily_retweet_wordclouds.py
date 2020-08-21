@@ -67,7 +67,8 @@ if __name__ == "__main__":
 
         if True:
             print("SAVING TOP TOKENS...")
-            for record in token_ranks_df[token_ranks_df["rank"] <= 250].to_dict("records"):
+            records = token_ranks_df[token_ranks_df["rank"] <= 250].to_dict("records")
+            for record in records:
                 record["community_id"] = community_id
                 record["date"] = date
             daily_top_tokens += records
@@ -81,8 +82,8 @@ if __name__ == "__main__":
             plt.axis("off")
             if APP_ENV == "development":
                 plt.show()
-            print(os.path.abspath(local_wordcloud_filepath))
             local_wordcloud_filepath = os.path.join(daily_wordclouds_dirpath, f"community-{community_id}-{date}.png")
+            print(os.path.abspath(local_wordcloud_filepath))
             plt.savefig(local_wordcloud_filepath)
             plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
 
