@@ -28,6 +28,10 @@ if __name__ == "__main__":
     if not os.path.exists(local_dirpath):
         os.makedirs(local_dirpath)
 
+    charts_dirpath = os.path.join(local_dirpath, "retweet_charts")
+    if not os.path.exists(charts_dirpath):
+        os.makedirs(charts_dirpath)
+
     #
     # LOAD DATA
     #
@@ -121,7 +125,7 @@ if __name__ == "__main__":
             if APP_ENV == "development":
                 fig.show()
 
-            local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
+            local_img_filepath = os.path.join(charts_dirpath, f"community-{community_id}-most-retweeted.png")
             fig.write_image(local_img_filepath)
 
         if RETWEET_BENEFICIARY_CHARTS:
@@ -145,7 +149,7 @@ if __name__ == "__main__":
             if APP_ENV == "development":
                 fig_retweeters.show()
 
-            local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
+            local_img_filepath = os.path.join(charts_dirpath, f"community-{community_id}-most-retweeters.png")
             fig_retweeters.write_image(local_img_filepath)
 
         if CREATION_DATES_CHART:
@@ -181,7 +185,7 @@ if __name__ == "__main__":
                 if APP_ENV == "development":
                     plt.show()
 
-                local_wordcloud_filepath = os.path.join(local_dirpath, f"community-{community_id}-wordcloud.png")
+                local_wordcloud_filepath = os.path.join(charts_dirpath, f"community-{community_id}-wordcloud.png")
                 print(os.path.abspath(local_wordcloud_filepath))
                 plt.savefig(local_wordcloud_filepath)
 
