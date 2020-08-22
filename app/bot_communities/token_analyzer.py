@@ -2,7 +2,7 @@ from collections import Counter
 
 from pandas import DataFrame
 
-def summarize_token_frequencies(self, token_sets):
+def summarize_token_frequencies(token_sets):
     """
     Param token_sets : a list of tokens for each document in a collection
     """
