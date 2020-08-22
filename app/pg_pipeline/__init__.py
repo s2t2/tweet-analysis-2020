@@ -67,9 +67,15 @@ class Pipeline():
 
         print(logstamp(), "DATA FLOWING...")
         for row in self.bq_service.fetch_tweets_in_batches(limit=self.tweets_limit, start_at=start_at, end_at=end_at):
+            status_text = row["status_text"]
+            try:
+                status_text = clean_string(status_text[0:500]) # truncate strings over 500
+            finally:
+                pass
+
             self.batch.append({
                 "status_id": row["status_id"],
-                "status_text": clean_string(row["status_text"]),
+                "status_text": status_text,
                 "truncated": row["truncated"],
                 "retweeted_status_id ": row["retweeted_status_id"],
                 "retweeted_user_id ": row["retweeted_user_id"],
