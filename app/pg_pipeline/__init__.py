@@ -7,7 +7,7 @@ from app import APP_ENV
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.pg_pipeline.models import BoundSession, db, UserFriend, UserDetail, RetweeterDetail
+from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail
 
 load_dotenv()
 
@@ -35,6 +35,7 @@ class Pipeline():
             self.users_limit = int(users_limit)
         else:
             self.users_limit = None
+        self.tweets_limit = self.users_limit # todo: combine with users_limit for a more generic rows_limit, since we usually run one script or another, so can reset the var between runs
         self.batch_size = batch_size
 
         self.pg_destructive = pg_destructive
@@ -48,6 +49,56 @@ class Pipeline():
         #print("  BQ SERVICE:", type(self.bq_service))
         #print("  PG SESSION:", type(self.pg_session))
         print("  PG DESTRUCTIVE:", self.pg_destructive)
+
+    def download_tweets(self, start_at=None, end_at=None):
+        self.start_at = time.perf_counter()
+        self.batch = []
+        self.counter = 0
+
+        if self.pg_destructive and Tweet.__table__.exists():
+            print("DROPPING THE TWEETS TABLE!")
+            Tweet.__table__.drop(self.pg_engine)
+            self.pg_session.commit()
+
+        if not Tweet.__table__.exists():
+            print("CREATING THE TWEETS TABLE!")
+            Tweet.__table__.create(self.pg_engine)
+            self.pg_session.commit()
+
+        print(logstamp(), "DATA FLOWING...")
+        for row in self.bq_service.fetch_tweets_in_batches(limit=self.tweets_limit, start_at=start_at, end_at=end_at):
+            self.batch.append({
+                "status_id": row["status_id"],
+                "status_text": clean_string(row["status_text"]),
+                "truncated": row["truncated"],
+                "retweeted_status_id ": row["retweeted_status_id"],
+                "retweeted_user_id ": row["retweeted_user_id"],
+                "retweeted_user_screen_name": row["retweeted_user_screen_name"],
+                "reply_status_id": row["reply_status_id"],
+                "reply_user_id": row["reply_user_id"],
+                "is_quote": row["is_quote"],
+                "geo": clean_string(row["geo"]),
+                "created_at": row["created_at"],
+
+                "user_id": row["user_id"],
+                "user_name": clean_string(row["user_name"]),
+                "user_screen_name": clean_string(row["user_screen_name"]),
+                "user_description": clean_string(row["user_description"]),
+                "user_location": clean_string(row["user_location"]),
+                "user_verified": row["user_verified"],
+                "user_created_at": row["user_created_at"]
+            })
+            self.counter+=1
+
+            if len(self.batch) >= self.batch_size:
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
+                self.pg_session.bulk_insert_mappings(Tweet, self.batch)
+                self.pg_session.commit()
+                self.batch = []
+
+        print("ETL COMPLETE!")
+        self.end_at = time.perf_counter()
+        self.pg_session.close()
 
     def download_user_friends(self):
         self.start_at = time.perf_counter()

@@ -28,6 +28,12 @@ Testing the local PostgreSQL database connection:
 python -m app.pg_pipeline.models
 ```
 
+Downloading the "tweets" table (if it isn't too big):
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1000 python -m app.pg_pipeline.tweets
+```
+
 Downloading the "user_friends" table:
 
 ```sh

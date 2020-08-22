@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", default="postgresql://username:password@localhost/dbname")
+TWEETS_TABLE_NAME = os.getenv("TWEETS_TABLE_NAME", default="tweets")
 USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends") # can customize different sizes, like "user_friends_10k", for testing
 USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
 RETWEETER_DETAILS_TABLE_NAME = os.getenv("RETWEETER_DETAILS_TABLE_NAME", default="retweeter_details")
@@ -25,6 +26,30 @@ class Book(Base):
     author = Column(String(128))
     readers = Column(ARRAY(String(128)))
 
+class Tweet(Base):
+    __tablename__ = TWEETS_TABLE_NAME
+
+    status_id           = Column(BigInteger, primary_key=True)
+    status_text         = Column(String(250))
+    truncated           = Column(Boolean)
+    retweeted_status_id = Column(BigInteger)
+    retweeted_user_id   = Column(BigInteger)
+    retweeted_user_screen_name = Column(String(250))
+    reply_status_id     = Column(BigInteger)
+    reply_user_id       = Column(BigInteger)
+    is_quote            = Column(Boolean)
+    geo                 = Column(String(250))
+    created_at          = Column(TIMESTAMP)
+
+    user_id             = Column(BigInteger)
+    user_name           = Column(String(250))
+    user_screen_name    = Column(String(250))
+    user_description    = Column(String(250))
+    user_location       = Column(String(250))
+    user_verified       = Column(Boolean)
+    user_created_at     = Column(TIMESTAMP)
+
+
 class UserFriend(Base):
     __tablename__ = USER_FRIENDS_TABLE_NAME
     id = Column(Integer, primary_key=True)
@@ -32,6 +57,7 @@ class UserFriend(Base):
     screen_name = Column(String(128))
     friend_count = Column(Integer)
     friend_names = Column(ARRAY(String(128)))
+
 
 class UserDetail(Base):
     __tablename__ = USER_DETAILS_TABLE_NAME
@@ -63,14 +89,6 @@ class UserDetail(Base):
     status_count            = Column(Integer)
     retweet_count           = Column(Integer)
 
-    # # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-    # impeach_and_convict     = Column(Integer)
-    # senate_hearing          = Column(Integer)
-    # ig_hearing              = Column(Integer)
-    # facts_matter            = Column(Integer)
-    # sham_trial              = Column(Integer)
-    # maga                    = Column(Integer)
-    # acquitted_forever       = Column(Integer)
 
 class RetweeterDetail(Base):
     __tablename__ = RETWEETER_DETAILS_TABLE_NAME
@@ -81,18 +99,6 @@ class RetweeterDetail(Base):
     name_count = Column(Integer)
 
     retweet_count           = Column(Integer)
-    # # these topics are specific to the impeachment dataset, so will need to generalize if/when working with another topic (leave for future concern)
-    # ig_report               = Column(Integer)
-    # ig_hearing              = Column(Integer)
-    # senate_hearing          = Column(Integer)
-    # not_above_the_law       = Column(Integer)
-    # impeach_and_convict     = Column(Integer)
-    # impeach_and_remove      = Column(Integer)
-    # facts_matter            = Column(Integer)
-    # sham_trial              = Column(Integer)
-    # maga                    = Column(Integer)
-    # acquitted_forever       = Column(Integer)
-    # country_over_party      = Column(Integer)
 
 
 

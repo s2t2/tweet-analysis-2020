@@ -477,6 +477,40 @@ class BigQueryService():
     # LOCAL ANALYSIS (PG PIPELINE)
     #
 
+    def fetch_tweets_in_batches(self, limit=None, start_at=None, end_at=None):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,truncated
+                ,NULL as retweeted_status_id -- restore for version 2
+                ,NULL as retweeted_user_id -- restore for version 2
+                ,NULL as retweeted_user_screen_name -- restore for version 2
+                ,reply_status_id
+                ,reply_user_id
+                ,is_quote
+                ,geo
+                ,created_at
+
+                ,user_id
+                ,user_name
+                ,user_screen_name
+                ,user_description
+                ,user_location
+                ,user_verified
+                ,user_created_at
+
+            FROM `{self.dataset_address}.tweets`
+        """
+        if start_at and end_at:
+            sql+=f"""
+                WHERE (created_at BETWEEN '{str(start_at)}' AND '{str(end_at)}')
+            """
+        if limit:
+            sql += f" LIMIT {int(limit)}; "
+        return self.execute_query_in_batches(sql)
+
+
     def fetch_user_details_in_batches(self, limit=None):
         sql = f"""
             SELECT
