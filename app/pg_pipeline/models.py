@@ -30,7 +30,7 @@ class Tweet(Base):
     __tablename__ = TWEETS_TABLE_NAME
 
     status_id           = Column(BigInteger, primary_key=True)
-    status_text         = Column(String(250))
+    status_text         = Column(String(500))
     truncated           = Column(Boolean)
     retweeted_status_id = Column(BigInteger)
     retweeted_user_id   = Column(BigInteger)
@@ -98,7 +98,7 @@ class RetweeterDetail(Base):
     screen_name_count = Column(Integer)
     name_count = Column(Integer)
 
-    retweet_count           = Column(Integer)
+    retweet_count = Column(Integer)
 
 
 
