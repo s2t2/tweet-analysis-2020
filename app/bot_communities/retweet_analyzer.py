@@ -8,10 +8,10 @@ import squarify
 
 from app import APP_ENV, seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.spectral_clustermaker import N_COMMUNITIES # TODO
+from app.bot_communities.spectral_clustermaker import SpectralClustermaker
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
-from app.bot_communities.tokenizer import CustomTokenizer
+from app.bot_communities.tokenizers import Tokenizer
 from app.bot_communities.token_analyzer import summarize_token_frequencies
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
@@ -34,7 +34,7 @@ class RetweetAnalyzer:
         if not os.path.exists(self.retweet_charts_dirpath):
             os.makedirs(self.retweet_charts_dirpath)
 
-        self.tokenize = tokenize or CustomTokenizer().tokenize
+        self.tokenize = tokenize or Tokenizer().custom_stems # using the faster version, not the spacy version, due to time constraints
 
     def load_retweets(self):
         """
@@ -139,17 +139,34 @@ class RetweetAnalyzer:
     def generate_token_ranks_df(self, community_id):
         community_df = self.retweets_df[self.retweets_df["community_id"] == community_id]
         print("-------------------------")
-        print("TOKENIZING (NON-SPACY VERSION)...")
+        print("TOKENIZING...")
         status_tokens = community_df["status_text"].apply(self.tokenize)
         token_ranks_df = summarize_token_frequencies(status_tokens.values.tolist())
+        csv_filepath = os.path.join(self.local_dirpath, f"top-tokens-community-{community_id}.csv")
+        token_ranks_df.to_csv(csv_filepath)  # let's save them all, not just the top ones
         return token_ranks_df
+
+    def generate_wordcloud(self, community_id, token_ranks_df):
+        community_df = self.retweets_df[self.retweets_df["community_id"] == community_id]
+        print("-------------------------")
+        print("GENERATING WORD CLOUD...")
+        wordcloud_df = token_ranks_df[token_ranks_df["rank"] <= 20]
+        chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
+        squarify.plot(sizes=wordcloud_df["pct"], label=wordcloud_df["token"], alpha=0.8)
+        plt.title(chart_title)
+        plt.axis("off")
+        if APP_ENV == "development":
+            plt.show()
+        img_filepath = os.path.join(charts_dirpath, f"wordcloud-community-{community_id}.png")
+        print(os.path.abspath(img_filepath))
+        plt.savefig(img_filepath)
+        plt.clf()  # clear the figure, to prevent topics from overlapping from previous plots
 
 if __name__ == "__main__":
 
     analyzer = RetweetAnalyzer()
 
     analyzer.load_retweets()
-
     print(analyzer.retweets_df.head())
 
     seek_confirmation()
@@ -157,29 +174,12 @@ if __name__ == "__main__":
     for community_id in analyzer.community_ids:
         print(logstamp(), community_id)
 
-        analyzer.generate_users_most_retweeted_chart(community_id=community_id)
+        analyzer.generate_users_most_retweeted_chart(community_id)
 
-        analyzer.generate_users_most_retweeters_chart(community_id=community_id)
+        analyzer.generate_users_most_retweeters_chart(community_id)
 
-        # analyzer.generate_creation_dates_histogram(community_id=community_id)
+        # analyzer.generate_creation_dates_histogram(community_id)
 
-        community_token_ranks_df = analyzer.generate_token_ranks_df(community_id=community_id)
-        local_top_tokens_filepath = os.path.join(analyzer.local_dirpath, f"community-{community_id}-top-tokens.csv")
-        token_ranks_df.to_csv(local_top_tokens_filepath) # let's save them all, not just the top ones
+        token_ranks_df = analyzer.generate_token_ranks_df(community_id)
 
-            if TOKEN_CLOUD:
-                print("-------------------------")
-                print("GENERATING WORD CLOUD...")
-                wordcloud_df = token_ranks_df[token_ranks_df["rank"] <= 20]
-                chart_title = f"Word Cloud for Community {community_id} (n={fmt_n(len(community_df))})"
-                squarify.plot(sizes=wordcloud_df["pct"], label=wordcloud_df["token"], alpha=0.8)
-                plt.title(chart_title)
-                plt.axis("off")
-                if APP_ENV == "development":
-                    plt.show()
-
-                local_wordcloud_filepath = os.path.join(charts_dirpath, f"community-{community_id}-wordcloud.png")
-                print(os.path.abspath(local_wordcloud_filepath))
-                plt.savefig(local_wordcloud_filepath)
-
-                plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
+        analyzer.generate_wordcloud(community_id, token_ranks_df)
