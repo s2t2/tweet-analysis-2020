@@ -142,6 +142,7 @@ class RetweetAnalyzer:
         print("TOKENIZING...")
         status_tokens = community_df["status_text"].apply(self.tokenize)
         token_ranks_df = summarize_token_frequencies(status_tokens.values.tolist())
+
         csv_filepath = os.path.join(self.local_dirpath, f"top-tokens-community-{community_id}.csv")
         token_ranks_df.to_csv(csv_filepath)  # let's save them all, not just the top ones
         return token_ranks_df
@@ -157,6 +158,7 @@ class RetweetAnalyzer:
         plt.axis("off")
         if APP_ENV == "development":
             plt.show()
+
         img_filepath = os.path.join(charts_dirpath, f"wordcloud-community-{community_id}.png")
         print(os.path.abspath(img_filepath))
         plt.savefig(img_filepath)

@@ -79,7 +79,8 @@ class SpectralClustermaker:
         print("SAVING COMMUNITY ASSIGNMENTS TO BQ...")
         self.grapher.bq_service.overwrite_n_bot_communities_table(
             n_communities=self.n_clusters,
-            records=self.community_assignments)
+            records=self.community_assignments
+        )
 
     def generate_histogram(self):
         print("----------------")
