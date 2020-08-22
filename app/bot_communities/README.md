@@ -55,6 +55,8 @@ python -m spacy download en_core_web_md
 python -m spacy download en_core_web_sm
 ```
 
+After downloading the local retweets.csv file, use it to generate daily wordclouds:
+
 ```sh
 BOT_MIN="0.8" N_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.daily_retweet_wordclouds
 ```

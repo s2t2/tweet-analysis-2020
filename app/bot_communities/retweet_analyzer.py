@@ -13,7 +13,8 @@ from app.bot_communities.spectral_clustermaker import SpectralClustermaker
 from app.bot_communities.tokenizers import Tokenizer
 from app.bot_communities.token_analyzer import summarize_token_frequencies
 
-BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
+BATCH_SIZE = 50_000 # we are talking about downloading millions of records
+#ROWS_LIMIT = os.getenv("ROWS_LIMIT")
 
 class RetweetAnalyzer:
     def __init__(self, tokenize=None):
@@ -39,6 +40,10 @@ class RetweetAnalyzer:
         if os.path.isfile(self.retweets_filepath):
             print("READING BOT COMMUNITY RETWEETS FROM CSV...")
             self.retweets_df = read_csv(self.retweets_filepath) # DtypeWarning: Columns (6) have mixed types.Specify dtype option on import or set low_memory=False
+            #if ROWS_LIMIT:
+            #    self.retweets_df = read_csv(local_csv_filepath, nrows=int(ROWS_LIMIT))
+            #else:
+            #    self.retweets_df = read_csv(local_csv_filepath)
         else:
             print("DOWNLOADING BOT COMMUNITY RETWEETS...")
             counter = 0
