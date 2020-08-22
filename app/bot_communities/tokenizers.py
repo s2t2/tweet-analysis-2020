@@ -49,13 +49,13 @@ class CustomStemmer():
 
 class Tokenizer():
 
-    def __init__(self, stop_words=None, stemmer=None):
-        self.stop_words = stop_words or self.compile_stop_words()
+    def __init__(self):
         self.porter_stemmer = PorterStemmer()
         self.custom_stemmer = CustomStemmer()
 
-    @staticmethod
-    def compile_stopwords():
+    @property
+    @lru_cache(maxsize=None)
+    def stop_words(self):
         words = set(NLTK_STOPWORDS.words("english")) | SPACY_STOP_WORDS | GENSIM_STOPWORDS | CUSTOM_STOP_WORDS
         words |= set([word.replace("'","") for word in words if "'" in word]) # contraction-less: "don't" -> "dont"
         return words
@@ -81,8 +81,8 @@ class Tokenizer():
 
 class SpacyTokenizer(Tokenizer):
 
-    def __init__(self, stop_words=None, stemmer=None, model_size=MODEL_SIZE):
-        super().__init__(stop_words=stop_words, stemmer=stemmer)
+    def __init__(self, model_size=MODEL_SIZE):
+        super().__init__()
         self.nlp = spacy.load(f"en_core_web_{model_size}")
         print(type(self.nlp))
 
@@ -98,13 +98,18 @@ class SpacyTokenizer(Tokenizer):
         return [lemma for lemma in lemmas if lemma not in self.stop_words]
 
     def entity_tokens(self, txt):
-        doc = nlp(txt) #> <class 'spacy.tokens.doc.Doc'>
-        entities = spacy_doc.ents
-        breakpoint()
-        return entities
+        doc = self.nlp(txt) #> <class 'spacy.tokens.doc.Doc'>
+        return doc.ents
 
 
 if __name__ == "__main__":
-    stop_words = Tokenizer.compile_stopwords()
-    print("STOP WORDS...")
-    pprint(stop_words)
+    catch_phrase = ""
+
+    tokenizer = Tokenizer()
+    print(len(tokenizer.stop_words))
+    print(tokenizer.custom_stems("_________"))
+
+    tokenizer = SpacyTokenizer()
+    print(len(tokenizer.stop_words))
+    tokens = tokenizer.entity_tokens("Welcome to New York.")
+    print(tokens)
