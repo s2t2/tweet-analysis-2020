@@ -62,7 +62,7 @@ class Tokenizer():
 
     def basic_tokens(self, txt):
         txt = txt.lower() # normalize case
-        txt = txt.sub(ALPHANUMERIC_PATTERN, "", txt)  # keep only alphanumeric characters
+        txt = re.sub(ALPHANUMERIC_PATTERN, "", txt)  # keep only alphanumeric characters
         tokens = txt.split()
         tokens = [token for token in tokens if token not in self.stop_words] # remove stopwords
         return tokens
@@ -103,13 +103,21 @@ class SpacyTokenizer(Tokenizer):
 
 
 if __name__ == "__main__":
-    catch_phrase = ""
+    print("----------------")
+    status_text = "Welcome to New York. Welcoming isn't it? :-D"
+    print(status_text)
 
+    print("----------------")
     tokenizer = Tokenizer()
+    print(type(tokenizer))
     print(len(tokenizer.stop_words))
-    print(tokenizer.custom_stems("_________"))
+    print("  basic_tokens:", tokenizer.basic_tokens(status_text))
+    print("  porter_stems:", tokenizer.porter_stems(status_text))
+    print("  custom_stems:", tokenizer.custom_stems(status_text))
 
+    print("----------------")
     tokenizer = SpacyTokenizer()
+    print(type(tokenizer))
     print(len(tokenizer.stop_words))
-    tokens = tokenizer.entity_tokens("Welcome to New York.")
-    print(tokens)
+    print("  custom_stem_lemmas:", tokenizer.custom_stem_lemmas(status_text))
+    print("  entity_tokens:", tokenizer.entity_tokens(status_text))
