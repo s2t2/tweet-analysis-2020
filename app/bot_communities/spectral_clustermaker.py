@@ -41,6 +41,8 @@ class SpectralClustermaker:
         self.grapher.similarity_graph_report()  # load bot similarity graph
         self.similarity_graph = self.grapher.similarity_graph
 
+        self.community_assignments = None
+
 
     @property
     @lru_cache(maxsize=None)
@@ -49,33 +51,18 @@ class SpectralClustermaker:
         print("SIMILARITY MATRIX", type(matrix))
         return matrix
 
-    @property
-    @lru_cache(maxsize=None)
-    def clusters(self):
-        return self.classifier.fit(self.similarity_matrix)
-
     def perform(self):
-        communities = [[] for i in range(self.n_clusters)]
-        nv = 0 # index for the nodes cluster labels
-        for node in self.similarity_graph.nodes():
-            breakpoint()
-            node_comm = self.classifier.labels_[nv] # community membership of node converted to a python list index
-            nv += 1
-            X = communities[node_comm] # community list of community c
-            X.append(node) # add node to the appropriate community
-            communities[node_comm] = X  # add the community list to the big list of all communities
-            #print("Node %s joined community %s which has %s nodes"%(node,node_comm,len(Comm[node_comm])))
-            communities.sort(reverse=True, key=len)
-
-        self.community_assignments = []
-        for community_id, community in enumerate(communities):
-            print(f"  CLUSTER {community_id}:", len(community), "USERS")
-            for user_id in community:
-                self.community_assignments.append({"user_id": user_id, "community_id": community_id})
+        self.classifier.fit(self.similarity_matrix) # makes the predictions, populates labels
+        user_ids = list(self.similarity_graph.nodes())
+        community_ids = [label.item() for label in list(self.classifier.labels_)] # converts from np int32 to native python int (so can be stored in BQ without serialization errors)
+        iterator = zip(user_ids, community_ids)
+        self.community_assignments = [{"user_id": user_id, "community_id": community_id} for user_id, community_id in iterator]
 
     @property
     @lru_cache(maxsize=None)
-    def community_assignments_df(parameter_list):
+    def community_assignments_df(self):
+        if not self.community_assignments:
+            self.perform()
         return DataFrame(self.community_assignments)
 
     def write_to_file(self):
@@ -95,11 +82,18 @@ class SpectralClustermaker:
             records=self.community_assignments)
 
     def generate_histogram(self):
+        print("----------------")
+        print("GENERATING COMMUNITIES HISTOGRAM...")
+        plt.hist(self.community_assignments_df["community_id"], color="grey")
+        plt.title(f"Bot Communities Histogram (n_communities={self.n_clusters})")
+        plt.xlabel("Community Id")
+        plt.ylabel("User Count")
+        plt.grid()
         if APP_ENV == "development":
-            plt.hist(self.community_assignments_df["community_id"])
-            plt.grid()
             plt.show()
-
+        img_filepath = os.path.join(self.local_dirpath, f"communities-histogram.png")
+        print(os.path.abspath(img_filepath))
+        plt.savefig(img_filepath)
 
 if __name__ == "__main__":
 

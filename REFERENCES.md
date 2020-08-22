@@ -126,6 +126,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 ## Numpy
 
   + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
+  + https://stackoverflow.com/questions/9452775/converting-numpy-dtypes-to-native-python-types/11389998
 
 ## Scipy and K-S Tests
 

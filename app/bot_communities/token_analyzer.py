@@ -9,14 +9,17 @@ def summarize_token_frequencies(self, token_sets):
     print("COMPUTING TOKEN AND DOCUMENT FREQUENCIES...")
     token_counter = Counter()
     doc_counter = Counter()
+
     for tokens in token_sets:
         token_counter.update(tokens)
         doc_counter.update(set(tokens)) # removes duplicate tokens so they only get counted once per doc!
 
     token_counts = zip(token_counter.keys(), token_counter.values())
-    token_df = DataFrame(token_counts, columns=["token", "count"])
     doc_counts = zip(doc_counter.keys(), doc_counter.values())
+
+    token_df = DataFrame(token_counts, columns=["token", "count"])
     doc_df = DataFrame(doc_counts, columns=["token", "doc_count"])
+
     df = doc_df.merge(token_df, on="token")
 
     df["rank"] = df["count"].rank(method="first", ascending=False)
