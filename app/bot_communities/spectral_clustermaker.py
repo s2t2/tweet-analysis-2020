@@ -63,7 +63,10 @@ class SpectralClustermaker:
     def community_assignments_df(self):
         if not self.community_assignments:
             self.perform()
-        return DataFrame(self.community_assignments)
+        df = DataFrame(self.community_assignments)
+        df.index.name = "row_id"
+        df.index += 1
+        return df
 
     def write_to_file(self):
         print("----------------")
@@ -76,6 +79,7 @@ class SpectralClustermaker:
         self.grapher.upload_file(self.local_bot_communities_filepath, self.gcs_bot_communities_filepath)
 
     def save_to_bq(self):
+        print("----------------")
         print("SAVING COMMUNITY ASSIGNMENTS TO BQ...")
         self.grapher.bq_service.overwrite_n_bot_communities_table(
             n_communities=self.n_clusters,
