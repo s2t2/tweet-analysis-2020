@@ -7,18 +7,13 @@ import plotly.express as px
 import squarify
 
 from app import APP_ENV, seek_confirmation
-from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.spectral_clustermaker import SpectralClustermaker
 from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt, s_to_date
 from app.decorators.number_decorators import fmt_n
+from app.bot_communities.spectral_clustermaker import SpectralClustermaker
 from app.bot_communities.tokenizers import Tokenizer
 from app.bot_communities.token_analyzer import summarize_token_frequencies
 
 BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
-RETWEET_BENEFICIARY_CHARTS = True
-CREATION_DATES_CHART = False
-TOKENIZE = True
-TOKEN_CLOUD = True
 
 class RetweetAnalyzer:
     def __init__(self, tokenize=None):
@@ -68,7 +63,7 @@ class RetweetAnalyzer:
 
             self.retweets_df = DataFrame(records)
             self.retweets_df.index.name = "row_id"
-            self.retweets_df.index = self.retweets_df.index + 1
+            self.retweets_df.index += 1
             print("WRITING TO FILE...")
             self.retweets_df.to_csv(self.retweets_filepath)
 
@@ -159,7 +154,7 @@ class RetweetAnalyzer:
         if APP_ENV == "development":
             plt.show()
 
-        img_filepath = os.path.join(charts_dirpath, f"wordcloud-community-{community_id}.png")
+        img_filepath = os.path.join(self.retweet_charts_dirpath, f"wordcloud-community-{community_id}.png")
         print(os.path.abspath(img_filepath))
         plt.savefig(img_filepath)
         plt.clf()  # clear the figure, to prevent topics from overlapping from previous plots
