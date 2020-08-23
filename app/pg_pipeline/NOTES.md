@@ -144,9 +144,47 @@ FROM (
 )
 group by 1
 having status_count > 1
-
 ```
 
+After downloading tweets to PG...
+
+```sql
+SELECT status_id, count(1) as row_count
+FROM (
+
+  SELECT DISTINCT status_id, user_id, status_text, created_at
+  -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+
+) subq
+group by status_id
+having count(1) > 1
+order by row_count desc
+-- should be zero rows
+```
+
+Creating a table of unique statuses:
+
+```sql
+DROP TABLE IF EXISTS statuses;
+CREATE TABLE statuses as (
+  SELECT DISTINCT status_id, user_id, status_text, created_at -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+);
+ALTER TABLE table_name ADD PRIMARY KEY (status_id);
+CREATE INDEX status_index_user_id ON statuses (user_id);
+CREATE INDEX status_index_created_at ON statuses (created_at);
+```
+
+Testing query performance:
+
+```sql
+select user_id, status_id, status_text, created_at
+from statuses
+order by created_at desc
+limit 100
+-- 178 s
+```
 
 
 
@@ -175,6 +213,10 @@ week_id | from | to | day_count | user_count | retweet_count
 2020-10 | '2020-03-08' | '2020-03-14' | 7 | 296,781 | 936,776
 2020-11 | '2020-03-15' | '2020-03-21' | 7 | 301,790 | 713,966
 2020-12 | '2020-03-22' | '2020-03-24' | 3 | 207,209 | 516,018
+
+
+
+
 
 
 ## Topics
