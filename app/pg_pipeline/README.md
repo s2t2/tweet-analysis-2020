@@ -20,13 +20,13 @@ pip install psycopg2
 CREATE DATABASE impeachment_analysis;
 ```
 
-## Local Database Migration
-
 Testing the local PostgreSQL database connection:
 
 ```sh
 python -m app.pg_pipeline.models
 ```
+
+## Downloading Data
 
 Downloading the "tweets" table (if it isn't too big):
 
@@ -56,8 +56,69 @@ Downloading the "retweeter_details" table:
 BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=2500 python -m app.pg_pipeline.retweeter_details
 ```
 
+## Derivations
+
+
+```sql
+SELECT status_id, count(1) as row_count
+FROM (
+
+  SELECT DISTINCT status_id, user_id, status_text, created_at
+  -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+
+) subq
+group by status_id
+having count(1) > 1
+order by row_count desc
+-- should be zero rows
+```
+
+Creating a table of unique statuses:
+
+```sql
+DROP TABLE IF EXISTS statuses;
+CREATE TABLE statuses as (
+  SELECT DISTINCT status_id, user_id, status_text, created_at -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+);
+ALTER TABLE table_name ADD PRIMARY KEY (status_id);
+CREATE INDEX status_index_user_id ON statuses (user_id);
+CREATE INDEX status_index_created_at ON statuses (created_at);
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <hr>
+
 
 
 
