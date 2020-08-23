@@ -100,7 +100,7 @@ class RetweetAnalyzer:
         if APP_ENV == "development":
             fig.show()
 
-        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"community-{community_id}-most-retweeted.png")
+        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"most-retweeted-community-{community_id}.png")
         fig.write_image(local_img_filepath)
 
     def generate_users_most_retweeters_chart(self, community_id, top_n=10):
@@ -127,7 +127,7 @@ class RetweetAnalyzer:
         if APP_ENV == "development":
             fig.show()
 
-        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"community-{community_id}-most-retweeters.png")
+        local_img_filepath = os.path.join(self.retweet_charts_dirpath, f"most-retweeters-community-{community_id}.png")
         fig.write_image(local_img_filepath)
 
     def generate_creation_dates_histogram(self, community_id):
@@ -143,7 +143,7 @@ class RetweetAnalyzer:
         status_tokens = community_df["status_text"].apply(self.tokenize)
         token_ranks_df = summarize_token_frequencies(status_tokens.values.tolist())
 
-        csv_filepath = os.path.join(self.local_dirpath, f"top-tokens-community-{community_id}.csv")
+        csv_filepath = os.path.join(self.retweet_charts_dirpath, f"top-tokens-community-{community_id}.csv")
         token_ranks_df.to_csv(csv_filepath)  # let's save them all, not just the top ones
         return token_ranks_df
 

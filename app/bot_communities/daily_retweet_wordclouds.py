@@ -39,7 +39,7 @@ if __name__ == "__main__":
     daily_wordclouds_dirpath = os.path.join(analyzer.local_dirpath, "daily_wordclouds")
     if not os.path.exists(daily_wordclouds_dirpath):
         os.makedirs(daily_wordclouds_dirpath)
-    daily_tokens_dirpath = os.path.join(analyzer.local_dirpath, "daily_tokens")
+    daily_tokens_dirpath = os.path.join(analyzer.local_dirpath, "daily_top_tokens")
     if not os.path.exists(daily_tokens_dirpath):
         os.makedirs(daily_tokens_dirpath)
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # TODO: parallelize ...
         status_tokens = filtered_df["status_text"].apply(tokenize)
         token_ranks_df = summarize_token_frequencies(status_tokens.values.tolist())
-        csv_filepath = os.path.join(daily_tokens_dirpath, f"community-{community_id}-{date}.csv")
+        csv_filepath = os.path.join(daily_tokens_dirpath, f"{date}-community-{community_id}.csv")
         token_ranks_df.to_csv(csv_filepath)
 
         print("STORING TOP TOKENS...")
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         plt.axis("off")
         if APP_ENV == "development":
             plt.show()
-        img_filepath = os.path.join(daily_wordclouds_dirpath, f"community-{community_id}-{date}.png")
+        img_filepath = os.path.join(daily_wordclouds_dirpath, f"{date}-community-{community_id}.png")
         #print(os.path.abspath(img_filepath))
         plt.savefig(img_filepath)
         plt.clf() # clear the figure, to prevent topics from overlapping from previous plots
