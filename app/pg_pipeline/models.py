@@ -28,8 +28,10 @@ class Book(Base):
 
 class Tweet(Base):
     __tablename__ = TWEETS_TABLE_NAME
+    #status_id           = Column(BigInteger, primary_key=True)
+    row_id = Column(Integer, primary_key=True) # use auto-generated id
+    status_id           = Column(BigInteger) # there are a few duplicate status ids, let's deal with them locally
 
-    status_id           = Column(BigInteger, primary_key=True)
     status_text         = Column(String(500))
     truncated           = Column(Boolean)
     retweeted_status_id = Column(BigInteger)

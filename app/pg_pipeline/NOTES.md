@@ -112,7 +112,49 @@ year	| week	| day_count	| min_created	| max_created	| user_count | tweet_count
 2020	| 12	| 3	| 2020-03-22 00:00:00 UTC	| 2020-03-24 19:04:03 UTC	| 261,301  |  655,057
 
 
-Retweets:
+### Downloading Tweets
+
+Running into integrity errors (duplicate status id) when trying to insert tweets into bq. There are 17,063 duplicate status ids.
+
+```sql
+SELECT status_id ,count(*) as status_count
+FROM (
+        SELECT
+              status_id
+              ,status_text
+              ,truncated
+              ,NULL as retweeted_status_id -- restore for version 2
+              ,NULL as retweeted_user_id -- restore for version 2
+              ,NULL as retweeted_user_screen_name -- restore for version 2
+              ,reply_status_id
+              ,reply_user_id
+              ,is_quote
+              ,geo
+              ,created_at
+
+              ,user_id
+              ,user_name
+              ,user_screen_name
+              ,user_description
+              ,user_location
+              ,user_verified
+              ,user_created_at
+
+          FROM `tweet-collector-py.impeachment_production.tweets`
+)
+group by 1
+having status_count > 1
+
+```
+
+
+
+
+
+
+
+
+## Retweets
 
 week_id | from | to | day_count | user_count | retweet_count
 --- | --- | --- | --- | --- | ---
