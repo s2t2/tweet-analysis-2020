@@ -30,26 +30,26 @@ class Tweet(Base):
     __tablename__ = TWEETS_TABLE_NAME
     #status_id           = Column(BigInteger, primary_key=True)
     row_id = Column(Integer, primary_key=True) # use auto-generated id
-    status_id           = Column(BigInteger) # there are a few duplicate status ids, let's deal with them locally
+    status_id           = Column(BigInteger) # , index=True # there are a few duplicate status ids, let's deal with them locally
 
     status_text         = Column(String(500))
     truncated           = Column(Boolean)
-    retweeted_status_id = Column(BigInteger)
-    retweeted_user_id   = Column(BigInteger)
+    retweeted_status_id = Column(BigInteger) # , index=True
+    retweeted_user_id   = Column(BigInteger) # , index=True
     retweeted_user_screen_name = Column(String(250))
     reply_status_id     = Column(BigInteger)
     reply_user_id       = Column(BigInteger)
     is_quote            = Column(Boolean)
     geo                 = Column(String(250))
-    created_at          = Column(TIMESTAMP)
+    created_at          = Column(TIMESTAMP) # , index=True
 
-    user_id             = Column(BigInteger)
+    user_id             = Column(BigInteger) # , index=True
     user_name           = Column(String(250))
-    user_screen_name    = Column(String(250))
+    user_screen_name    = Column(String(250)) # , index=True
     user_description    = Column(String(250))
     user_location       = Column(String(250))
     user_verified       = Column(Boolean)
-    user_created_at     = Column(TIMESTAMP)
+    user_created_at     = Column(TIMESTAMP) # , index=True
 
 
 class UserFriend(Base):
