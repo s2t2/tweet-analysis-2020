@@ -50,7 +50,10 @@ def train_topic_model(token_sets):
     return lda
 
 def parse_topics(lda):
-    """Params: lda (gensim.models.ldamulticore.LdaMulticore) a pre-fit LDA model"""
+    """
+    Params: lda (gensim.models.ldamulticore.LdaMulticore) a pre-fit LDA model
+    Returns: a list of topic records like... {'impeach': 0.058, 'trump': 0.052, 'gop': 0.042, 'clinton': 0.039, 'commit': 0.037, 'condu': 0.037, 'proper': 0.037, 'defense': 0.037, 'jury': 0.037, 'grand': 0.037}
+    """
     parsed_response = []
     topics_response = lda.print_topics()
     for topic_row in topics_response:

@@ -26,9 +26,11 @@ START_DATE = os.getenv("START_DATE", default="2019-12-12")
 END_DATE = os.getenv("END_DATE", default="2020-02-20")
 
 MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
+MULTIPROCESS = (os.getenv("MULTIPROCESS", default="true") == "true")
 
 class DailyRetweetsAnalyzer(RetweetsAnalyzer):
-    def __init__(self, community_id, community_retweets_df, local_dirpath, date, tokenize=None):
+    def __init__(self, community_id, community_retweets_df, parent_dirpath, date, tokenize=None):
+        local_dirpath = os.path.join(parent_dirpath, f"community-{community_id}", "daily")
         self.date = date
         tokenize = tokenize or SpacyTokenizer().custom_stem_lemmas
         super().__init__(community_id, community_retweets_df, local_dirpath, tokenize)
@@ -74,6 +76,10 @@ if __name__ == "__main__":
 
     print("------------------------")
     print("DAILY COMMUNITY RETWEETS ANALYSIS...")
+    print("  MULTI-PROCESSING:", MULTIPROCESS)
+    print("  MAX PROCESSES:", MAX_THREADS)
+    print("  START DATE:", START_DATE)
+    print("  END DATE:", END_DATE)
 
     storage = LocalStorage()
     storage.load_retweets()
@@ -89,21 +95,22 @@ if __name__ == "__main__":
 
     print("----------------")
     print("FILTERING RETWEETS...")
-    print("  START DATE", START_DATE)
-    print("  END DATE", END_DATE)
+
     df = df.query(f"{START_DATE.replace('-','')} < status_created_dt < {END_DATE.replace('-','')}") # dashes are for humans, not dataframe queries apparently
     print(df["status_created_date"].value_counts())
 
     seek_confirmation()
 
-    with ProcessPoolExecutor(max_workers=MAX_THREADS) as executor:
+    groupby = storage.retweets_df.groupby(["community_id", "status_created_date"])
 
-        groupby = storage.retweets_df.groupby(["community_id", "status_created_date"])
-
-        futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath) for group_name, filtered_df in groupby]
-
-        for future in as_completed(futures):
-            result = future.result()
+    if MULTIPROCESS:
+        with ProcessPoolExecutor(max_workers=MAX_THREADS) as executor:
+            futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath) for group_name, filtered_df in groupby]
+            for future in as_completed(futures):
+                result = future.result()
+    else:
+        for group_name, filtered_df in groupby:
+            perform(group_name, filtered_df, storage.local_dirpath)
 
     print("----------------")
     print("ALL PROCESSES COMPLETE!")

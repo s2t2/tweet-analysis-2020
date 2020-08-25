@@ -134,9 +134,7 @@ class RetweetsAnalyzer:
     @property
     @lru_cache(maxsize=None)
     def topics_df(self):
-        topics = parse_topics(self.topic_model)
-        breakpoint()
-        return DataFrame(topics)
+        return DataFrame(parse_topics(self.topic_model))
 
     def save_topics(self):
         self.topics_df.to_csv(self.topics_csv_filepath)
