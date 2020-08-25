@@ -944,6 +944,14 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    #
+    # BOT FOLLOWER GRAPHS
+    #
+
+
+    def fetch_bot_follower_edges_in_batches(self):
+        pass
+
 if __name__ == "__main__":
 
     service = BigQueryService()
