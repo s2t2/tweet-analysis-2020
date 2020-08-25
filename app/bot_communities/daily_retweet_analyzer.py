@@ -30,7 +30,7 @@ MULTIPROCESS = (os.getenv("MULTIPROCESS", default="true") == "true")
 
 class DailyRetweetsAnalyzer(RetweetsAnalyzer):
     def __init__(self, community_id, community_retweets_df, parent_dirpath, date, tokenize=None):
-        local_dirpath = os.path.join(parent_dirpath, f"community-{community_id}", "daily")
+        local_dirpath = os.path.join(parent_dirpath, "daily")
         self.date = date
         tokenize = tokenize or SpacyTokenizer().custom_stem_lemmas
         super().__init__(community_id, community_retweets_df, local_dirpath, tokenize)
@@ -49,17 +49,17 @@ class DailyRetweetsAnalyzer(RetweetsAnalyzer):
         self.topics_csv_filepath = os.path.join(self.local_dirpath, f"topics-{self.date}.csv")
 
 
-def perform(group_name, filtered_df, parent_dirpath):
+def perform(group_name, filtered_df, parent_dirpath, tokenize):
     community_id = group_name[0]
     date = group_name[1]
-    local_dirpath = os.path.join(parent_dirpath, f"community-{community_id}")
+    parent_dirpath = os.path.join(parent_dirpath, f"community-{community_id}")
 
     print("----------------")
-    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "| RETWEETS:", fmt_n(len(filtered_df)), local_dirpath)
+    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "| RETWEETS:", fmt_n(len(filtered_df)), parent_dirpath)
 
     #time.sleep(3)
 
-    analyzer = DailyRetweetsAnalyzer(community_id, filtered_df, local_dirpath, date)
+    analyzer = DailyRetweetsAnalyzer(community_id, filtered_df, parent_dirpath, date, tokenize)
 
     analyzer.generate_most_retweets_chart()
     analyzer.generate_most_retweeters_chart()
@@ -103,14 +103,16 @@ if __name__ == "__main__":
 
     groupby = storage.retweets_df.groupby(["community_id", "status_created_date"])
 
+    tokenize = SpacyTokenizer().custom_stem_lemmas # let's just load the spacy model once and pass it around
+
     if MULTIPROCESS:
         with ProcessPoolExecutor(max_workers=MAX_THREADS) as executor:
-            futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath) for group_name, filtered_df in groupby]
+            futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath, tokenize) for group_name, filtered_df in groupby]
             for future in as_completed(futures):
                 result = future.result()
     else:
         for group_name, filtered_df in groupby:
-            perform(group_name, filtered_df, storage.local_dirpath)
+            perform(group_name, filtered_df, storage.local_dirpath, tokenize)
 
     print("----------------")
     print("ALL PROCESSES COMPLETE!")
