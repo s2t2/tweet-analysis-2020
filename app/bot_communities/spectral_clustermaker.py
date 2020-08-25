@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from app import seek_confirmation, APP_ENV
 from app.bot_communities.bot_similarity_grapher import BotSimilarityGrapher
 
-
 load_dotenv()
 
 N_COMMUNITIES = int(os.getenv("N_COMMUNITIES", default="2"))
@@ -89,6 +88,7 @@ class SpectralClustermaker:
     def generate_histogram(self):
         print("----------------")
         print("GENERATING COMMUNITIES HISTOGRAM...")
+        # todo: optionally customize colors for each series. might be easier to use https://plotly.com/python/histograms/#histogram-with-plotly-express
         plt.hist(self.community_assignments_df["community_id"], color="grey")
         plt.title(f"Bot Communities Histogram (n_communities={self.n_clusters})")
         plt.xlabel("Community Id")
