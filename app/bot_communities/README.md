@@ -24,6 +24,8 @@ Assigning bots to spectral communities based on their similarity scores (using t
 BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clustermaker
 ```
 
+> WARNING: this process will overwrite previous results, and due to randomness new results may not match.
+
 ## Analysis
 
 Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):

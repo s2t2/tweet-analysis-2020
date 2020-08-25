@@ -85,6 +85,9 @@ class CommunityRetweetsAnalyzer:
         self.local_dirpath = local_dirpath
         self.tokenize = tokenize or Tokenizer().custom_stems # todo: see if we can use a spacy version
 
+        if not os.path.exists(self.local_dirpath):
+            os.makedirs(self.local_dirpath)
+
     @property
     @lru_cache(maxsize=None)
     def most_retweets_df(self):
@@ -125,14 +128,14 @@ class CommunityRetweetsAnalyzer:
     def generate_most_retweeters_chart(self, top_n=10):
         chart_df = self.most_retweeters_df.copy()
         chart_df.sort_values("Retweeter Count", ascending=False, inplace=True) # sort for top
-        most_retweeters_df = most_retweeters_df[:top_n]
+        chart_df = chart_df[:top_n]
 
-        most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True) # re-sort for chart
-        fig = px.bar(most_retweeters_df,
+        chart_df.sort_values("Retweeter Count", ascending=True, inplace=True) # re-sort for chart
+        fig = px.bar(chart_df,
             x="Retweeter Count",
             y="Retweeted User",
             orientation="h",
-            title=f"Users with Most Retweeters in Bot Community {community_id} (n_communities={self.n_clusters})"
+            title=f"Users with Most Retweeters in Bot Community {community_id}"
         )
         if APP_ENV == "development":
             fig.show()
