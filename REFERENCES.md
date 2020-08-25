@@ -145,6 +145,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
   + [Filter Top N Rows per Category](https://kb.tableau.com/articles/howto/finding-the-top-n-within-a-category)
+  + [Converting Timezones](https://community.tableau.com/s/question/0D54T00000C6L60/convert-utc-timezone-to-est-timezone)
 
 ## Pandas
 
@@ -159,6 +160,7 @@ Grouping and aggregation, working with multi-indices:
 ## Matplotlib
 
   + https://stackoverflow.com/questions/8213522/when-to-use-cla-clf-or-close-for-clearing-a-plot-in-matplotlib#
+  + https://stackoverflow.com/questions/9012487/matplotlib-pyplot-savefig-outputs-blank-image
 
 ## Plotly Express
 
@@ -176,3 +178,7 @@ Grouping and aggregation, working with multi-indices:
   + https://spacy.io/api/lemmatizer
   + https://towardsdatascience.com/exploring-the-trump-twitter-archive-with-spacy-fe557810717c
   + https://towardsdatascience.com/building-a-topic-modeling-pipeline-with-spacy-and-gensim-c5dc03ffc619
+
+## Gensim
+
+  + https://radimrehurek.com/gensim/models/ldamulticore.html

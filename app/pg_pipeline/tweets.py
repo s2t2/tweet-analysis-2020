@@ -15,4 +15,4 @@ if __name__ == "__main__":
     print("START_AT:", START_AT)
     print("END AT:", END_AT)
 
-    pipeline.download_tweets(start_at=START_AT, end_at=END_AT) # takes about X minutes for X tweets in batches of 2500
+    pipeline.download_tweets(start_at=START_AT, end_at=END_AT)

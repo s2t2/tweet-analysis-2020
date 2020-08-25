@@ -94,11 +94,12 @@ class SpectralClustermaker:
         plt.xlabel("Community Id")
         plt.ylabel("User Count")
         plt.grid()
-        if APP_ENV == "development":
-            plt.show()
-        img_filepath = os.path.join(self.local_dirpath, f"communities-histogram.png")
+
+        img_filepath = os.path.join(self.local_dirpath, "community-assignments.png")
         print(os.path.abspath(img_filepath))
         plt.savefig(img_filepath)
+        if APP_ENV == "development":
+            plt.show() # this clears the figure, so save before or use reference https://stackoverflow.com/a/9012749/670433
 
 if __name__ == "__main__":
 

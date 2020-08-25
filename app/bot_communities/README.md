@@ -29,7 +29,7 @@ BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clusterma
 Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):
 
 ```sh
-BOT_MIN="0.8" N_COMMUNITIES="2"  python -m app.bot_communities.retweet_analyzer
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.retweet_analyzer
 ```
 
 Downloading tweets for each bot community:

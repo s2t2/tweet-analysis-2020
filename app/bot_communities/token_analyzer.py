@@ -1,10 +1,15 @@
 from collections import Counter
 
 from pandas import DataFrame
+from gensim.corpora import Dictionary
+from gensim.models.ldamulticore import LdaMulticore
+#from gensim.models import TfidfModel
 
 def summarize_token_frequencies(token_sets):
     """
     Param token_sets : a list of tokens for each document in a collection
+
+    Returns a DataFrame with a row per topic and columns for various TF/IDF-related scores.
     """
     print("COMPUTING TOKEN AND DOCUMENT FREQUENCIES...")
     token_counter = Counter()
@@ -32,9 +37,28 @@ def summarize_token_frequencies(token_sets):
     return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
 
 
-#def topic_model(self, token_sets):
-#    dictionary = Dictionary(token_sets)
-#    bags_of_words = [dictionary.doc2bow(tokens) for tokens in token_sets]
-#    lda = LdaMulticore(corpus=bags_of_words, id2word=dictionary, random_state=99, passes=10, workers=4)
-#    response = lda.print_topics()
-#    breakpoint()
+#
+# TOPIC MODELING
+#
+
+def train_topic_model(token_sets):
+    dictionary = Dictionary(token_sets)
+    print(type(dictionary)) #> <class 'gensim.corpora.dictionary.Dictionary'>
+    bags_of_words = [dictionary.doc2bow(tokens) for tokens in token_sets]
+    lda = LdaMulticore(corpus=bags_of_words, id2word=dictionary, random_state=99, passes=1, workers=3)
+    print(type(lda))
+    return lda
+
+def parse_topics(lda):
+    """Params: lda (gensim.models.ldamulticore.LdaMulticore) a pre-fit LDA model"""
+    parsed_response = []
+    topics_response = lda.print_topics()
+    for topic_row in topics_response:
+        topics = topic_row[1] #> '0.067*"sleep" + 0.067*"got" + 0.067*"went" + 0.067*"until" + 0.067*"to" + 0.067*"tired" + 0.067*"they" + 0.067*"all" + 0.067*"ate" + 0.067*"the"'
+        topic_pairs = [s.replace('"', "").split("*") for s in topics.split(" + ")] #> [ ['0.067', 'sleep'], ['0.067', 'got'], [], etc... ]
+        doc_topics = {}
+        for topic_pair in topic_pairs:
+            doc_topics[topic_pair[1]] = float(topic_pair[0])
+        #print(doc_topics) #> {'sleep': 0.067, 'got': 0.067, etc}
+        parsed_response.append(doc_topics)
+    return parsed_response
