@@ -63,8 +63,10 @@ class BotFollowerGrapher(GraphStorage, Job):
         self.results = []
         self.graph = DiGraph()
 
-        bot_screen_names = list(self.bq_service.fetch_bot_screen_names(bot_min=self.bot_min))
-        print(bot_screen_names)
+        bot_screen_names = [row.bot_screen_name for row in list(self.bq_service.fetch_bots(bot_min=self.bot_min))]
+        print("BOTS:", len(bot_screen_names))
+
+        seek_confirmation()
 
         for bot_screen_name in bot_screen_names:
             # yeah we're doing a query per bot. there are about 1000 bots total. ideally we'd do a single query

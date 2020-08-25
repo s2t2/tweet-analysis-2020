@@ -61,8 +61,6 @@ FROM impeachment_production.user_friends
 CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('ACLU')
 ```
 
-
-
 ```sql
 -- just using ACLU as an example screen name, not saying they're a bot or anything
 SELECT
@@ -82,4 +80,21 @@ FROM (
 LEFT JOIN impeachment_production.user_screen_names u ON u.screen_name = subq.bot_screen_name
 WHERE  u.user_id is null
 limit 10
+```
+
+Cross-checking bot user screen name lookups:
+
+```sql
+SELECT
+  b.user_id as bot_id
+  ,u.user_id
+  ,u.screen_name as bot_screen_name
+FROM (
+  SELECT DISTINCT user_id
+  FROM impeachment_production.daily_bot_probabilities_temp bp
+  WHERE bp.bot_probability >= 0.8
+) b
+LEFT JOIN impeachment_production.user_screen_names u ON CAST(u.user_id as int64) = b.user_id
+WHERE u.screen_name is NULL
+-- no rows. that means we can join these tables without dropping data
 ```

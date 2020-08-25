@@ -960,6 +960,21 @@ class BigQueryService():
     #    breakpoint()
     #    return self.execute_query_in_batches(sql)
 
+    def fetch_bots(self, bot_min=0.8):
+        sql = f"""
+            SELECT
+                b.user_id as bot_id
+                --,u.user_id
+                ,u.screen_name as bot_screen_name
+            FROM (
+                SELECT DISTINCT user_id
+                FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+                WHERE bp.bot_probability >= 0.8
+            ) b
+            LEFT JOIN `{self.dataset_address}.user_screen_names` u ON CAST(u.user_id as int64) = b.user_id
+        """
+        return self.execute_query_in_batches(sql)
+
     def fetch_user_followers_by_screen_name(self, user_screen_name):
         """
         For a given user screen name, returns a list of their followers.
