@@ -973,7 +973,7 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
-    def fetch_user_followers_by_screen_name(self, user_screen_name):
+    def fetch_bot_followers_by_screen_name(self, bot_screen_name):
         """
         For a given user screen name, returns a list of their followers.
         Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
@@ -987,11 +987,11 @@ class BigQueryService():
                 ,subq.follower_screen_name
             FROM (
                 SELECT
-                    UPPER('{user_screen_name}') as bot_screen_name
+                    UPPER('{bot_screen_name}') as bot_screen_name
                     ,user_id as follower_id
                     ,UPPER(screen_name) as follower_screen_name
                 FROM `{self.dataset_address}.user_friends`
-                CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{user_screen_name}')
+                CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{bot_screen_name}')
             ) subq
             LEFT JOIN `{self.dataset_address}.user_screen_names` u ON u.screen_name = subq.bot_screen_name
         """

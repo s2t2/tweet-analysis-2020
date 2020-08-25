@@ -70,20 +70,25 @@ class BotFollowerGrapher(GraphStorage, Job):
         seek_confirmation()
 
         for bot_screen_name in bot_screen_names:
-            # yeah we're doing a query per bot. there are about 1000 bots total. ideally we'd do a single query
-            for row in self.bq_service.fetch_user_followers_by_screen_name(bot_screen_name):
+            print("BOT:", bot_screen_name)
 
-                breakpoint()
+            for row in self.bq_service.fetch_bot_followers_by_screen_name(bot_screen_name): # yeah we're doing a query per bot. there are about 1000 bots total. ideally we'd do a single query
 
                 self.graph.add_edge(row["follower_id"], row["bot_id"])
 
                 self.counter += 1
                 if self.counter % self.batch_size == 0:
-                    print("COUNTER:", self.counter)
+                    print("COUNTER:", self.counter, "NODES:", fmt_n(self.node_count), "EDGES:", fmt_n(self.edge_count))
 
 
 if __name__ == "__main__":
 
     grapher = BotFollowerGrapher()
+    grapher.save_metadata()
 
+    grapher.start()
     grapher.perform()
+    grapher.end()
+    grapher.report()
+
+    grapher.save_graph()

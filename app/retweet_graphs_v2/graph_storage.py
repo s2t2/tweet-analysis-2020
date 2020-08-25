@@ -227,6 +227,10 @@ class GraphStorage:
 
         return {"nodes": self.node_count, "edges": self.edge_count, "file_size": file_size}
 
+    #@property
+    #def graph_metadata(self):
+    #    return {"nodes": self.node_count, "edges": self.edge_count}
+
 if __name__ == "__main__":
 
     storage = GraphStorage()
