@@ -2,8 +2,8 @@
 import os
 from functools import lru_cache
 import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
-#from threading import current_thread #, #Thread, Lock, BoundedSemaphore
+from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
+from threading import current_thread #, #Thread, Lock, BoundedSemaphore
 
 from dotenv import load_dotenv
 from pandas import DataFrame, to_datetime
@@ -25,8 +25,8 @@ load_dotenv()
 START_DATE = os.getenv("START_DATE", default="2019-12-12")
 END_DATE = os.getenv("END_DATE", default="2020-02-20")
 
-MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
-MULTIPROCESS = (os.getenv("MULTIPROCESS", default="true") == "true")
+PARALLEL = (os.getenv("PARALLEL", default="true") == "true")
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", default=10))
 
 class DailyRetweetsAnalyzer(RetweetsAnalyzer):
     def __init__(self, community_id, community_retweets_df, parent_dirpath, date, tokenize=None):
@@ -55,7 +55,8 @@ def perform(group_name, filtered_df, parent_dirpath, tokenize):
     parent_dirpath = os.path.join(parent_dirpath, f"community-{community_id}")
 
     print("----------------")
-    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "| RETWEETS:", fmt_n(len(filtered_df)), parent_dirpath)
+    #print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "|", "| RETWEETS:", fmt_n(len(filtered_df)))
+    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "|", current_thread().name, "| RETWEETS:", fmt_n(len(filtered_df)))
 
     #time.sleep(3)
 
@@ -68,16 +69,16 @@ def perform(group_name, filtered_df, parent_dirpath, tokenize):
     analyzer.save_top_tokens()
     analyzer.generate_top_tokens_wordcloud()
 
-    analyzer.topics_df
-    analyzer.save_topics()
+    #analyzer.topics_df
+    #analyzer.save_topics()
 
 
 if __name__ == "__main__":
 
     print("------------------------")
     print("DAILY COMMUNITY RETWEETS ANALYSIS...")
-    print("  MULTI-PROCESSING:", MULTIPROCESS)
-    print("  MAX PROCESSES:", MAX_THREADS)
+    print("  PARALLEL-PROCESSING:", PARALLEL)
+    print("  MAX WORKERS:", MAX_WORKERS)
     print("  START DATE:", START_DATE)
     print("  END DATE:", END_DATE)
 
@@ -105,8 +106,9 @@ if __name__ == "__main__":
 
     tokenize = SpacyTokenizer().custom_stem_lemmas # let's just load the spacy model once and pass it around
 
-    if MULTIPROCESS:
-        with ProcessPoolExecutor(max_workers=MAX_THREADS) as executor:
+    if PARALLEL:
+        #with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS, thread_name_prefix="THREAD") as executor:
             futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath, tokenize) for group_name, filtered_df in groupby]
             for future in as_completed(futures):
                 result = future.result()
