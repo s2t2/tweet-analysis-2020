@@ -15,7 +15,7 @@ from app.bot_communities.tokenizers import Tokenizer
 from app.bot_communities.token_analyzer import summarize_token_frequencies, train_topic_model, parse_topics, LdaMulticore
 
 
-class CommunityRetweetsAnalyzer:
+class RetweetsAnalyzer:
     def __init__(self, community_id, community_retweets_df, local_dirpath, tokenize=None):
         self.community_id = community_id
         self.community_retweets_df = community_retweets_df
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     seek_confirmation()
 
     for community_id in storage.retweet_community_ids:
-        community_analyzer = CommunityRetweetsAnalyzer(
+        community_analyzer = RetweetsAnalyzer(
             community_id=community_id,
             community_retweets_df=storage.retweets_df[storage.retweets_df["community_id"] == community_id],
             local_dirpath=os.path.join(storage.local_dirpath, f"community-{community_id}")
