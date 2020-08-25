@@ -948,9 +948,34 @@ class BigQueryService():
     # BOT FOLLOWER GRAPHS
     #
 
+    def fetch_bot_follower_edges_in_batches(self, bot_min=0.8):
+        """
+        Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
+        Like: {follower_id, bot_id}
 
-    def fetch_bot_follower_edges_in_batches(self):
-        pass
+        Params:
+            bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+        """
+        sql = f"""
+
+
+
+
+            SELECT DISTINCT
+                uf.follower_id
+                ,uf.bot_id
+            FROM `{self.dataset_address}.user_followers` uf
+            JOIN (
+                {self.sql_fetch_bot_ids(bot_min)}
+            ) bp ON bp.user_id = rt.user_id
+            WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
+            GROUP BY 1,2
+            -- ORDER BY 1,2
+
+
+
+        """
+        return self.execute_query_in_batches(sql)
 
 if __name__ == "__main__":
 

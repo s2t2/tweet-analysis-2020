@@ -27,12 +27,14 @@ class GraphStorage:
 
     def __init__(self, dirpath=None, gcs_service=None):
         """
-        Saves and loads artifacts from the networkx graph compilation process
-            ...to and from local storage and/or Google Cloud Storage.
+        Saves and loads artifacts from the networkx graph compilation process, using local storage and/or Google Cloud Storage.
 
         Params:
             dirpath (str) like "graphs/my_graph/123"
+
+        TODO: bot probability stuff only apples to bot retweet graphs, and should probably be moved into a child graph storage class
         """
+
         self.gcs_service = gcs_service or GoogleCloudStorageService()
 
         self.dirpath = dirpath or DIRPATH

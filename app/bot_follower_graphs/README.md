@@ -9,8 +9,8 @@
 
 ## Usage
 
-Generate daily graphs of bot follower networks (using the same `N_COMMUNITIES` and `BOT_MIN` from the bot community assignment step):
+Generate graphs of bot follower network (using the same `N_COMMUNITIES` and `BOT_MIN` from the bot community assignment step):
 
 ```sh
-BOT_MIN="0.8" N_COMMUNITIES="2" K_DAYS="1" START_DATE="2019-12-12" N_PERIODS="60" python -m app.bot_follower_graphs.k_days.grapher
+BOT_MIN="0.8" BATCH_SIZE="100" python -m app.bot_follower_graphs.follower_grapher
 ```
