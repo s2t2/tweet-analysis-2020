@@ -18,6 +18,9 @@ Version 1 (works in progress, investigations, archive):
     + [Bot Classification v2](/app/retweet_graphs/README.md#Bot-Classification)
     + [KS Tests v1](/app/retweet_graphs/README.md#KS-Tests)
   + [Retweet Graphs v2](/app/retweet_graphs_v2/README.md)
+    + Bot Classification v2
+    + [Community Assignment](/app/bot_communities/README.md#Assignment)
+    + [Community Analysis](/app/bot_communities/README.md#Analysis)
 
 Version 2 (current, stable, mature):
 
