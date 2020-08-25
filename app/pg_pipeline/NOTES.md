@@ -92,7 +92,7 @@ ORDER BY 1,2
 ```
 
 year	| week	| day_count	| min_created	| max_created	| user_count | tweet_count
----	| ---	| ---	| ---	| ---	| ---	|---
+---	| ---	| ---	| ---	| ---	| ---	| ---
 2019	| 48	| 1	| 2019-12-02 01:13:49 UTC	| 2019-12-02 03:23:14 UTC	| 2       | 2
 2019	| 49	| 3	| 2019-12-12 07:29:40 UTC	| 2019-12-14 23:59:59 UTC	| 676,812  | 4,082,497
 2019	| 50	| 7	| 2019-12-15 00:00:00 UTC	| 2019-12-21 23:59:59 UTC	| 120,3537 | 7,419,496
@@ -112,7 +112,87 @@ year	| week	| day_count	| min_created	| max_created	| user_count | tweet_count
 2020	| 12	| 3	| 2020-03-22 00:00:00 UTC	| 2020-03-24 19:04:03 UTC	| 261,301  |  655,057
 
 
-Retweets:
+### Downloading Tweets
+
+Running into integrity errors (duplicate status id) when trying to insert tweets into bq. There are 17,063 duplicate status ids.
+
+```sql
+SELECT status_id ,count(*) as status_count
+FROM (
+        SELECT
+              status_id
+              ,status_text
+              ,truncated
+              ,NULL as retweeted_status_id -- restore for version 2
+              ,NULL as retweeted_user_id -- restore for version 2
+              ,NULL as retweeted_user_screen_name -- restore for version 2
+              ,reply_status_id
+              ,reply_user_id
+              ,is_quote
+              ,geo
+              ,created_at
+
+              ,user_id
+              ,user_name
+              ,user_screen_name
+              ,user_description
+              ,user_location
+              ,user_verified
+              ,user_created_at
+
+          FROM `tweet-collector-py.impeachment_production.tweets`
+)
+group by 1
+having status_count > 1
+```
+
+After downloading tweets to PG...
+
+```sql
+SELECT status_id, count(1) as row_count
+FROM (
+
+  SELECT DISTINCT status_id, user_id, status_text, created_at
+  -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+
+) subq
+group by status_id
+having count(1) > 1
+order by row_count desc
+-- should be zero rows
+```
+
+Creating a table of unique statuses:
+
+```sql
+DROP TABLE IF EXISTS statuses;
+CREATE TABLE statuses as (
+  SELECT DISTINCT status_id, user_id, status_text, created_at -- , retweeted_status_id, retweeted_user_id, reply_user_id
+  FROM tweets
+);
+ALTER TABLE table_name ADD PRIMARY KEY (status_id);
+CREATE INDEX status_index_user_id ON statuses (user_id);
+CREATE INDEX status_index_created_at ON statuses (created_at);
+```
+
+Testing query performance:
+
+```sql
+select user_id, status_id, status_text, created_at
+from statuses
+order by created_at desc
+limit 100
+-- 178 s
+```
+
+
+
+
+
+
+
+## Retweets
 
 week_id | from | to | day_count | user_count | retweet_count
 --- | --- | --- | --- | --- | ---
@@ -133,6 +213,10 @@ week_id | from | to | day_count | user_count | retweet_count
 2020-10 | '2020-03-08' | '2020-03-14' | 7 | 296,781 | 936,776
 2020-11 | '2020-03-15' | '2020-03-21' | 7 | 301,790 | 713,966
 2020-12 | '2020-03-22' | '2020-03-24' | 3 | 207,209 | 516,018
+
+
+
+
 
 
 ## Topics

@@ -4,7 +4,7 @@ from pandas import DataFrame
 
 from app import DATA_DIR
 from app.retweet_graphs_v2.graph_storage import GraphStorage
-from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator import DateRangeGenerator
+from app.retweet_graphs_v2.k_days.generator import DateRangeGenerator
 
 
 if __name__ == "__main__":
@@ -23,4 +23,6 @@ if __name__ == "__main__":
 
     df = DataFrame(reports)
     print(df.head())
-    df.to_csv(os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", gen.k_days, "graph_reports.csv"))
+    local_graph_report_filepath = os.path.join(DATA_DIR, "retweet_graphs_v2", "k_days", str(gen.k_days), "graph_reports.csv")
+    print("WRITING TO CSV...", os.path.abspath(local_graph_report_filepath))
+    df.to_csv(local_graph_report_filepath)

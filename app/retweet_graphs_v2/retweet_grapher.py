@@ -20,7 +20,7 @@ load_dotenv()
 
 TOPIC = os.getenv("TOPIC") # default is None
 USERS_LIMIT = os.getenv("USERS_LIMIT") # default is None
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="2500")) # it doesn't refer to the size of the batches fetched from BQ but rather the interval at which to take a reporting snapshot, which gets compiled and written to CSV. set this to a very large number like 25000 to keep memory costs down, if that's a concern for you.
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="25000")) # it doesn't refer to the size of the batches fetched from BQ but rather the interval at which to take a reporting snapshot, which gets compiled and written to CSV. set this to a very large number like 25000 to keep memory costs down, if that's a concern for you.
 TWEETS_START_AT = os.getenv("TWEETS_START_AT") # default is None
 TWEETS_END_AT = os.getenv("TWEETS_END_AT") # default is None
 

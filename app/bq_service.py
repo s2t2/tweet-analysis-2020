@@ -477,6 +477,40 @@ class BigQueryService():
     # LOCAL ANALYSIS (PG PIPELINE)
     #
 
+    def fetch_tweets_in_batches(self, limit=None, start_at=None, end_at=None):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,truncated
+                ,NULL as retweeted_status_id -- restore for version 2
+                ,NULL as retweeted_user_id -- restore for version 2
+                ,NULL as retweeted_user_screen_name -- restore for version 2
+                ,reply_status_id
+                ,reply_user_id
+                ,is_quote
+                ,geo
+                ,created_at
+
+                ,user_id
+                ,user_name
+                ,user_screen_name
+                ,user_description
+                ,user_location
+                ,user_verified
+                ,user_created_at
+
+            FROM `{self.dataset_address}.tweets`
+        """
+        if start_at and end_at:
+            sql+=f"""
+                WHERE (created_at BETWEEN '{str(start_at)}' AND '{str(end_at)}')
+            """
+        if limit:
+            sql += f" LIMIT {int(limit)}; "
+        return self.execute_query_in_batches(sql)
+
+
     def fetch_user_details_in_batches(self, limit=None):
         sql = f"""
             SELECT
@@ -839,25 +873,76 @@ class BigQueryService():
     #
 
     #@property
-    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of k_communities
-    def k_bot_communities_table(self, k_communities):
-        return self.client.get_table(f"{self.dataset_address}.{k_communities}_bot_communities") # an API call (caches results for subsequent inserts)
+    #@lru_cache(maxsize=None) # don't cache, or cache one for each value of n_communities
+    def n_bot_communities_table(self, n_communities):
+        return self.client.get_table(f"{self.dataset_address}.{n_communities}_bot_communities") # an API call (caches results for subsequent inserts)
 
-    def destructively_migrate_k_bot_communities_table(self, k_communities):
+    def destructively_migrate_n_bot_communities_table(self, n_communities):
         sql = f"""
-            DROP TABLE IF EXISTS `{self.dataset_address}.{k_communities}_bot_communities`;
-            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{k_communities}_bot_communities` (
+            DROP TABLE IF EXISTS `{self.dataset_address}.{n_communities}_bot_communities`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.{n_communities}_bot_communities` (
                 user_id INT64,
                 community_id INT64,
             );
         """
         return self.execute_query(sql)
 
-    def overwrite_k_bot_communities_table(self, k_communities, records):
-        self.destructively_migrate_k_bot_communities_table(k_communities)
-        table = self.k_bot_communities_table(k_communities)
+    def overwrite_n_bot_communities_table(self, n_communities, records):
+        self.destructively_migrate_n_bot_communities_table(n_communities)
+        table = self.n_bot_communities_table(n_communities)
         return self.insert_records_in_batches(table, records)
 
+    def download_n_bot_community_tweets_in_batches(self, n_communities):
+        sql = f"""
+            SELECT
+                bc.community_id
+
+                ,t.user_id
+                ,t.user_name
+                ,t.user_screen_name
+                ,t.user_description
+                ,t.user_location
+                ,t.user_verified
+                ,t.user_created_at
+
+                ,t.status_id
+                ,t.status_text
+                ,t.retweet_status_id
+                ,t.reply_user_id
+                ,t.is_quote as status_is_quote
+                ,t.geo as status_geo
+                ,t.created_at as status_created_at
+
+            FROM `{self.dataset_address}.{n_communities}_bot_communities` bc -- 681
+            JOIN `{self.dataset_address}.tweets` t on CAST(t.user_id as int64) = bc.user_id
+            -- WHERE t.retweet_status_id IS NULL
+            -- ORDER BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
+
+    def download_n_bot_community_retweets_in_batches(self, n_communities):
+        sql = f"""
+            SELECT
+                bc.community_id
+
+                ,ud.user_id
+                ,ud.screen_name_count as user_screen_name_count
+                ,ARRAY_TO_STRING(ud.screen_names, ' | ')  as user_screen_names
+                ,rt.user_created_at
+
+                ,rt.retweeted_user_id
+                ,rt.retweeted_user_screen_name
+
+                ,rt.status_id
+                ,rt.status_text
+                ,rt.created_at as status_created_at
+
+            FROM `{self.dataset_address}.{n_communities}_bot_communities` bc -- 681
+            JOIN `{self.dataset_address}.user_details_v2` ud on CAST(ud.user_id  as int64) = bc.user_id
+            JOIN `{self.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
+            -- ORDER BY 1,2
+        """
+        return self.execute_query_in_batches(sql)
 
 if __name__ == "__main__":
 

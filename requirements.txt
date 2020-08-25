@@ -18,12 +18,15 @@ networkx
 numpy
 scipy
 scikit-learn
+nltk
+spacy
+gensim
 
 matplotlib
 plotly
 kaleido # required by plotly to save static images
-
-
+squarify
+#pyldavis
 
 
 # formerly known as dev dependencies:

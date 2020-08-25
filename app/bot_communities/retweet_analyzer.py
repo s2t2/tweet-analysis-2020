@@ -1,145 +1,165 @@
 
 import os
+from functools import lru_cache
 
-from pandas import DataFrame, read_csv
-import matplotlib as plt
+from pandas import DataFrame
+import matplotlib.pyplot as plt
 import plotly.express as px
+import squarify
 
 from app import APP_ENV, seek_confirmation
-from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-from app.bot_communities.clustering import K_COMMUNITIES
-from app.decorators.datetime_decorators import dt_to_s, logstamp, dt_to_date, s_to_dt
+from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
+from app.bot_communities.csv_storage import LocalStorage
+from app.bot_communities.tokenizers import Tokenizer
+from app.bot_communities.token_analyzer import summarize_token_frequencies, train_topic_model, parse_topics, LdaMulticore
 
-BATCH_SIZE = 50_000 # we are talking about downloading 1-2M tweets
 
-def date_string_conversion(dtstr):
-    return dt_to_date(s_to_dt(dtstr))
+class RetweetsAnalyzer:
+    def __init__(self, community_id, community_retweets_df, local_dirpath, tokenize=None):
+        self.community_id = community_id
+        self.community_retweets_df = community_retweets_df
+        self.local_dirpath = local_dirpath
+        self.tokenize = tokenize or Tokenizer().custom_stems # todo: see if we can use a spacy version
+
+        if not os.path.exists(self.local_dirpath):
+            os.makedirs(self.local_dirpath)
+
+        self.customize_paths_and_titles()
+
+    def customize_paths_and_titles(self):
+        """Overwrite all in child class as desired"""
+        self.most_retweets_chart_filepath = os.path.join(self.local_dirpath, "most-retweets.png")
+        self.most_retweets_chart_title = f"Users Most Retweeted by Bot Community {self.community_id}"
+
+        self.most_retweeters_chart_filepath = os.path.join(self.local_dirpath, "most-retweeters.png")
+        self.most_retweeters_chart_title = f"Users with Most Retweeters from Bot Community {self.community_id}"
+
+        self.top_tokens_csv_filepath = os.path.join(self.local_dirpath, "top-tokens.csv")
+        self.top_tokens_wordcloud_filepath = os.path.join(self.local_dirpath, "top-tokens-wordcloud.png")
+        self.top_tokens_wordcloud_title = f"Word Cloud for Community {self.community_id} (n={fmt_n(len(self.community_retweets_df))})"
+
+        self.topics_csv_filepath = os.path.join(self.local_dirpath, "topics.csv")
+
+    @property
+    @lru_cache(maxsize=None)
+    def most_retweets_df(self):
+        print("USERS WITH MOST RETWEETS")
+        df = self.community_retweets_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
+        # fix / un-nest column names after the group:
+        df.columns = list(map(" ".join, df.columns.values))
+        df = df.reset_index()
+        df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+        return df
+
+    def generate_most_retweets_chart(self, top_n=10):
+        chart_df = self.most_retweets_df.copy()
+        chart_df.sort_values("Retweet Count", ascending=False, inplace=True) # sort for top
+        chart_df = chart_df[:top_n] # take top n rows
+
+        chart_df.sort_values("Retweet Count", ascending=True, inplace=True) # re-sort for chart
+        fig = px.bar(chart_df, x="Retweet Count", y="Retweeted User", orientation="h", title=self.most_retweets_chart_title)
+        if APP_ENV == "development":
+            fig.show()
+        fig.write_image(self.most_retweets_chart_filepath)
+
+    @property
+    @lru_cache(maxsize=None)
+    def most_retweeters_df(self):
+        print("USERS WITH MOST RETWEETERS")
+        df = self.community_retweets_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
+        df.columns = list(map(" ".join, df.columns.values))
+        df = df.reset_index()
+        df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
+        return df
+
+    def generate_most_retweeters_chart(self, top_n=10):
+        chart_df = self.most_retweeters_df.copy()
+        chart_df.sort_values("Retweeter Count", ascending=False, inplace=True) # sort for top
+        chart_df = chart_df[:top_n]
+
+        chart_df.sort_values("Retweeter Count", ascending=True, inplace=True) # re-sort for chart
+        fig = px.bar(chart_df, x="Retweeter Count", y="Retweeted User", orientation="h", title=self.most_retweeters_chart_title)
+        if APP_ENV == "development":
+            fig.show()
+        fig.write_image(self.most_retweeters_chart_filepath)
+
+    #
+    # NLP
+    #
+
+    @property
+    @lru_cache(maxsize=None)
+    def status_tokens(self):
+        """Returns pandas.core.series.Series of statuses converted to tokens"""
+        print("TOKENIZING...")
+        return self.community_retweets_df["status_text"].apply(self.tokenize)
+
+    @property
+    @lru_cache(maxsize=None)
+    def top_tokens_df(self):
+        return summarize_token_frequencies(self.status_tokens.values.tolist())
+
+    def save_top_tokens(self):
+        self.top_tokens_df.to_csv(self.top_tokens_csv_filepath)
+
+    def generate_top_tokens_wordcloud(self, top_n=20):
+        print("TOP TOKENS WORD CLOUD...")
+        chart_df = self.top_tokens_df[self.top_tokens_df["rank"] <= top_n]
+
+        squarify.plot(sizes=chart_df["pct"], label=chart_df["token"], alpha=0.8)
+        plt.title(self.top_tokens_wordcloud_title)
+        plt.axis("off")
+        if APP_ENV == "development":
+            plt.show()
+        plt.savefig(self.top_tokens_wordcloud_filepath)
+        plt.clf()  # clear the figure, to prevent topic text overlapping from previous plots
+
+    #
+    # TOPIC MODELING - not really used right now / yet
+    #
+
+    @property
+    @lru_cache(maxsize=None)
+    def topic_model(self):
+        ## if local file exists, load and return it, otherwise train a new one, save it and return it
+        #if os.path.isfile(local_lda_path):
+        #    lda = LdaModel.load(local_lda_path)
+        #else:
+        #    lda = train_topic_model(self.status_tokens.values.tolist())
+        #    lda.save(local_lda_path)
+        #return lda
+        return train_topic_model(self.status_tokens.values.tolist())
+
+    @property
+    @lru_cache(maxsize=None)
+    def topics_df(self):
+        return DataFrame(parse_topics(self.topic_model)) # this doesn't make the most sense in current form, as it represents a sparse matrix where there is a column per term
+
+    def save_topics(self):
+        self.topics_df.to_csv(self.topics_csv_filepath)
+
 
 if __name__ == "__main__":
 
-    print("----------------")
-    print("K COMMUNITIES:", K_COMMUNITIES)
-
-    grapher = BotRetweetGrapher()
-    local_dirpath = os.path.join(grapher.local_dirpath, "k_communities", str(K_COMMUNITIES)) # dir should be already made by cluster maker
-    local_csv_filepath = os.path.join(local_dirpath, "retweets.csv")
-    print(os.path.abspath(local_csv_filepath))
-    if not os.path.exists(local_dirpath):
-        os.makedirs(local_dirpath)
-
-    #
-    # LOAD DATA
-    #
-
-    if os.path.isfile(local_csv_filepath):
-        print("LOADING BOT COMMUNITY RETWEETS...")
-        df = read_csv(local_csv_filepath)
-    else:
-        print("DOWNLOADING BOT COMMUNITY RETWEETS...")
-        sql = f"""
-            SELECT
-                bc.community_id
-
-                ,ud.user_id
-                ,ud.screen_name_count as user_screen_name_count
-                ,ARRAY_TO_STRING(ud.screen_names, ' | ')  as user_screen_names
-                ,rt.user_created_at
-
-                ,rt.retweeted_user_id
-                ,rt.retweeted_user_screen_name
-
-                ,rt.status_id
-                ,rt.status_text
-                ,rt.created_at as status_created_at
-
-            FROM `{grapher.bq_service.dataset_address}.{K_COMMUNITIES}_bot_communities` bc -- 681
-            JOIN `{grapher.bq_service.dataset_address}.user_details_v2` ud on CAST(ud.user_id  as int64) = bc.user_id
-            JOIN `{grapher.bq_service.dataset_address}.retweets_v2` rt on rt.user_id = bc.user_id
-            -- ORDER BY 1,2
-        """
-        counter = 0
-        records = []
-        for row in grapher.bq_service.execute_query_in_batches(sql):
-            records.append({
-                "community_id": row.community_id,
-                "user_id": row.user_id,
-                "user_screen_name_count": row.user_screen_name_count,
-                "user_screen_names": row.user_screen_names,
-                "user_created_at": dt_to_s(row.user_created_at),
-
-                "retweeted_user_id": row.retweeted_user_id,
-                "retweeted_user_screen_name": row.retweeted_user_screen_name,
-
-                "status_id": row.status_id,
-                "status_text": row.status_text,
-                "status_created_at": dt_to_s(row.status_created_at)
-            })
-            counter+=1
-            if counter % BATCH_SIZE == 0:
-                print(logstamp(), fmt_n(counter))
-
-        df = DataFrame(records)
-        print(df.head())
-        print("WRITING TO FILE...")
-        df.to_csv(local_csv_filepath)
+    storage = LocalStorage()
+    storage.load_retweets()
+    print(storage.retweets_df.head())
 
     seek_confirmation()
 
-    #
-    # ANALYZE DATA
-    #
+    for community_id in storage.retweet_community_ids:
+        filtered_df = storage.retweets_df[storage.retweets_df["community_id"] == community_id]
+        local_dirpath = os.path.join(storage.local_dirpath, f"community-{community_id}")
 
-    community_ids = list(df["community_id"].unique())
+        community_analyzer = RetweetsAnalyzer(community_id=community_id, community_retweets_df=filtered_df, local_dirpath=local_dirpath)
 
-    for community_id in community_ids:
+        community_analyzer.generate_most_retweets_chart()
+        community_analyzer.generate_most_retweeters_chart()
 
-        community_df = df[df["community_id"] == community_id]
+        community_analyzer.top_tokens_df
+        community_analyzer.save_top_tokens()
+        community_analyzer.generate_top_tokens_wordcloud()
 
-        # USERS MOST RETWEETED
-
-        most_retweeted_df = community_df.groupby("retweeted_user_screen_name").agg({"status_id": ["nunique"]})
-        most_retweeted_df.columns = list(map(" ".join, most_retweeted_df.columns.values))
-        most_retweeted_df = most_retweeted_df.reset_index()
-        most_retweeted_df.rename(columns={"status_id nunique": "Retweet Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-        most_retweeted_df.sort_values("Retweet Count", ascending=False, inplace=True)
-        most_retweeted_df = most_retweeted_df[:10]
-        print(most_retweeted_df)
-
-        most_retweeted_df.sort_values("Retweet Count", ascending=True, inplace=True)
-        fig = px.bar(most_retweeted_df,
-            x="Retweet Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users Most Retweeted by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
-        )
-        if APP_ENV == "development": fig.show()
-        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeted.png")
-        fig.write_image(local_img_filepath)
-
-        # USERS WITH MOST RETWEETERS
-
-        most_retweeters_df = community_df.groupby("retweeted_user_screen_name").agg({"user_id": ["nunique"]})
-        most_retweeters_df.columns = list(map(" ".join, most_retweeters_df.columns.values))
-        most_retweeters_df = most_retweeters_df.reset_index()
-        most_retweeters_df.rename(columns={"user_id nunique": "Retweeter Count", "retweeted_user_screen_name": "Retweeted User"}, inplace=True)
-        most_retweeters_df.sort_values("Retweeter Count", ascending=False, inplace=True)
-        most_retweeters_df = most_retweeters_df[:10]
-        print(most_retweeters_df)
-
-        most_retweeters_df.sort_values("Retweeter Count", ascending=True, inplace=True)
-        fig_retweeters = px.bar(most_retweeters_df,
-            x="Retweeter Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users with Most Retweeters by Bot Community {community_id} (K Communities: {K_COMMUNITIES})"
-        )
-        if APP_ENV == "development": fig_retweeters.show()
-        local_img_filepath = os.path.join(local_dirpath, f"community-{community_id}-most-retweeters.png")
-        fig_retweeters.write_image(local_img_filepath)
-
-        # CREATION DATES
-
-        #creation_dates_df = community_df.groupby("user_id").agg({"user_created_at": ["min"]})
-        #creation_dates_df["user_created_at"]["min"] = creation_dates_df["user_created_at"]["min"].apply(date_string_conversion)
-        #print(creation_dates_df.head())
+        #community_analyzer.topics_df # TODO: taking too long for entire dataset of tweets. more feasible with daily slices
+        #community_analyzer.save_topics() # TODO: taking too long for entire dataset of tweets. more feasible with daily slices

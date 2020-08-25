@@ -5,7 +5,6 @@ from networkx import write_gpickle, read_gpickle, jaccard_coefficient, Graph
 
 from app import seek_confirmation
 from app.bot_communities.bot_retweet_grapher import BotRetweetGrapher
-#from app.bot_communities.helper import generate_bot_similarity_graph
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 
@@ -55,7 +54,7 @@ class BotSimilarityGrapher(BotRetweetGrapher):
         results = jaccard_coefficient(self.retweet_graph.to_undirected(), node_pairs)
         #> returns an iterator of 3-tuples in the form (u, v, p)
         #> where (u, v) is a pair of nodes and p is their Jaccard coefficient.
-        print("JACCARD COEFFICIENT RESULTS:", fmt_n(len(results)))
+        print("JACCARD COEFFICIENTS BETWEEN EACH NODE PAIR - COMPLETE!") #, fmt_n(len(list(results))))
 
         print("CONSTRUCTING SIMILARITY GRAPH...")
         self.similarity_graph = Graph()

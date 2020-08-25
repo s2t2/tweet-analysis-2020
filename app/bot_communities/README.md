@@ -1,5 +1,22 @@
 # Bot Communities
 
+## Setup
+
+Downloading english stopwords (first time only):
+
+```py
+import nltk
+nltk.download("stopwords")
+```
+
+Downloading spacy english language models (first time only):
+
+```sh
+python -m spacy download en_core_web_lg
+python -m spacy download en_core_web_md
+python -m spacy download en_core_web_sm
+```
+
 ## Prep
 
 First, allow all daily classifications to complete and populate the "daily_bot_probabilities" table on BigQuery.
@@ -18,21 +35,36 @@ BOT_MIN="0.8" python -m app.bot_communities.bot_similarity_grapher
 
 ## Assignment
 
-Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `K_COMMUNITIES`):
+Assigning bots to spectral communities based on their similarity scores (using the same `BOT_MIN` from the previous step, and any small positive integer value for `N_COMMUNITIES`):
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.clustering
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clustermaker
 ```
+
+> WARNING: this process will overwrite previous results, and due to randomness new results may not match.
 
 ## Analysis
 
-Downloading retweets / tweets for each bot community for local analysis (using the same `K_COMMUNITIES` and `BOT_MIN` from the previous step):
+Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.retweet_analyzer
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.retweet_analyzer
 ```
 
+Downloading tweets for each bot community:
 
 ```sh
-K_COMMUNITIES="2" BOT_MIN="0.8" python -m app.bot_communities.tweet_analyzer
+BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
+```
+
+### Daily Analysis
+
+After downloading the local retweets.csv file, use it to generate daily wordclouds:
+
+```sh
+BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" MAX_WORKERS=3 START_DATE="2020-01-01" END_DATE="2020-01-30" python -m app.bot_communities.daily_retweet_analyzer
+
+BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" PARALLEL="false" START_DATE="2020-01-01" END_DATE="2020-01-30" python -m app.bot_communities.daily_retweet_analyzer
+
+BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" MAX_WORKERS=10 python -m app.bot_communities.daily_retweet_analyzer
 ```

@@ -20,12 +20,18 @@ pip install psycopg2
 CREATE DATABASE impeachment_analysis;
 ```
 
-## Local Database Migration
-
 Testing the local PostgreSQL database connection:
 
 ```sh
 python -m app.pg_pipeline.models
+```
+
+## Downloading Data
+
+Downloading the "tweets" table (if it isn't too big):
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=10000 python -m app.pg_pipeline.tweets
 ```
 
 Downloading the "user_friends" table:
@@ -51,7 +57,39 @@ BIGQUERY_DATASET_NAME="impeachment_production" PG_DESTRUCTIVE=true BATCH_SIZE=25
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <hr>
+
 
 
 

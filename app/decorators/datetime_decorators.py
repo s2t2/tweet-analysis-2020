@@ -66,3 +66,6 @@ def s_to_dt(s):
     Params: s (str) like ... "2020-01-01 00:00:00"
     """
     return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+
+def s_to_date(s):
+    return dt_to_date(s_to_dt(s))

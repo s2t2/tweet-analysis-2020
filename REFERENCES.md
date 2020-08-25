@@ -126,6 +126,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 ## Numpy
 
   + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
+  + https://stackoverflow.com/questions/9452775/converting-numpy-dtypes-to-native-python-types/11389998
 
 ## Scipy and K-S Tests
 
@@ -144,6 +145,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
   + [Filter Top N Rows per Category](https://kb.tableau.com/articles/howto/finding-the-top-n-within-a-category)
+  + [Converting Timezones](https://community.tableau.com/s/question/0D54T00000C6L60/convert-utc-timezone-to-est-timezone)
 
 ## Pandas
 
@@ -152,9 +154,31 @@ Grouping and aggregation, working with multi-indices:
   + https://www.kaggle.com/residentmario/grouping-and-sorting#Multi-indexes
   + https://stackoverflow.com/questions/26323926/pandas-groupby-agg-how-to-return-results-without-the-multi-index
   + https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html
+  + https://stackoverflow.com/a/49565811/670433
+  + https://stackoverflow.com/questions/22898824/filtering-pandas-dataframes-on-dates
+
+## Matplotlib
+
+  + https://stackoverflow.com/questions/8213522/when-to-use-cla-clf-or-close-for-clearing-a-plot-in-matplotlib#
+  + https://stackoverflow.com/questions/9012487/matplotlib-pyplot-savefig-outputs-blank-image
 
 ## Plotly Express
 
   + https://plotly.com/python/bar-charts/#horizontal-bar-charts
   + https://plotly.com/python/orca-management/
   + https://plotly.com/python/static-image-export/
+
+## Spacy
+
+  + https://spacy.io/
+  + https://spacy.io/models/en
+  + https://spacy.io/usage/linguistic-features
+  + https://spacy.io/usage/linguistic-features#native-tokenizers
+  + https://spacy.io/api/token
+  + https://spacy.io/api/lemmatizer
+  + https://towardsdatascience.com/exploring-the-trump-twitter-archive-with-spacy-fe557810717c
+  + https://towardsdatascience.com/building-a-topic-modeling-pipeline-with-spacy-and-gensim-c5dc03ffc619
+
+## Gensim
+
+  + https://radimrehurek.com/gensim/models/ldamulticore.html
