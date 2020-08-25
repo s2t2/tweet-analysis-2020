@@ -948,32 +948,39 @@ class BigQueryService():
     # BOT FOLLOWER GRAPHS
     #
 
-    def fetch_bot_follower_edges_in_batches(self, bot_min=0.8):
-        """
-        Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
-        Like: {follower_id, bot_id}
+    #def fetch_bot_follower_edges_in_batches(self, bot_min=0.8):
+    #    """
+    #    Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
+    #    Like: {follower_id, bot_id}
+    #    Params:
+    #        bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+    #    """
+    #    sql = f"""
+    #    """
+    #    breakpoint()
+    #    return self.execute_query_in_batches(sql)
 
-        Params:
-            bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+    def fetch_user_followers_by_screen_name(self, user_screen_name):
+        """
+        For a given user screen name, returns a list of their followers.
+        Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
         """
         sql = f"""
-
-
-
-
-            SELECT DISTINCT
-                uf.follower_id
-                ,uf.bot_id
-            FROM `{self.dataset_address}.user_followers` uf
-            JOIN (
-                {self.sql_fetch_bot_ids(bot_min)}
-            ) bp ON bp.user_id = rt.user_id
-            WHERE rt.user_screen_name <> rt.retweeted_user_screen_name -- excludes people retweeting themselves
-            GROUP BY 1,2
-            -- ORDER BY 1,2
-
-
-
+            SELECT
+                u.user_id as bot_id
+                -- ,u.screen_name
+                ,subq.bot_screen_name
+                ,subq.follower_id
+                ,subq.follower_screen_name
+            FROM (
+                SELECT
+                    UPPER('{user_screen_name}') as bot_screen_name
+                    ,user_id as follower_id
+                    ,UPPER(screen_name) as follower_screen_name
+                FROM `{self.dataset_address}.user_friends`
+                CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{user_screen_name}')
+            ) subq
+            LEFT JOIN `{self.dataset_address}.user_screen_names` u ON u.screen_name = subq.bot_screen_name
         """
         return self.execute_query_in_batches(sql)
 

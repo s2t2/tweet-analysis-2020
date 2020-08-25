@@ -63,15 +63,17 @@ class BotFollowerGrapher(GraphStorage, Job):
         self.results = []
         self.graph = DiGraph()
 
-        for row in self.bq_service.fetch_bot_follower_edges_in_batches(bot_min=self.bot_min):
+        bot_screen_names = list(self.bq_service.fetch_bot_screen_names(bot_min=self.bot_min))
+        print(bot_screen_names)
 
-            breakpoint()
+        for bot_screen_name in bot_screen_names:
+            # yeah we're doing a query per bot. there are about 1000 bots total. ideally we'd do a single query
+            for row in self.bq_service.fetch_user_followers_by_screen_name(bot_screen_name):
+                self.graph.add_edge(row["follower_id"], row["bot_id"])
 
-            self.graph.add_edge(row["follower_id"], row["bot_id"])
-
-            self.counter += 1
-            if self.counter % self.batch_size == 0:
-                print("COUNTER:", self.counter)
+                self.counter += 1
+                if self.counter % self.batch_size == 0:
+                    print("COUNTER:", self.counter)
 
 
 if __name__ == "__main__":

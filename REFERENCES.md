@@ -24,7 +24,7 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
   + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
   + https://stackoverflow.com/a/46012467/670433
-
+  + https://vverma.net/querying-arrays-in-bigquery.html
 
 ## Twitter Resources
 
