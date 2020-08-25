@@ -65,4 +65,6 @@ After downloading the local retweets.csv file, use it to generate daily wordclou
 BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" MAX_WORKERS=3 START_DATE="2020-01-01" END_DATE="2020-01-30" python -m app.bot_communities.daily_retweet_analyzer
 
 BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" PARALLEL="false" START_DATE="2020-01-01" END_DATE="2020-01-30" python -m app.bot_communities.daily_retweet_analyzer
+
+BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" MAX_WORKERS=10 python -m app.bot_communities.daily_retweet_analyzer
 ```

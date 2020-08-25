@@ -30,7 +30,7 @@ class RetweetsAnalyzer:
     def customize_paths_and_titles(self):
         """Overwrite all in child class as desired"""
         self.most_retweets_chart_filepath = os.path.join(self.local_dirpath, "most-retweets.png")
-        self.most_retweets_chart_title = f"Users with Most Retweets from Bot Community {self.community_id}"
+        self.most_retweets_chart_title = f"Users Most Retweeted by Bot Community {self.community_id}"
 
         self.most_retweeters_chart_filepath = os.path.join(self.local_dirpath, "most-retweeters.png")
         self.most_retweeters_chart_title = f"Users with Most Retweeters from Bot Community {self.community_id}"
@@ -113,10 +113,10 @@ class RetweetsAnalyzer:
         if APP_ENV == "development":
             plt.show()
         plt.savefig(self.top_tokens_wordcloud_filepath)
-        plt.clf()  # clear the figure, to prevent topics from overlapping from previous plots
+        plt.clf()  # clear the figure, to prevent topic text overlapping from previous plots
 
     #
-    # TOPIC MODELING
+    # TOPIC MODELING - not really used right now / yet
     #
 
     @property
@@ -134,7 +134,7 @@ class RetweetsAnalyzer:
     @property
     @lru_cache(maxsize=None)
     def topics_df(self):
-        return DataFrame(parse_topics(self.topic_model))
+        return DataFrame(parse_topics(self.topic_model)) # this doesn't make the most sense in current form, as it represents a sparse matrix where there is a column per term
 
     def save_topics(self):
         self.topics_df.to_csv(self.topics_csv_filepath)
@@ -149,24 +149,17 @@ if __name__ == "__main__":
     seek_confirmation()
 
     for community_id in storage.retweet_community_ids:
-        community_analyzer = RetweetsAnalyzer(
-            community_id=community_id,
-            community_retweets_df=storage.retweets_df[storage.retweets_df["community_id"] == community_id],
-            local_dirpath=os.path.join(storage.local_dirpath, f"community-{community_id}")
-        )
+        filtered_df = storage.retweets_df[storage.retweets_df["community_id"] == community_id]
+        local_dirpath = os.path.join(storage.local_dirpath, f"community-{community_id}")
 
-        print("------------------------")
-        print(logstamp(), "COMMUNITY", community_id, "CHARTS...")
+        community_analyzer = RetweetsAnalyzer(community_id=community_id, community_retweets_df=filtered_df, local_dirpath=local_dirpath)
+
         community_analyzer.generate_most_retweets_chart()
         community_analyzer.generate_most_retweeters_chart()
 
-        print("------------------------")
-        print(logstamp(), "COMMUNITY", community_id, "TOKENS...")
         community_analyzer.top_tokens_df
         community_analyzer.save_top_tokens()
         community_analyzer.generate_top_tokens_wordcloud()
 
-        print("------------------------")
-        print(logstamp(), "COMMUNITY", community_id, "TOPICS...")
-        #community_analyzer.topics_df # TODO: taking too long
-        #community_analyzer.save_topics() # TODO: taking too long
+        #community_analyzer.topics_df # TODO: taking too long for entire dataset of tweets. more feasible with daily slices
+        #community_analyzer.save_topics() # TODO: taking too long for entire dataset of tweets. more feasible with daily slices

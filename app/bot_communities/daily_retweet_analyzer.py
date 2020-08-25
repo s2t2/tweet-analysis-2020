@@ -6,19 +6,14 @@ from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExec
 from threading import current_thread #, #Thread, Lock, BoundedSemaphore
 
 from dotenv import load_dotenv
-from pandas import DataFrame, to_datetime
-import matplotlib.pyplot as plt
-import plotly.express as px
-import squarify
+from pandas import to_datetime
 
 from app import APP_ENV, seek_confirmation
 from app.decorators.datetime_decorators import logstamp, s_to_date
 from app.decorators.number_decorators import fmt_n
 from app.bot_communities.csv_storage import LocalStorage
 from app.bot_communities.retweet_analyzer import RetweetsAnalyzer
-
 from app.bot_communities.tokenizers import SpacyTokenizer
-from app.bot_communities.token_analyzer import summarize_token_frequencies, train_topic_model, parse_topics, LdaMulticore
 
 load_dotenv()
 
@@ -37,7 +32,7 @@ class DailyRetweetsAnalyzer(RetweetsAnalyzer):
 
     def customize_paths_and_titles(self):
         self.most_retweets_chart_filepath = os.path.join(self.local_dirpath, f"most-retweets-{self.date}.png")
-        self.most_retweets_chart_title = f"Users with Most Retweets from Bot Community {self.community_id} on {self.date}"
+        self.most_retweets_chart_title = f"Users Most Retweeted by Bot Community {self.community_id} on {self.date}"
 
         self.most_retweeters_chart_filepath = os.path.join(self.local_dirpath, f"most-retweeters-{self.date}.png")
         self.most_retweeters_chart_title = f"Users with Most Retweeters from Bot Community {self.community_id} on {self.date}"
@@ -57,8 +52,6 @@ def perform(group_name, filtered_df, parent_dirpath, tokenize):
     print("----------------")
     #print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "|", "| RETWEETS:", fmt_n(len(filtered_df)))
     print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "|", current_thread().name, "| RETWEETS:", fmt_n(len(filtered_df)))
-
-    #time.sleep(3)
 
     analyzer = DailyRetweetsAnalyzer(community_id, filtered_df, parent_dirpath, date, tokenize)
 
