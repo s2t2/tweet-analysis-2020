@@ -1,5 +1,22 @@
 # Bot Communities
 
+## Setup
+
+Downloading english stopwords (first time only):
+
+```py
+import nltk
+nltk.download("stopwords")
+```
+
+Downloading spacy english language models (first time only):
+
+```sh
+python -m spacy download en_core_web_lg
+python -m spacy download en_core_web_md
+python -m spacy download en_core_web_sm
+```
+
 ## Prep
 
 First, allow all daily classifications to complete and populate the "daily_bot_probabilities" table on BigQuery.
@@ -40,25 +57,10 @@ Downloading tweets for each bot community:
 BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
 ```
 
-### Word Clouds
-
-Downloading english stopwords (first time only):
-
-```py
-import nltk
-nltk.download("stopwords")
-```
-
-Downloading spacy english language models (first time only):
-
-```sh
-python -m spacy download en_core_web_lg
-python -m spacy download en_core_web_md
-python -m spacy download en_core_web_sm
-```
+### Daily Analysis
 
 After downloading the local retweets.csv file, use it to generate daily wordclouds:
 
 ```sh
-BOT_MIN="0.8" N_COMMUNITIES="2" MODEL_SIZE="lg" APP_ENV="prodlike"  python -m app.bot_communities.daily_retweet_wordclouds
+BOT_MIN="0.8" N_COMMUNITIES="2" APP_ENV="prodlike" MAX_THREADS=10 START_DATE="2020-01-01" END_DATE="2020-01-30" python -m app.bot_communities.daily_retweet_analyzer
 ```

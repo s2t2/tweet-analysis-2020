@@ -17,7 +17,7 @@ from app.decorators.number_decorators import fmt_n
 from app.bot_communities.csv_storage import LocalStorage
 from app.bot_communities.retweet_analyzer import RetweetsAnalyzer
 
-from app.bot_communities.tokenizers import Tokenizer
+from app.bot_communities.tokenizers import SpacyTokenizer
 from app.bot_communities.token_analyzer import summarize_token_frequencies, train_topic_model, parse_topics, LdaMulticore
 
 load_dotenv()
@@ -27,38 +27,47 @@ END_DATE = os.getenv("END_DATE", default="2020-02-20")
 
 MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
 
-#def perform(community_id, date):
-#    print(f"COMMUNITY ID: {community_id} | DATE: {date}")
+class DailyRetweetsAnalyzer(RetweetsAnalyzer):
+    def __init__(self, community_id, community_retweets_df, local_dirpath, date, tokenize=None):
+        self.date = date
+        tokenize = tokenize or SpacyTokenizer().custom_stem_lemmas
+        super().__init__(community_id, community_retweets_df, local_dirpath, tokenize)
 
-def perform(group_name, filtered_df):
+    def customize_paths_and_titles(self):
+        self.most_retweets_chart_filepath = os.path.join(self.local_dirpath, f"most-retweets-{self.date}.png")
+        self.most_retweets_chart_title = f"Users with Most Retweets from Bot Community {self.community_id} on {self.date}"
+
+        self.most_retweeters_chart_filepath = os.path.join(self.local_dirpath, f"most-retweeters-{self.date}.png")
+        self.most_retweeters_chart_title = f"Users with Most Retweeters from Bot Community {self.community_id} on {self.date}"
+
+        self.top_tokens_csv_filepath = os.path.join(self.local_dirpath, f"top-tokens-{self.date}.csv")
+        self.top_tokens_wordcloud_filepath = os.path.join(self.local_dirpath, f"top-tokens-{self.date}-wordcloud.png")
+        self.top_tokens_wordcloud_title = f"Word Cloud for Community {self.community_id} on {self.date} (n={fmt_n(len(self.community_retweets_df))})"
+
+        self.topics_csv_filepath = os.path.join(self.local_dirpath, f"topics-{self.date}.csv")
+
+
+def perform(group_name, filtered_df, parent_dirpath):
     community_id = group_name[0]
     date = group_name[1]
+    local_dirpath = os.path.join(parent_dirpath, f"community-{community_id}")
+
     print("----------------")
-    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "| RETWEETS:", fmt_n(len(filtered_df)))
+    print(logstamp(), "COMMUNITY", community_id, "| DATE:", date, "| RETWEETS:", fmt_n(len(filtered_df)), local_dirpath)
 
-    time.sleep(3)
+    #time.sleep(3)
 
-    #community_analyzer = DailyCommunityRetweetsAnalyzer(
-    #    community_id=community_id,
-    #    community_retweets_df=storage.retweets_df[storage.retweets_df["community_id"] == community_id],
-    #    local_dirpath=os.path.join(storage.local_dirpath, f"community-{community_id}")
-    #)
+    analyzer = DailyRetweetsAnalyzer(community_id, filtered_df, local_dirpath, date)
 
-    #print("------------------------")
-    #print(logstamp(), "COMMUNITY", community_id, "CHARTS...")
-    #community_analyzer.generate_most_retweets_chart()
-    #community_analyzer.generate_most_retweeters_chart()
+    analyzer.generate_most_retweets_chart()
+    analyzer.generate_most_retweeters_chart()
 
-    #print("------------------------")
-    #print(logstamp(), "COMMUNITY", community_id, "TOKENS...")
-    #community_analyzer.top_tokens_df
-    #community_analyzer.save_top_tokens()
-    #community_analyzer.generate_top_tokens_wordcloud()
+    analyzer.top_tokens_df
+    analyzer.save_top_tokens()
+    analyzer.generate_top_tokens_wordcloud()
 
-    #print("------------------------")
-    #print(logstamp(), "COMMUNITY", community_id, "TOPICS...")
-    #community_analyzer.topics_df # TODO: taking too long
-    #community_analyzer.save_topics() # TODO: taking too long
+    analyzer.topics_df
+    analyzer.save_topics()
 
 
 if __name__ == "__main__":
@@ -89,15 +98,12 @@ if __name__ == "__main__":
 
     with ProcessPoolExecutor(max_workers=MAX_THREADS) as executor:
 
-        #date = "2020-01-01"
-        #futures = [executor.submit(perform, community_id, date) for community_id in storage.retweet_community_ids]
-        #for future in as_completed(futures):
-        #    result = future.result()
-        #    #print(result)
-
         groupby = storage.retweets_df.groupby(["community_id", "status_created_date"])
 
-        futures = [executor.submit(perform, group_name, filtered_df) for group_name, filtered_df in groupby]
+        futures = [executor.submit(perform, group_name, filtered_df, storage.local_dirpath) for group_name, filtered_df in groupby]
 
         for future in as_completed(futures):
             result = future.result()
+
+    print("----------------")
+    print("ALL PROCESSES COMPLETE!")

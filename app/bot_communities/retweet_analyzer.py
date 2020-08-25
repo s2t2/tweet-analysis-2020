@@ -25,6 +25,22 @@ class RetweetsAnalyzer:
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
 
+        self.customize_paths_and_titles()
+
+    def customize_paths_and_titles(self):
+        """Overwrite all in child class as desired"""
+        self.most_retweets_chart_filepath = os.path.join(self.local_dirpath, "most-retweets.png")
+        self.most_retweets_chart_title = f"Users with Most Retweets from Bot Community {self.community_id}"
+
+        self.most_retweeters_chart_filepath = os.path.join(self.local_dirpath, "most-retweeters.png")
+        self.most_retweeters_chart_title = f"Users with Most Retweeters from Bot Community {self.community_id}"
+
+        self.top_tokens_csv_filepath = os.path.join(self.local_dirpath, "top-tokens.csv")
+        self.top_tokens_wordcloud_filepath = os.path.join(self.local_dirpath, "top-tokens-wordcloud.png")
+        self.top_tokens_wordcloud_title = f"Word Cloud for Community {self.community_id} (n={fmt_n(len(self.community_retweets_df))})"
+
+        self.topics_csv_filepath = os.path.join(self.local_dirpath, "topics.csv")
+
     @property
     @lru_cache(maxsize=None)
     def most_retweets_df(self):
@@ -42,15 +58,10 @@ class RetweetsAnalyzer:
         chart_df = chart_df[:top_n] # take top n rows
 
         chart_df.sort_values("Retweet Count", ascending=True, inplace=True) # re-sort for chart
-        fig = px.bar(chart_df,
-            x="Retweet Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users Most Retweeted by Bot Community {self.community_id}"
-        )
+        fig = px.bar(chart_df, x="Retweet Count", y="Retweeted User", orientation="h", title=self.most_retweets_chart_title)
         if APP_ENV == "development":
             fig.show()
-        fig.write_image(os.path.join(self.local_dirpath, "most-retweets.png"))
+        fig.write_image(self.most_retweets_chart_filepath)
 
     @property
     @lru_cache(maxsize=None)
@@ -68,15 +79,10 @@ class RetweetsAnalyzer:
         chart_df = chart_df[:top_n]
 
         chart_df.sort_values("Retweeter Count", ascending=True, inplace=True) # re-sort for chart
-        fig = px.bar(chart_df,
-            x="Retweeter Count",
-            y="Retweeted User",
-            orientation="h",
-            title=f"Users with Most Retweeters in Bot Community {community_id}"
-        )
+        fig = px.bar(chart_df, x="Retweeter Count", y="Retweeted User", orientation="h", title=self.most_retweeters_chart_title)
         if APP_ENV == "development":
             fig.show()
-        fig.write_image(os.path.join(self.local_dirpath, "most-retweeters.png"))
+        fig.write_image(self.most_retweeters_chart_filepath)
 
     #
     # NLP
@@ -95,18 +101,18 @@ class RetweetsAnalyzer:
         return summarize_token_frequencies(self.status_tokens.values.tolist())
 
     def save_top_tokens(self):
-        self.top_tokens_df.to_csv(os.path.join(self.local_dirpath, "top-tokens.csv"))
+        self.top_tokens_df.to_csv(self.top_tokens_csv_filepath)
 
     def generate_top_tokens_wordcloud(self, top_n=20):
         print("TOP TOKENS WORD CLOUD...")
         chart_df = self.top_tokens_df[self.top_tokens_df["rank"] <= top_n]
 
         squarify.plot(sizes=chart_df["pct"], label=chart_df["token"], alpha=0.8)
-        plt.title(f"Word Cloud for Community {self.community_id} (n={fmt_n(len(self.community_retweets_df))})")
+        plt.title(self.top_tokens_wordcloud_title)
         plt.axis("off")
         if APP_ENV == "development":
             plt.show()
-        plt.savefig(os.path.join(self.local_dirpath, "top-tokens-wordcloud.png"))
+        plt.savefig(self.top_tokens_wordcloud_filepath)
         plt.clf()  # clear the figure, to prevent topics from overlapping from previous plots
 
     #
@@ -133,7 +139,7 @@ class RetweetsAnalyzer:
         return DataFrame(topics)
 
     def save_topics(self):
-        self.topics_df.to_csv(os.path.join(self.local_dirpath, "topics.csv"))
+        self.topics_df.to_csv(self.topics_csv_filepath)
 
 
 if __name__ == "__main__":
