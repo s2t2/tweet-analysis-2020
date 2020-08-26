@@ -69,8 +69,8 @@ class BotFollowerGrapher(GraphStorage, Job):
 
         seek_confirmation()
 
-        for bot_screen_name in bot_screen_names:
-            print("BOT:", bot_screen_name)
+        for bot_counter, bot_screen_name in enumerate(bot_screen_names):
+            print(f"BOT {bot_counter+1} OF {len(bot_screen_names)}:", bot_screen_name)
 
             for row in self.bq_service.fetch_bot_followers_by_screen_name(bot_screen_name): # yeah we're doing a query per bot. there are about 1000 bots total. ideally we'd do a single query
 
@@ -78,7 +78,7 @@ class BotFollowerGrapher(GraphStorage, Job):
 
                 self.counter += 1
                 if self.counter % self.batch_size == 0:
-                    print("COUNTER:", self.counter, "NODES:", fmt_n(self.node_count), "EDGES:", fmt_n(self.edge_count))
+                    print("  ", logstamp(), fmt_n(bot_counter+1), fmt_n(self.counter), "NODES:", fmt_n(self.node_count), "EDGES:", fmt_n(self.edge_count))
 
 
 if __name__ == "__main__":
