@@ -9,8 +9,9 @@
 
 ## Usage
 
-Generate graphs of bot follower network (using the same `N_COMMUNITIES` and `BOT_MIN` from the bot community assignment step):
+Generate graphs of bot follower network (using the same `BOT_MIN` from the bot classification step):
 
 ```sh
-BOT_MIN="0.8" BATCH_SIZE="500" python -m app.bot_follower_graphs.follower_grapher
+#BOT_MIN="0.8" BATCH_SIZE="500" python -m app.bot_follower_graphs.follower_grapher # not a good look
+BOT_MIN="0.8" python -m app.bot_follower_graphs.follower_grapher_v2
 ```
