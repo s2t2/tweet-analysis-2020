@@ -9,7 +9,7 @@ some BQ queries. how to filter records where a given screen name is in a an arra
 ```sql
 /*
 SELECT DISTINCT bp.user_id
-FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+FROM `{self.dataset_address}.daily_bot_probabilities` bp
 WHERE bp.bot_probability >= {float(bot_min)}
 */
 
@@ -91,7 +91,7 @@ SELECT
   ,u.screen_name as bot_screen_name
 FROM (
   SELECT DISTINCT user_id
-  FROM impeachment_production.daily_bot_probabilities_temp bp
+  FROM impeachment_production.daily_bot_probabilities bp
   WHERE bp.bot_probability >= 0.8
 ) b
 LEFT JOIN impeachment_production.user_screen_names u ON CAST(u.user_id as int64) = b.user_id

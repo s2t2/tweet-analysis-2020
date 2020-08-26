@@ -836,7 +836,7 @@ class BigQueryService():
     def sql_fetch_bot_ids(self, bot_min=0.8):
         sql = f"""
             SELECT DISTINCT bp.user_id
-            FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+            FROM `{self.dataset_address}.daily_bot_probabilities` bp
             WHERE bp.bot_probability >= {float(bot_min)}
         """
         return sql
