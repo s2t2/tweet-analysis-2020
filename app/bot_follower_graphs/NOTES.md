@@ -1,10 +1,10 @@
 
 
+How to filter records where a given screen name is in case-insensitively in an array of screen_names?
+
+## BQ Queries
 
 
-
-
-some BQ queries. how to filter records where a given screen name is in a an array.
 
 ```sql
 /*
@@ -109,3 +109,47 @@ from impeachment_production.user_friends -- 3,600,545
 where ARRAY_LENGTH(friend_names) = 0
 --> 283,559 records
 ```
+
+
+## PG Queries
+
+### Filtering arrays
+
+```sql
+SELECT
+   user_id
+   ,screen_name
+   ,friend_count
+   ,friend_names
+   ,'ACLU' = ANY (friend_names)
+FROM user_friends
+-- where 'ACLU' in friend_names
+WHERE 'ACLU' = ANY (friend_names)
+LIMIT 5
+```
+
+```sql
+SELECT
+ '{freind1, bot1, bot10}'::text[] as friend_names
+
+
+ ,'bot1' = any('{freind1, bot1, bot10}'::text[]) as r1 -- TRUE
+
+ ,'bot' = any('{freind1, bot1, bot10}'::text[]) as r2 -- FALSE
+
+ ,'bot' like any('{freind1, bot1, bot10}'::text[]) as r2 -- FALSE
+
+ ,'bot' like any('{freind1, bot1, bot10, BOT}'::text[]) as r2 -- FALSE
+
+ ,'bot' ilike any('{freind1, bot1, bot10, BOT}'::text[]) as r2 -- TRUE
+
+ ,'bot' ilike any('{freind1, bot1, bot10}'::text[]) as r2 -- FALSE
+
+```
+
+### Mapping arrays
+
+Mapping arrays:
+
+```sql
+````
