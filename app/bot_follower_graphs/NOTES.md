@@ -215,7 +215,6 @@ SELECT user_id, screen_name
 from user_screen_names
 limit 10
 */
-CREATE
 
 select screen_name, idlist
 from (
@@ -249,4 +248,25 @@ CREATE TABLE IF NOT EXISTS screen_name_id_lookups as (
 )
 ALTER TABLE screen_name_id_lookups ADD PRIMARY KEY (screen_name);
 
+```
+
+Try something different:
+
+```sql
+SELECT
+  b.user_id
+  ,sn.screen_name
+  ,count(distinct uf.user_id) as follower_count
+  ,array_agg(distinct uf.user_id) as follower_ids
+FROM (
+	select user_id, count(start_date) as day_count
+	from daily_bot_probabilities
+	where bot_probability >= 0.8
+	group by 1
+	order by 2 desc
+) b -- 24,150
+LEFT JOIN user_screen_names sn on sn.user_id = b.user_id -- 24,150
+LEFT JOIN user_friends uf on sn.screen_name ilike any(uf.friend_names)
+GROUP BY 1,2
+-- ORDER BY 2 desc
 ```

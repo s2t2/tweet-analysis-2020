@@ -23,7 +23,7 @@ def perform():
         batch = pg_service.cursor.fetchmany(size=BATCH_SIZE)
         if not batch: break
 
-        edges |= set([(row["follower_id"], bot_id) for row in batch])
+        #edges |= set([(row["follower_id"], bot_id) for row in batch])
 
         counter += len(batch)
         print("  ", logstamp(), fmt_n(counter), "| EDGES:", fmt_n(len(edges)))
