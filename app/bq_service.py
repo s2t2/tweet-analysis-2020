@@ -324,13 +324,15 @@ class BigQueryService():
         #return list(self.execute_query(sql))
         return self.execute_query(sql) # return the generator so we can avoid storing the results in memory
 
-    def fetch_user_friends_in_batches(self, limit=None):
+    def fetch_user_friends_in_batches(self, limit=None, min_friends=None):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names
             FROM `{self.dataset_address}.user_friends`
         """
+        if min_friends:
+            sql += f" WHERE ARRAY_LENGTH(friend_names) >= {int(min_friends)} "
         if limit:
-            sql += f"LIMIT {int(limit)};"
+            sql += f" LIMIT {int(limit)}; "
 
         return self.execute_query_in_batches(sql)
 

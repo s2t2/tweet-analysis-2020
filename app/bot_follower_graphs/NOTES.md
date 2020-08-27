@@ -98,3 +98,14 @@ LEFT JOIN impeachment_production.user_screen_names u ON CAST(u.user_id as int64)
 WHERE u.screen_name is NULL
 -- no rows. that means we can join these tables without dropping data
 ```
+
+
+Filtering out user friends where there are no friend names (doesn't make sense to process them during follower graph compiltion):
+
+```sql
+select count(distinct user_id) as user_count
+from impeachment_production.user_friends -- 3,600,545
+-- where friend_count = 0
+where ARRAY_LENGTH(friend_names) = 0
+--> 283,559 records
+```
