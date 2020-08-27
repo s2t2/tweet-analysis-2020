@@ -111,6 +111,26 @@ where ARRAY_LENGTH(friend_names) = 0
 ```
 
 
+
+
+Hmm these are a thorn:
+
+```sql
+select
+  screen_name
+, count(distinct user_id) as id_count
+, array_agg(distinct user_id) as idlist
+from impeachment_production.user_screen_names
+group by 1
+having id_count > 1
+order by 2 desc
+
+-- 3653102
+-- 3653102
+```
+
+
+
 ## PG Queries
 
 ### Filtering arrays
@@ -147,9 +167,86 @@ SELECT
 
 ```
 
-### Mapping arrays
+```sql
+SELECT
+ 'ACLU' as screen_name
 
-Mapping arrays:
+ ,'ACLU' ilike any('{user1, aclu}'::text[]) as r2 -- TRUE
+ ,'ACLU' ilike any('{user1, ACLU}'::text[]) as r2 -- TRUE
+ ,'ACLU' ilike any('{user1, acLu}'::text[]) as r2 -- TRUE
+
+ ,'ACLU' ilike any('{user1, user2}'::text[]) as r1 -- FALSE
+ ,'ACLU' ilike any('{user1, acluser1}'::text[]) as r3 -- FALSE
+ ,'ACLU' ilike any('{user1, aclu_ser1}'::text[]) as r3 -- FALSE
+ ,'ACLU' ilike any('{user1, aclu ser1}'::text[]) as r3 -- FALSE
+
+
+```
 
 ```sql
-````
+select
+
+ 'ACLU' as bot_screen_name
+ ,user_id as follower_id
+ ,screen_name as follower_screen_name
+ --,friend_count
+ --,friend_names
+from user_friends
+where 'ACLU' ilike any(friend_names)
+limit 500
+```
+
+## Pg Migrations
+
+Export the "user_screen_names" and "daily_bot_probabilities" tables from BigQuery to CSV. Then import these into PG. (TODO: automate via pg pipeline)
+
+```sql
+-- ALTER TABLE user_screen_names ADD PRIMARY KEY (screen_name);
+CREATE INDEX usn_index_sn ON user_screen_names (screen_name);
+CREATE INDEX usn_index_uid ON user_screen_names (user_id);
+
+```
+
+Fixing...
+
+```sql
+/*
+SELECT user_id, screen_name
+from user_screen_names
+limit 10
+*/
+CREATE
+
+select screen_name, idlist
+from (
+	select
+	  	screen_name
+		,count(distinct user_id) as id_count
+		,array_agg(distinct user_id) as idlist
+	from user_screen_names
+	group by 1
+	having count(distinct user_id) > 1
+	order by 2 desc
+
+) subq
+where 549677007 = any(idlist)
+
+
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS screen_name_id_lookups as (
+
+	SELECT
+	  	screen_name
+		,count(distinct user_id) as id_count
+		,array_agg(distinct user_id) as idlist
+	FROM user_screen_names
+	group by 1
+	-- having count(distinct user_id) > 1
+	-- order by 2 desc
+
+)
+ALTER TABLE screen_name_id_lookups ADD PRIMARY KEY (screen_name);
+
+```

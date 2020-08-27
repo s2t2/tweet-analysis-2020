@@ -31,6 +31,23 @@ class PgService:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
 
+    def fetch_bot_followers_by_screen_name(self, bot_screen_name):
+        """
+        For a given user screen name, returns a list of their followers.
+        Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
+        """
+        sql = f"""
+            SELECT
+                -- '{bot_screen_name.upper()}' as bot_screen_name
+                user_id as follower_id
+                ,screen_name as follower_screen_name
+                --,friend_count
+                --,friend_names
+            FROM user_friends
+            WHERE '{bot_screen_name}' ilike any(friend_names)
+        """
+        self.cursor.execute(sql)
+
 
 if __name__ == "__main__":
 
