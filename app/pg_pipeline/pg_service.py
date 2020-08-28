@@ -40,10 +40,10 @@ class PgService:
         self.cursor.execute(sql)
 
     def get_bot_followers(self, limit=None, bot_min=0.8):
-        #bot_min_str = str(int(bot_min * 100)) #> "80"
+        bot_min_str = str(int(bot_min * 100)) #> "80"
         sql = f"""
             SELECT bot_id, ARRAY_AGG(distinct follower_user_id) as follower_ids
-            FROM bot_followers_above_80
+            FROM bot_followers_above_{bot_min_str}
             GROUP BY 1
         """ # takes 90 seconds for ~25K rows
         if limit:
