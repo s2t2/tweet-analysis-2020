@@ -82,14 +82,13 @@ class PgService:
     def fetch_bots_with_followers(self, limit=None, bot_min=0.8):
         #bot_min_str = str(int(bot_min * 100)) #> "80"
         sql = f"""
-            SELECT bot_id, ARRAY_AGG(follower_id) as follower_ids
+            SELECT bot_id, ARRAY_AGG(distinct follower_user_id) as follower_ids
             FROM bot_followers_above_80
             GROUP BY 1
         """
         if limit:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
-
 
 
 if __name__ == "__main__":
