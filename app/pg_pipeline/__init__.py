@@ -8,7 +8,6 @@ from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
 from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail
-from app.pg_pipeline.pg_service import PgService
 # todo: inherit start and end from Job class
 
 load_dotenv()
@@ -32,7 +31,6 @@ def clean_string(dirty):
 class Pipeline():
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, pg_destructive=PG_DESTRUCTIVE, bq_service=None):
         self.bq_service = bq_service or BigQueryService()
-        self.pg_service = PgService()
 
         if users_limit:
             self.users_limit = int(users_limit)
