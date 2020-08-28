@@ -270,3 +270,28 @@ LEFT JOIN user_friends uf on sn.screen_name ilike any(uf.friend_names)
 GROUP BY 1,2
 -- ORDER BY 2 desc
 ```
+
+
+
+
+```sql
+
+
+SELECT
+  b.user_id
+  ,sn.screen_name
+  ,b.day_count
+  --,count(distinct uf.user_id) as follower_count
+  --,array_agg(distinct uf.user_id) as follower_ids
+FROM (
+	select user_id, count(start_date) as day_count
+	from daily_bot_probabilities
+	where bot_probability >= 0.8
+	group by 1
+	order by 2 desc
+) b -- 24,150
+LEFT JOIN user_screen_names sn on sn.user_id = b.user_id -- 24,150
+-- LEFT JOIN user_friends uf on sn.screen_name ilike any(uf.friend_names)
+-- GROUP BY 1,2
+ORDER BY 3 desc -- 24,973 rows
+```

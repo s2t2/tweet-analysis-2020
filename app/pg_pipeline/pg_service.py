@@ -31,6 +31,27 @@ class PgService:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
 
+    def fetch_bots(self, bot_min=0.8):
+        sql = f"""
+            SELECT
+                b.user_id as bot_id
+                ,sn.screen_name as bot_screen_name
+                ,b.day_count
+                ,b.avg_daily_score
+            FROM (
+                SELECT user_id, count(start_date) as day_count, avg(bot_probability) as avg_daily_score
+                FROM daily_bot_probabilities
+                WHERE bot_probability >= {float(bot_min)}
+                GROUP BY 1
+                -- HAVING count(start_date) >= 2 -- 16,087
+                ORDER BY 2 desc
+            ) b -- 24,150
+            JOIN user_screen_names sn on sn.user_id = b.user_id -- 24,973 rows (some ids with many sns, and vice versa)
+            ORDER BY 3 desc
+        """
+        self.cursor.execute(sql)
+        #return pg_service.cursor.fetchall()
+
     def fetch_bot_followers_by_screen_name(self, bot_screen_name):
         """
         For a given user screen name, returns a list of their followers.
@@ -47,6 +68,7 @@ class PgService:
             WHERE '{bot_screen_name}' ilike any(friend_names)
         """
         self.cursor.execute(sql)
+
 
 
 if __name__ == "__main__":
