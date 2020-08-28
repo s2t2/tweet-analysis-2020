@@ -962,42 +962,120 @@ class BigQueryService():
     #    breakpoint()
     #    return self.execute_query_in_batches(sql)
 
-    def fetch_bots(self, bot_min=0.8):
+    #def fetch_bots(self, bot_min=0.8):
+    #    sql = f"""
+    #        SELECT
+    #            bp.user_id as bot_id
+    #            ,u.screen_name as bot_screen_name
+    #        FROM (
+    #            {self.sql_fetch_bot_ids(bot_min)}
+    #        ) bp
+    #        LEFT JOIN `{self.dataset_address}.user_screen_names` u ON CAST(u.user_id as int64) = bp.user_id
+    #    """
+    #    return self.execute_query(sql)
+
+    #def fetch_bot_followers_by_screen_name(self, bot_screen_name):
+    #    """
+    #    For a given user screen name, returns a list of their followers.
+    #    Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
+    #    """
+    #    sql = f"""
+    #        SELECT
+    #            u.user_id as bot_id
+    #            -- ,u.screen_name
+    #            ,subq.bot_screen_name
+    #            ,subq.follower_id
+    #            ,subq.follower_screen_name
+    #        FROM (
+    #            SELECT
+    #                UPPER('{bot_screen_name}') as bot_screen_name
+    #                ,user_id as follower_id
+    #                ,UPPER(screen_name) as follower_screen_name
+    #            FROM `{self.dataset_address}.user_friends`
+    #            CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{bot_screen_name}')
+    #        ) subq
+    #        LEFT JOIN `{self.dataset_address}.user_screen_names` u ON u.screen_name = subq.bot_screen_name
+    #    """
+    #    return self.execute_query(sql)
+
+    #def fetch_bot_followers_by_screen_name_flat(self, bot_screen_name):
+    #    """
+    #    For a given user screen name, returns a list of their followers.
+    #    Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
+    #    """
+    #    sql = f"""
+    #        SELECT
+    #            sn.user_id as bot_user_id
+    #            ,uff.friend_name as bot_screen_name
+    #            ,uff.user_id as follower_user_id
+    #            ,uff.screen_name as follower_screen_name
+    #        FROM `{self.dataset_address}.user_friends_flat` uff
+    #        JOIN `{self.dataset_address}.user_screen_names` sn ON sn.screen_name = uff.friend_name
+    #        WHERE upper(friend_name) like '{bot_screen_name.upper()}' -- 260878 records in 8s for 'ACLU'
+    #    """
+    #    return self.execute_query(sql)
+
+    def destructively_migrate_user_friends_flat(self):
+        sql = """
+            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_flat`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_flat` as (
+                SELECT user_id, screen_name, friend_name
+                FROM `{self.dataset_address}.user_friends`
+                CROSS JOIN UNNEST(friend_names) AS friend_name
+            );
+        """ # 1,976,670,168 rows WAT
+        return self.execute_query(sql)
+
+    def destructively_migrate_bots_table(self, bot_min=0.8):
+        bot_min_str = str(int(bot_min * 100)) #> "80"
         sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.bots_above_{bot_min_str}`;
+            CREATE TABLE IF NOT EXISTS  `{self.dataset_address}.bots_above_{bot_min_str}` as (
             SELECT
                 bp.user_id as bot_id
-                --,u.user_id
-                ,u.screen_name as bot_screen_name
-            FROM (
-                {self.sql_fetch_bot_ids(bot_min)}
-            ) bp
-            LEFT JOIN `{self.dataset_address}.user_screen_names` u ON CAST(u.user_id as int64) = bp.user_id
+                ,sn.screen_name as bot_screen_name
+                ,count(distinct start_date) as day_count
+                ,avg(bot_probability) as avg_daily_score
+            FROM `{self.dataset_address}.daily_bot_probabilities` bp
+            JOIN `{self.dataset_address}.user_screen_names` sn ON CAST(sn.user_id as int64) = bp.user_id
+            WHERE bp.bot_probability >= 0.8
+            GROUP BY 1,2
+            ORDER BY 3 desc
+        );
         """
         return self.execute_query(sql)
 
-    def fetch_bot_followers_by_screen_name(self, bot_screen_name):
-        """
-        For a given user screen name, returns a list of their followers.
-        Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
-        """
+    def destructively_migrate_bot_followers_table(self, bot_min=0.8):
+        bot_min_str = str(int(bot_min * 100)) #> "80"
         sql = f"""
-            SELECT
-                u.user_id as bot_id
-                -- ,u.screen_name
-                ,subq.bot_screen_name
-                ,subq.follower_id
-                ,subq.follower_screen_name
-            FROM (
+            DROP TABLE IF EXISTS `{self.dataset_address}.bot_followers_above_{bot_min_str}`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.bot_followers_above_{bot_min_str}` as (
                 SELECT
-                    UPPER('{bot_screen_name}') as bot_screen_name
-                    ,user_id as follower_id
-                    ,UPPER(screen_name) as follower_screen_name
-                FROM `{self.dataset_address}.user_friends`
-                CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{bot_screen_name}')
-            ) subq
-            LEFT JOIN `{self.dataset_address}.user_screen_names` u ON u.screen_name = subq.bot_screen_name
+                    b.bot_id
+                    ,b.bot_screen_name
+                    ,uff.user_id as follower_user_id
+                    ,uff.screen_name as follower_screen_name
+                FROM `{self.dataset_address}.user_friends_flat` uff
+                JOIN `{self.dataset_address}.bots_above_80` b ON b.bot_screen_name like uff.friend_name
+            );
         """
         return self.execute_query(sql)
+
+    def fetch_bot_followers_in_batches(self, bot_min=0.8):
+        """
+        Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
+        Params: bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+        """
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            SELECT DISTINCT bot_id, follower_id
+            FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
+        """
+        return self.execute_query_in_batches(sql)
+
+
+
+
 
 if __name__ == "__main__":
 

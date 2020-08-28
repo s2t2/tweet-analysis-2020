@@ -65,12 +65,7 @@ class PgService:
         Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
         """
         sql = f"""
-            SELECT
-                -- '{bot_screen_name.upper()}' as bot_screen_name
-                user_id as follower_id
-                ,screen_name as follower_screen_name
-                --,friend_count
-                --,friend_names
+            SELECT user_id as follower_id ,screen_name as follower_screen_name
             FROM user_friends
             WHERE '{bot_screen_name}' ilike any(friend_names)
         """

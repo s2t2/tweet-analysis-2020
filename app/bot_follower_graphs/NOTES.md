@@ -295,3 +295,11 @@ LEFT JOIN user_screen_names sn on sn.user_id = b.user_id -- 24,150
 -- GROUP BY 1,2
 ORDER BY 3 desc -- 24,973 rows
 ```
+
+Trying to create index on user_friends column:
+
+```sh
+    ERROR:  index row requires 24544 bytes, maximum size is 8191
+
+    All changes were reverted (DDL statements can't be reverted).
+```
