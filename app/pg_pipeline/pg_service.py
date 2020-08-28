@@ -85,7 +85,7 @@ class PgService:
             SELECT bot_id, ARRAY_AGG(distinct follower_user_id) as follower_ids
             FROM bot_followers_above_80
             GROUP BY 1
-        """
+        """ # takes 90 seconds, returns ~25K rows
         if limit:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
