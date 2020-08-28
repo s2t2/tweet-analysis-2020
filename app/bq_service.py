@@ -950,71 +950,6 @@ class BigQueryService():
     # BOT FOLLOWER GRAPHS
     #
 
-    #def fetch_bot_follower_edges_in_batches(self, bot_min=0.8):
-    #    """
-    #    Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
-    #    Like: {follower_id, bot_id}
-    #    Params:
-    #        bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
-    #    """
-    #    sql = f"""
-    #    """
-    #    breakpoint()
-    #    return self.execute_query_in_batches(sql)
-
-    #def fetch_bots(self, bot_min=0.8):
-    #    sql = f"""
-    #        SELECT
-    #            bp.user_id as bot_id
-    #            ,u.screen_name as bot_screen_name
-    #        FROM (
-    #            {self.sql_fetch_bot_ids(bot_min)}
-    #        ) bp
-    #        LEFT JOIN `{self.dataset_address}.user_screen_names` u ON CAST(u.user_id as int64) = bp.user_id
-    #    """
-    #    return self.execute_query(sql)
-
-    #def fetch_bot_followers_by_screen_name(self, bot_screen_name):
-    #    """
-    #    For a given user screen name, returns a list of their followers.
-    #    Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
-    #    """
-    #    sql = f"""
-    #        SELECT
-    #            u.user_id as bot_id
-    #            -- ,u.screen_name
-    #            ,subq.bot_screen_name
-    #            ,subq.follower_id
-    #            ,subq.follower_screen_name
-    #        FROM (
-    #            SELECT
-    #                UPPER('{bot_screen_name}') as bot_screen_name
-    #                ,user_id as follower_id
-    #                ,UPPER(screen_name) as follower_screen_name
-    #            FROM `{self.dataset_address}.user_friends`
-    #            CROSS JOIN UNNEST(friend_names) as friend_name WHERE UPPER(friend_name) = UPPER('{bot_screen_name}')
-    #        ) subq
-    #        LEFT JOIN `{self.dataset_address}.user_screen_names` u ON u.screen_name = subq.bot_screen_name
-    #    """
-    #    return self.execute_query(sql)
-
-    #def fetch_bot_followers_by_screen_name_flat(self, bot_screen_name):
-    #    """
-    #    For a given user screen name, returns a list of their followers.
-    #    Based on data collected during friend collection, where friends are limited to 2000, so results may not be entirely comprehensive.
-    #    """
-    #    sql = f"""
-    #        SELECT
-    #            sn.user_id as bot_user_id
-    #            ,uff.friend_name as bot_screen_name
-    #            ,uff.user_id as follower_user_id
-    #            ,uff.screen_name as follower_screen_name
-    #        FROM `{self.dataset_address}.user_friends_flat` uff
-    #        JOIN `{self.dataset_address}.user_screen_names` sn ON sn.screen_name = uff.friend_name
-    #        WHERE upper(friend_name) like '{bot_screen_name.upper()}' -- 260878 records in 8s for 'ACLU'
-    #    """
-    #    return self.execute_query(sql)
-
     def destructively_migrate_user_friends_flat(self):
         sql = """
             DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_flat`;
@@ -1038,7 +973,7 @@ class BigQueryService():
                 ,avg(bot_probability) as avg_daily_score
             FROM `{self.dataset_address}.daily_bot_probabilities` bp
             JOIN `{self.dataset_address}.user_screen_names` sn ON CAST(sn.user_id as int64) = bp.user_id
-            WHERE bp.bot_probability >= 0.8
+            WHERE bp.bot_probability >= {float(bot_min)}
             GROUP BY 1,2
             ORDER BY 3 desc
         );
@@ -1056,7 +991,7 @@ class BigQueryService():
                     ,uff.user_id as follower_id
                     ,uff.screen_name as follower_screen_name
                 FROM `{self.dataset_address}.user_friends_flat` uff
-                JOIN `{self.dataset_address}.bots_above_80` b ON upper(b.bot_screen_name) = upper(uff.friend_name)
+                JOIN `{self.dataset_address}.bots_above_{bot_min_str}` b ON upper(b.bot_screen_name) = upper(uff.friend_name)
             );
         """ # 29,861,268 rows WAT
         return self.execute_query(sql)
