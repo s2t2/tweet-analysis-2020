@@ -303,3 +303,10 @@ Trying to create index on user_friends column:
 
     All changes were reverted (DDL statements can't be reverted).
 ```
+
+
+
+```sql
+CREATE INDEX bf80_bid ON bot_followers_above_80 (bot_id);
+CREATE INDEX bf80_fid ON bot_followers_above_80 (follower_user_id);
+```

@@ -11,8 +11,9 @@ class PgService:
     def __init__(self, database_url=DATABASE_URL):
         self.database_url = database_url
         self.connection = connect(self.database_url)
+        self.cursor = self.connection.cursor(name="pg_service_cursor", cursor_factory=DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
         #self.named_cursor = self.connection.cursor(name="pg_service_cursor", cursor_factory=DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
-        self.cursor = self.connection.cursor(cursor_factory=DictCursor) # no name cursor can execute more than one query
+        #self.cursor = self.connection.cursor(cursor_factory=DictCursor) # no name cursor can execute more than one query
 
         print("-------------------------")
         print("PG SERVICE")
@@ -71,8 +72,20 @@ class PgService:
     #    """
     #    self.cursor.execute(sql)
 
-    def fetch_bot_followers(self, limit=None):
-        sql = f"SELECT DISTINCT bot_id, follower_id FROM bot_followers_above_80 "
+    #def fetch_bot_followers(self, limit=None, bot_min=0.8):
+    #    #bot_min_str = str(int(bot_min * 100)) #> "80"
+    #    sql = f"SELECT DISTINCT bot_id, follower_id FROM bot_followers_above_80"
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)};"
+    #    self.cursor.execute(sql)
+
+    def fetch_bots_with_followers(self, limit=None, bot_min=0.8):
+        #bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            SELECT bot_id, ARRAY_AGG(follower_id) as follower_ids
+            FROM bot_followers_above_80
+            GROUP BY 1
+        """
         if limit:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
