@@ -3,7 +3,7 @@
 
 
 def fetch_in_batches():
-    print("MOCK: `pg_service.fetch_user_friends(limit=LIMIT)`")
+    print("MOCK: `pg_service.get_something(limit=LIMIT)`")
     while True:
         print("MOCK: `batch = pg_service.cursor.fetchmany(size=BATCH_SIZE)`")
         if batch:
