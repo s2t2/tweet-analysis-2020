@@ -8,6 +8,7 @@ from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
 from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail
+from app.pg_pipeline.pg_service import PgService
 # todo: inherit start and end from Job class
 
 load_dotenv()
@@ -31,6 +32,7 @@ def clean_string(dirty):
 class Pipeline():
     def __init__(self, users_limit=USERS_LIMIT, batch_size=BATCH_SIZE, pg_destructive=PG_DESTRUCTIVE, bq_service=None):
         self.bq_service = bq_service or BigQueryService()
+        self.pg_service = PgService()
 
         if users_limit:
             self.users_limit = int(users_limit)
@@ -220,31 +222,23 @@ class Pipeline():
 
         self.end_job()
 
-    #def download_user_screen_names(self):
-    #    self.start_job()
-    #    self.destructively_migrate(UserScreenName)
-#
-    #    print(logstamp(), "DATA FLOWING...")
-    #    for row in self.bq_service.fetch_user_screen_names_in_batches(limit=self.users_limit):
-    #        item = {
-    #            "user_id": row['user_id'],
-    #            "screen_name"
-#
-    #            "screen_name_count":   row["screen_name_count"],
-    #            "name_count":          row["name_count"],
-#
-    #            "retweet_count":       row["retweet_count"],
-    #        }
-    #        self.batch.append(item)
-    #        self.counter+=1
-#
-    #        if len(self.batch) >= self.batch_size:
-    #            print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
-    #            self.pg_session.bulk_insert_mappings(UserScreenName, self.batch)
-    #            self.pg_session.commit()
-    #            self.batch = []
-#
-    #    self.end_job()
+    def download_bot_followers(self, bot_min=0.8):
+        self.start_job()
+        self.destructively_migrate(BotFollower)
+
+        print(logstamp(), "DATA FLOWING...")
+        for row in self.bq_service.fetch_bot_followers_in_batches(bot_min=bot_min=):
+            self.batch.append({"bot_id": row["bot_id"], "follower_id": row["follower_id"]})
+            self.counter+=1
+
+            if len(self.batch) >= self.batch_size:
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
+                self.pg_session.bulk_insert_mappings(BotFollower, self.batch)
+                self.pg_session.commit()
+                self.batch = []
+
+        self.end_job()
+
 
 if __name__ == "__main__":
 
