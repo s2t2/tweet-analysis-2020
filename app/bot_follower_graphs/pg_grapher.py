@@ -1,52 +1,78 @@
 from memory_profiler import profile
 
+from networkx import DiGraph
+
+from app import seek_confirmation
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.pg_pipeline.pg_service import PgService
+from app.retweet_graphs_v2.graph_storage import GraphStorage
+from app.retweet_graphs_v2.job import Job
 
-@profile
-def perform():
+BOT_MIN = 0.8
+BATCH_SIZE = 100
 
-    BATCH_SIZE = 500
+class BotFollowerGrapher(GraphStorage, Job):
+    def __init__(self, pg_service=None, bot_min=BOT_MIN, batch_size=BATCH_SIZE, storage_dirpath=None):
+        self.pg_service = pg_service or PgService()
+        self.bot_min = bot_min
+        self.batch_size = batch_size
 
-    pg_service = PgService()
+        Job.__init__(self)
 
-    sql = f"""
-        SELECT
-            b.user_id
-            ,sn.screen_name
-            ,COUNT(DISTINCT uf.user_id) as follower_count
-            ,ARRAY_AGG(DISTINCT uf.user_id) as follower_ids
-        FROM (
-            SELECT user_id, count(start_date) as day_count
-            FROM daily_bot_probabilities
-            WHERE bot_probability >= 0.8
-            GROUP BY 1
-            -- ORDER BY 2 DESC
-        ) b -- 24,150
-        LEFT JOIN user_screen_names sn ON sn.user_id = b.user_id -- 24,150
-        LEFT JOIN user_friends uf ON sn.screen_name ILIKE ANY(uf.friend_names)
-        GROUP BY 1,2
-        -- ORDER BY 2 DESC
-    """
-    pg_service.cursor.execute(sql)
+        storage_dirpath = storage_dirpath or f"bot_follower_graphs/bot_min/{self.bot_min}"
+        GraphStorage.__init__(self, dirpath=storage_dirpath)
 
-    counter = 0
-    edges = set()
-    while True:
-        batch = pg_service.cursor.fetchmany(size=BATCH_SIZE)
-        if not batch: break
+        print("-------------------------")
+        print("BOT FOLLOWER GRAPHER...")
+        print("  BOT MIN:", self.bot_min)
+        print("  BATCH SIZE:", self.batch_size)
+        print("-------------------------")
 
-        #edges |= set([(row["follower_id"], bot_id) for row in batch])
+        seek_confirmation()
 
-        counter += len(batch)
-        print("  ", logstamp(), fmt_n(counter), "| EDGES:", fmt_n(len(edges)))
+    @property
+    def metadata(self):
+        return {**super().metadata, **{"bot_min": self.bot_min, "batch_size": self.batch_size}}
 
-    pg_service.close()
-    print("COMPLETE!")
+    @profile
+    def perform(self):
+        self.graph = DiGraph()
+
+        print("FETCHING BOT FOLLOWERS...")
+        self.pg_service.fetch_bots_with_followers(bot_min=self.bot_min)
+        while True:
+            batch = self.pg_service.cursor.fetchmany(size=self.batch_size) # auto-pagination FTW
+            if not batch: break # stop the loop when there's nothing left
+
+            for row in batch:
+                bot_id = row["bot_id"]
+                self.graph.add_edges_from([(follower_id, bot_id) for follower_id in row["follower_ids"]])
+
+            self.counter += len(batch)
+            print("  ", logstamp(), "| BOTS:", fmt_n(self.counter))
+
+        pg_service.close()
+        print("COMPLETE!")
+
 
 if __name__ == "__main__":
 
-    perform()
+    NO_WIFI_MODE = True
 
-    #breakpoint()
+    grapher = BotFollowerGrapher()
+
+    if NO_WIFI_MODE:
+        grapher.write_metadata_to_file()
+    else:
+        grapher.save_metadata()
+
+    grapher.start()
+    grapher.perform()
+    grapher.end()
+    grapher.report()
+
+    if NO_WIFI_MODE:
+        grapher.write_graph_to_file()
+    else:
+        grapher.save_graph()

@@ -15,17 +15,19 @@ def perform():
     print("FETCHING BOT FOLLOWERS...")
     pg_service.fetch_bots_with_followers(bot_min=BOT_MIN)
 
-    counter = 0
+    row_counter = 0
+    edge_counter = 0
     while True:
         batch = pg_service.cursor.fetchmany(size=BATCH_SIZE)
         if not batch: break
         for row in batch:
             bot_id = row["bot_id"]
-            print(len(row["follower_ids"]))
-            #edges = [(follower_id, bot_id) for follower_id in row["follower_ids"]]
+            #print(len(row["follower_ids"]))
+            edges = [(follower_id, bot_id) for follower_id in row["follower_ids"]]
+            edge_counter += len(edges)
 
-        counter += len(batch)
-        print("  ", logstamp(), "| EDGES:", fmt_n(counter))
+        row_counter += len(batch)
+        print("  ", logstamp(), "| BOTS:", fmt_n(row_counter), "| EDGES:", fmt_n(edge_counter))
 
     pg_service.close()
     print("COMPLETE!")
