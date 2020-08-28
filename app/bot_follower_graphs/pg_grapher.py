@@ -12,6 +12,7 @@ from app.retweet_graphs_v2.job import Job
 BOT_MIN = 0.8
 BATCH_SIZE = 100
 
+
 class BotFollowerGrapher(GraphStorage, Job):
     def __init__(self, pg_service=None, bot_min=BOT_MIN, batch_size=BATCH_SIZE, storage_dirpath=None):
         self.pg_service = pg_service or PgService()
@@ -52,27 +53,19 @@ class BotFollowerGrapher(GraphStorage, Job):
             self.counter += len(batch)
             print("  ", logstamp(), "| BOTS:", fmt_n(self.counter))
 
-        pg_service.close()
+        self.pg_service.close()
         print("COMPLETE!")
 
 
 if __name__ == "__main__":
 
-    NO_WIFI_MODE = True
-
     grapher = BotFollowerGrapher()
 
-    if NO_WIFI_MODE:
-        grapher.write_metadata_to_file()
-    else:
-        grapher.save_metadata()
+    grapher.save_metadata()
 
     grapher.start()
     grapher.perform()
     grapher.end()
     grapher.report()
 
-    if NO_WIFI_MODE:
-        grapher.write_graph_to_file()
-    else:
-        grapher.save_graph()
+    grapher.write_graph_to_file()

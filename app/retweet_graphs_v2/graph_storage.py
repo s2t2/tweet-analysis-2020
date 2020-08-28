@@ -23,6 +23,8 @@ DIRPATH = os.getenv("DIRPATH", default="graphs/mock_graph")
 
 DRY_RUN = (os.getenv("DRY_RUN", default="false") == "true")
 
+WIFI_ENABLED = (os.getenv("WIFI_ENABLED", default="true") == "true")
+
 class GraphStorage:
 
     def __init__(self, dirpath=None, gcs_service=None):
@@ -46,6 +48,7 @@ class GraphStorage:
         print("   DIRPATH:",  self.dirpath)
         print("   GCS DIRPATH:", self.gcs_dirpath)
         print("   LOCAL DIRPATH:", os.path.abspath(self.local_dirpath))
+        print("   WIFI ENABLED:", WIFI_ENABLED)
 
         seek_confirmation()
 
@@ -61,7 +64,8 @@ class GraphStorage:
             "dirpath": self.dirpath,
             #"local_dirpath": os.path.abspath(self.local_dirpath),
             #"gcs_dirpath": self.gcs_dirpath,
-            "gcs_service": self.gcs_service.metadata
+            "gcs_service": self.gcs_service.metadata,
+            "wifi_enabled": WIFI_ENABLED
         }
 
     #
@@ -171,15 +175,18 @@ class GraphStorage:
 
     def save_metadata(self):
         self.write_metadata_to_file()
-        self.upload_metadata()
+        if WIFI_ENABLED:
+            self.upload_metadata()
 
     def save_results(self):
         self.write_results_to_file()
-        self.upload_results()
+        if WIFI_ENABLED:
+            self.upload_results()
 
     def save_graph(self):
         self.write_graph_to_file()
-        self.upload_graph()
+        if WIFI_ENABLED:
+            self.upload_graph()
 
     #
     # GRAPH LOADING AND ANALYSIS
