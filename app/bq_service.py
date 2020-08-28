@@ -1019,7 +1019,7 @@ class BigQueryService():
         sql = """
             DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_flat`;
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_flat` as (
-                SELECT user_id, screen_name, friend_name
+                SELECT user_id, upper(screen_name) as screen_name, upper(friend_name) as friend_name
                 FROM `{self.dataset_address}.user_friends`
                 CROSS JOIN UNNEST(friend_names) AS friend_name
             );
@@ -1053,12 +1053,12 @@ class BigQueryService():
                 SELECT
                     b.bot_id
                     ,b.bot_screen_name
-                    ,uff.user_id as follower_user_id
+                    ,uff.user_id as follower_id
                     ,uff.screen_name as follower_screen_name
                 FROM `{self.dataset_address}.user_friends_flat` uff
-                JOIN `{self.dataset_address}.bots_above_80` b ON b.bot_screen_name like uff.friend_name
+                JOIN `{self.dataset_address}.bots_above_80` b ON upper(b.bot_screen_name) = upper(uff.friend_name)
             );
-        """
+        """ # 29,861,268 rows WAT
         return self.execute_query(sql)
 
     def fetch_bot_followers_in_batches(self, bot_min=0.8):
