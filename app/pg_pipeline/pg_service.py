@@ -11,13 +11,20 @@ class PgService:
     def __init__(self, database_url=DATABASE_URL):
         self.database_url = database_url
         self.connection = connect(self.database_url)
-        self.cursor = self.connection.cursor(name="pg_service_cursor", cursor_factory=DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
+        #self.named_cursor = self.connection.cursor(name="pg_service_cursor", cursor_factory=DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
+        self.cursor = self.connection.cursor(cursor_factory=DictCursor) # no name cursor can execute more than one query
 
         print("-------------------------")
         print("PG SERVICE")
         print(f"  DATABASE URL: '{self.database_url}'")
         print("  CONNECTION:", type(self.connection))
         print("  CURSOR:", type(self.cursor), self.cursor.name)
+
+    #def reset_named_cursor(self, cursor_name="pg_service_cursor"):
+    #    # Get around psycopg2.ProgrammingError: can't call .execute() on named cursors more than once
+    #    # ... or just ditch the named cursor
+    #    self.named_cursor = None
+    #    self.named_cursor = self.connection.cursor(name=cursor_name, cursor_factory=DictCursor) # A NAMED CURSOR PREVENTS MEMORY ISSUES!!!!
 
     def close(self):
         """Call this when done using the cursor."""
