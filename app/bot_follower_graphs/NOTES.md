@@ -62,6 +62,19 @@ where ARRAY_LENGTH(friend_names) = 0
 --> 283,559 records
 ```
 
+Determining how many bots don't have any followers:
+
+```sql
+SELECT
+  b.bot_id
+  ,count(distinct f.follower_id) as follower_count
+FROM impeachment_production.bots_above_80 b
+LEFT JOIN impeachment_production.bot_followers_above_80 f ON f.bot_id = b.bot_id
+WHERE f.bot_id is NULL
+GROUP BY 1
+-- ORDER BY 2 desc
+```
+
 ## PG Exploratory Queries
 
 ### Filtering Arrays
