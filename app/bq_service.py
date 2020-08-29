@@ -998,7 +998,7 @@ class BigQueryService():
 
     def fetch_bot_followers_in_batches(self, bot_min=0.8):
         """
-        Fetches all bots with score above given threshold, then returns a row for each bot for each user who follows them.
+        Returns a row for each bot for each user who follows them.
         Params: bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
         """
         bot_min_str = str(int(bot_min * 100)) #> "80"
@@ -1007,6 +1007,21 @@ class BigQueryService():
             FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
         """
         return self.execute_query_in_batches(sql)
+
+    def fetch_bot_follower_lists(self, bot_min=0.8):
+        """
+        Returns a row for each bot, with a list of aggregated follower ids.
+        Params: bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+        """
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            SELECT bot_id, ARRAY_AGG(distinct follower_id) as follower_ids
+            FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
+            GROUP BY 1
+        """ # takes 90 seconds for ~25K rows
+        return self.execute_query(sql)
+
+
 
 
 if __name__ == "__main__":

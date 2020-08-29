@@ -10,7 +10,7 @@ from app.retweet_graphs_v2.graph_storage import GraphStorage
 from app.retweet_graphs_v2.job import Job
 
 BOT_MIN = 0.8
-BATCH_SIZE = 25_000
+BATCH_SIZE = 100
 
 
 class BotFollowerGrapher(GraphStorage, Job):
@@ -42,7 +42,7 @@ class BotFollowerGrapher(GraphStorage, Job):
 
         print("FETCHING BOT FOLLOWERS...")
 
-        for row in self.bq_service.fetch_bot_followers_in_batches(bot_min=self.bot_min):
+        for row in self.bq_service.fetch_bot_follower_lists(bot_min=self.bot_min):
             bot_id = row["bot_id"]
             self.graph.add_edges_from([(follower_id, bot_id) for follower_id in row["follower_ids"]])
 
