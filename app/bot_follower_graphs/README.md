@@ -28,6 +28,8 @@ BOT_MIN="0.8" python -m app.bot_follower_graphs.bq_grapher
 
 ### PG Grapher
 
+> NOT OPERATIONAL ANYMORE
+
 After migrating BQ tables, download only the "bot_followers_over_80" table:
 
 ```sh

@@ -33,22 +33,45 @@ class PgService:
         self.cursor.close()
         self.connection.close()
 
+    #
+    # QUERY EXECUTION METHODS WITH AUTO-CLOSING
+    #
+
+    #def execute_query_in_batches(self, sql, batch_size):
+    #    self.cursor.execute(sql)
+    #    while True:
+    #        batch = self.cursor.fetchmany(size=batch_size)
+    #        if batch:
+    #            yield batch
+    #        else:
+    #            break
+    #    self.close()
+    #
+    #def execute_query(sql):
+    #    self.cursor.execute(sql)
+    #    yield from self.cursor.fetchall() # yield happens to wrap the list in another list (because the fetchall is already a generator, so we can "yield from" it)
+    #    self.close()
+
+    #
+    # QUERIES
+    #
+
     def get_user_friends(self, limit=None):
         sql = f"SELECT id, user_id, screen_name, friend_count, friend_names FROM {USER_FRIENDS_TABLE_NAME} "
         if limit:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
 
-    def get_bot_follower_lists(self, limit=None, bot_min=0.8):
-        bot_min_str = str(int(bot_min * 100)) #> "80"
-        sql = f"""
-            SELECT bot_id, ARRAY_AGG(distinct follower_id) as follower_ids
-            FROM bot_followers_above_{bot_min_str}
-            GROUP BY 1
-        """ # takes 90 seconds for ~25K rows
-        if limit:
-            sql += f" LIMIT {int(limit)};"
-        self.cursor.execute(sql)
+    #def get_bot_follower_lists(self, limit=None, bot_min=0.8):
+    #    bot_min_str = str(int(bot_min * 100)) #> "80"
+    #    sql = f"""
+    #        SELECT bot_id, ARRAY_AGG(distinct follower_id) as follower_ids
+    #        FROM bot_followers_above_{bot_min_str}
+    #        GROUP BY 1
+    #    """ # takes 90 seconds for ~25K rows
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)};"
+    #    self.cursor.execute(sql)
 
 
 if __name__ == "__main__":

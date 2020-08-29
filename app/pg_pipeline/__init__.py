@@ -7,7 +7,7 @@ from app import APP_ENV
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail
+from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail #, BotFollower
 # todo: inherit start and end from Job class
 
 load_dotenv()
@@ -220,22 +220,22 @@ class Pipeline():
 
         self.end_job()
 
-    def download_bot_followers(self, bot_min=0.8):
-        self.start_job()
-        self.destructively_migrate(BotFollower)
-
-        print(logstamp(), "DATA FLOWING...")
-        for row in self.bq_service.fetch_bot_followers_in_batches(bot_min=bot_min=):
-            self.batch.append({"bot_id": row["bot_id"], "follower_id": row["follower_id"]})
-            self.counter+=1
-
-            if len(self.batch) >= self.batch_size:
-                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
-                self.pg_session.bulk_insert_mappings(BotFollower, self.batch)
-                self.pg_session.commit()
-                self.batch = []
-
-        self.end_job()
+    #def download_bot_followers(self, bot_min=0.8):
+    #    self.start_job()
+    #    self.destructively_migrate(BotFollower)
+    #
+    #    print(logstamp(), "DATA FLOWING...")
+    #    for row in self.bq_service.fetch_bot_followers_in_batches(bot_min=bot_min):
+    #        self.batch.append({"bot_id": row["bot_id"], "follower_id": row["follower_id"]})
+    #        self.counter+=1
+    #
+    #        if len(self.batch) >= self.batch_size:
+    #            print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
+    #            self.pg_session.bulk_insert_mappings(BotFollower, self.batch)
+    #            self.pg_session.commit()
+    #            self.batch = []
+    #
+    #    self.end_job()
 
 
 if __name__ == "__main__":

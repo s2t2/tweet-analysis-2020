@@ -50,9 +50,6 @@ class BotFollowerGrapher(GraphStorage, Job):
             if self.counter % self.batch_size == 0:
                 print("  ", logstamp(), "| BOTS:", fmt_n(self.counter))
 
-        self.pg_service.close()
-        print("COMPLETE!")
-
 
 if __name__ == "__main__":
 
