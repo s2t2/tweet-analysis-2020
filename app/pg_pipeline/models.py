@@ -14,6 +14,9 @@ USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_fri
 USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
 RETWEETER_DETAILS_TABLE_NAME = os.getenv("RETWEETER_DETAILS_TABLE_NAME", default="retweeter_details")
 
+#BOT_MIN = float(os.getenv("BOT_MIN", default="0.8"))
+#BOT_FOLLOWERS_TABLE_NAME = f"bot_followers_above_{int(BOT_MIN * 100)}"
+
 db = create_engine(DATABASE_URL)
 Base = declarative_base()
 Base.metadata.bind = db # fixes sqlalchemy.exc.UnboundExecutionError: Table object 'books' is not bound to an Engine or Connection.  Execution can not proceed without a database to execute against.
@@ -102,7 +105,11 @@ class RetweeterDetail(Base):
 
     retweet_count = Column(Integer)
 
-
+#class BotFollower(Base):
+#    __tablename__ = BOT_FOLLOWERS_TABLE_NAME
+#    id = Column(Integer, primary_key=True)
+#    bot_id = Column(BigInteger, index=True)
+#    follower_id = Column(BigInteger, index=True)
 
 
 

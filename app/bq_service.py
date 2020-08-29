@@ -324,13 +324,15 @@ class BigQueryService():
         #return list(self.execute_query(sql))
         return self.execute_query(sql) # return the generator so we can avoid storing the results in memory
 
-    def fetch_user_friends_in_batches(self, limit=None):
+    def fetch_user_friends_in_batches(self, limit=None, min_friends=None):
         sql = f"""
             SELECT user_id, screen_name, friend_count, friend_names
             FROM `{self.dataset_address}.user_friends`
         """
+        if min_friends:
+            sql += f" WHERE ARRAY_LENGTH(friend_names) >= {int(min_friends)} "
         if limit:
-            sql += f"LIMIT {int(limit)};"
+            sql += f" LIMIT {int(limit)}; "
 
         return self.execute_query_in_batches(sql)
 
@@ -836,7 +838,7 @@ class BigQueryService():
     def sql_fetch_bot_ids(self, bot_min=0.8):
         sql = f"""
             SELECT DISTINCT bp.user_id
-            FROM `{self.dataset_address}.daily_bot_probabilities_temp` bp
+            FROM `{self.dataset_address}.daily_bot_probabilities` bp
             WHERE bp.bot_probability >= {float(bot_min)}
         """
         return sql
@@ -943,6 +945,84 @@ class BigQueryService():
             -- ORDER BY 1,2
         """
         return self.execute_query_in_batches(sql)
+
+    #
+    # BOT FOLLOWER GRAPHS
+    #
+
+    def destructively_migrate_user_friends_flat(self):
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_flat`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_flat` as (
+                SELECT user_id, upper(screen_name) as screen_name, upper(friend_name) as friend_name
+                FROM `{self.dataset_address}.user_friends`
+                CROSS JOIN UNNEST(friend_names) AS friend_name
+            );
+        """ # 1,976,670,168 rows WAT
+        return self.execute_query(sql)
+
+    def destructively_migrate_bots_table(self, bot_min=0.8):
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.bots_above_{bot_min_str}`;
+            CREATE TABLE IF NOT EXISTS  `{self.dataset_address}.bots_above_{bot_min_str}` as (
+            SELECT
+                bp.user_id as bot_id
+                ,sn.screen_name as bot_screen_name
+                ,count(distinct start_date) as day_count
+                ,avg(bot_probability) as avg_daily_score
+            FROM `{self.dataset_address}.daily_bot_probabilities` bp
+            JOIN `{self.dataset_address}.user_screen_names` sn ON CAST(sn.user_id as int64) = bp.user_id
+            WHERE bp.bot_probability >= {float(bot_min)}
+            GROUP BY 1,2
+            ORDER BY 3 desc
+        );
+        """
+        return self.execute_query(sql)
+
+    def destructively_migrate_bot_followers_table(self, bot_min=0.8):
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.bot_followers_above_{bot_min_str}`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.bot_followers_above_{bot_min_str}` as (
+                SELECT
+                    b.bot_id
+                    ,b.bot_screen_name
+                    ,uff.user_id as follower_id
+                    ,uff.screen_name as follower_screen_name
+                FROM `{self.dataset_address}.user_friends_flat` uff
+                JOIN `{self.dataset_address}.bots_above_{bot_min_str}` b ON upper(b.bot_screen_name) = upper(uff.friend_name)
+            );
+        """ # 29,861,268 rows WAT
+        return self.execute_query(sql)
+
+    def fetch_bot_followers_in_batches(self, bot_min=0.8):
+        """
+        Returns a row for each bot for each user who follows them.
+        Params: bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+        """
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            SELECT DISTINCT bot_id, follower_id
+            FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
+        """
+        return self.execute_query_in_batches(sql)
+
+    def fetch_bot_follower_lists(self, bot_min=0.8):
+        """
+        Returns a row for each bot, with a list of aggregated follower ids.
+        Params: bot_min (float) consider users with any score above this threshold as bots (uses pre-computed classification scores)
+        """
+        bot_min_str = str(int(bot_min * 100)) #> "80"
+        sql = f"""
+            SELECT bot_id, ARRAY_AGG(distinct follower_id) as follower_ids
+            FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
+            GROUP BY 1
+        """ # takes 90 seconds for ~25K rows
+        return self.execute_query(sql)
+
+
+
 
 if __name__ == "__main__":
 

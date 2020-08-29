@@ -21,6 +21,7 @@ Version 1 (works in progress, investigations, archive):
     + [Bot Classification v3 (Daily Periods)](/app/retweet_graphs_v2/README.md#k-days-bot-classification)
     + [Community Assignment](/app/bot_communities/README.md#Assignment)
     + [Community Analysis](/app/bot_communities/README.md#Analysis)
+    + [Bot Follower Graphs](/app/bot_follower_graphs/README.md)
 
 Version 2 (current, stable, mature):
 
