@@ -951,7 +951,7 @@ class BigQueryService():
     #
 
     def destructively_migrate_user_friends_flat(self):
-        sql = """
+        sql = f"""
             DROP TABLE IF EXISTS `{self.dataset_address}.user_friends_flat`;
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.user_friends_flat` as (
                 SELECT user_id, upper(screen_name) as screen_name, upper(friend_name) as friend_name
@@ -1007,9 +1007,6 @@ class BigQueryService():
             FROM `{self.dataset_address}.bot_followers_above_{bot_min_str}`
         """
         return self.execute_query_in_batches(sql)
-
-
-
 
 
 if __name__ == "__main__":
