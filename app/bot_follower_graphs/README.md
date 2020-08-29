@@ -4,8 +4,7 @@
 ## Prerequisites
 
   + Ensure [friend collection](/app/friend_collection/README.md) has completed.
-  + Ensure [bot classifications](/app/retweet_graphs_v2/README.md#K-Days-Bot-Classification) have been assigned.
-  + Ensure [bot communities](/app/bot_communities/README.md/#Assignment) have been assigned.
+  + Ensure [bot classifications](/app/retweet_graphs_v2/README.md#K-Days-Bot-Classification) have been assigned, and use the same `BOT_MIN` below.
 
 ## Setup
 
@@ -17,7 +16,7 @@ BOT_MIN="0.8" python -m app.bot_follower_graphs.bq_prep
 
 ## Usage
 
-Use the BQ or PG version:
+Use either the BQ or PG version. They perform at a rate of around a minute per thousand bots. So if you have 25K bots, it will only take a half hour.
 
 ### BQ Grapher
 
