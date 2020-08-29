@@ -41,7 +41,7 @@ class BotFollowerGrapher(GraphStorage, Job):
         self.graph = DiGraph()
 
         print("FETCHING BOT FOLLOWERS...")
-        self.pg_service.get_bot_followers(bot_min=self.bot_min)
+        self.pg_service.get_bot_follower_lists(bot_min=self.bot_min)
         while True:
             batch = self.pg_service.cursor.fetchmany(size=self.batch_size) # auto-pagination FTW
             if not batch: break # stop the loop when there's nothing left

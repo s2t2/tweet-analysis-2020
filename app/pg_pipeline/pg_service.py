@@ -39,7 +39,7 @@ class PgService:
             sql += f" LIMIT {int(limit)};"
         self.cursor.execute(sql)
 
-    def get_bot_followers(self, limit=None, bot_min=0.8):
+    def get_bot_follower_lists(self, limit=None, bot_min=0.8):
         bot_min_str = str(int(bot_min * 100)) #> "80"
         sql = f"""
             SELECT bot_id, ARRAY_AGG(distinct follower_id) as follower_ids
