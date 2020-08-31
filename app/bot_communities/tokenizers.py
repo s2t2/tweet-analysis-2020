@@ -79,6 +79,11 @@ class Tokenizer():
         stems = [stem for stem in stems if stem not in self.stop_words] # remove stopwords again
         return stems
 
+    def hashtags(self, txt):
+        tokens = txt.upper().split()
+        tags = [token for token in tokens if token.startswith("#")] # remove stopwords
+        return tags
+
 class SpacyTokenizer(Tokenizer):
 
     def __init__(self, model_size=MODEL_SIZE):
