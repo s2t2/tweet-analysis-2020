@@ -3,20 +3,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import current_thread #, #Thread, Lock, BoundedSemaphore
 
 from app.job import Job
-from app.bq_service import BigQueryService
+from app.bq_service import BigQueryService, split_into_batches
 from app.basilica_service import BasilicaService
 
+MIN_VAL = float(os.getenv("MIN_VAL", default="0.0"))
+MAX_VAL = float(os.getenv("MAX_VAL", default="1.0"))
 LIMIT = os.getenv("LIMIT")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="1_000"))
 
 PARALLEL = (os.getenv("PARALLEL", default="true") == "true")
 MAX_WORKERS = int(os.getenv("MAX_WORKERS", default=10))
 
-def split_into_batches(all_records, batch_size):
-    for i in range(0, len(all_records), batch_size):
-        yield all_records[i : i + batch_size]
-
 def perform(batch):
+    print(current_thread.name())
     bq_service = BigQueryService()
     bas_service = BasilicaService()
 
@@ -34,15 +33,26 @@ if __name__ == "__main__":
 
     print("-------------------")
     print("BASILICA EMBEDDER...")
+    print("  MIN VAL:", MIN_VAL)
+    print("  MAX VAL:", MAX_VAL)
     print("  LIMIT:", LIMIT)
     print("  BATCH SIZE:", BATCH_SIZE)
 
-    records = bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT)
+    bq_service = BigQueryService()
+    job = Job()
+    job.start()
 
-    batches = split_into_batches(records, BATCH_SIZE)
-    print(len(batches))
+    #records = list(bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT))
+    #records = list(bq_service.fetch_basilica_embedless_statuses_in_batches(limit=LIMIT))
+    #records = bq_service.fetch_basilica_embedless_statuses_in_range(min_id=MIN_ID, max_id=MAX_ID)
+    records = list(bq_service.fetch_basilica_embedless_statuses_in_partition(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT))
+    job.counter = len(records)
 
-    exit()
+    batches = list(split_into_batches(records, BATCH_SIZE))
+    print("BATCHES:", len(batches))
+
+    job.end()
+    del records
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
 
