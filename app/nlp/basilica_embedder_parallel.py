@@ -12,13 +12,10 @@ LIMIT = os.getenv("LIMIT")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="1_000"))
 
 PARALLEL = (os.getenv("PARALLEL", default="true") == "true")
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", default=10))
+MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
 
-def perform(batch):
-    print(current_thread.name())
-    bq_service = BigQueryService()
-    bas_service = BasilicaService()
-
+def perform(batch, bq_service, bas_service):
+    print(current_thread().name)
     embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch]))
 
     for i, row in enumerate(batch):
@@ -33,12 +30,14 @@ if __name__ == "__main__":
 
     print("-------------------")
     print("BASILICA EMBEDDER...")
-    print("  MIN VAL:", MIN_VAL)
-    print("  MAX VAL:", MAX_VAL)
+    print("  MIN PARTITION VAL:", MIN_VAL)
+    print("  MAX PARTITION VAL:", MAX_VAL)
     print("  LIMIT:", LIMIT)
     print("  BATCH SIZE:", BATCH_SIZE)
 
     bq_service = BigQueryService()
+    bas_service = BasilicaService()
+
     job = Job()
     job.start()
 
@@ -59,6 +58,6 @@ if __name__ == "__main__":
         #for batch in batches:
         #    executor.submit(perform, batch)
 
-        futures = [executor.submit(perform, batch) for batch in batches]
+        futures = [executor.submit(perform, batch, bq_service, bas_service) for batch in batches]
         for future in as_completed(futures):
             future.result()
