@@ -17,8 +17,6 @@ load_dotenv()
 
 MODEL_SIZE = os.getenv("MODEL_SIZE", default="sm")  # sm, md, lg
 
-ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]'  # same as "[^a-zA-Z ^0-9]"
-
 CUSTOM_STOP_WORDS = {
     "rt", "httpstco", "amp", # twitter / tweet stuff
     "today", "tonight", "tomorrow", "time", "ago",
@@ -32,6 +30,9 @@ CUSTOM_STOP_WORDS = {
     #"impeach", "impeachment", "impeached",
     # "trump", "articles", "trial", "house", "senate"
 }
+
+ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9]' # alphanumeric only (strict)
+TWITTER_ALPHANUMERIC_PATTERN = r'[^a-zA-Z ^0-9 # @]' # alphanumeric, plus hashtag and handle symbols (twitter-specific)
 
 class CustomStemmer():
     def stem(self, token):
@@ -80,9 +81,15 @@ class Tokenizer():
         return stems
 
     def hashtags(self, txt):
-        tokens = txt.upper().split()
-        tags = [token for token in tokens if token.startswith("#")] # remove stopwords
+        txt = re.sub(TWITTER_ALPHANUMERIC_PATTERN, "", txt.upper())
+        tags = [token for token in txt.split() if token.startswith("#")]
         return tags
+
+    def handles(self, txt):
+        txt = re.sub(TWITTER_ALPHANUMERIC_PATTERN, "", txt.upper())
+        handlez = [token for token in txt.split() if token.startswith("@")]
+        return handlez
+
 
 class SpacyTokenizer(Tokenizer):
 
