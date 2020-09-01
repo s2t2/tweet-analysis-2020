@@ -26,3 +26,7 @@ def test_tokenizers():
 
     status_text = "come @me bro"
     assert tokenizer.handles(status_text) == ["@ME"]
+
+    status_text = "STROKE SURVIVOR, MOTHER, GRANDMOTHER, ### LIBERAL DEM, AM THAT NICE LADY @ CHURCH"
+    assert tokenizer.handles(status_text) == []
+    assert tokenizer.hashtags(status_text) == []

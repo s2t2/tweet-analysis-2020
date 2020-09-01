@@ -40,7 +40,7 @@ if __name__ == "__main__":
     for i, row in enumerate(results):
         row["profile_tags"] = []
         row["profile_tokens"] = []
-        row["profile_ents"] = []
+        row["profile_handles"] = []
 
         if row["user_descriptions"]:
 
@@ -56,9 +56,14 @@ if __name__ == "__main__":
             row["profile_tags"] = tags
             print("TAGS:", tags)
 
-            ents = list(set([ent.text for ent in spacy_tokenizer.entity_tokens(row["user_descriptions"])]))
-            row["ents"] = ents
-            print("ENTITIES:", ents)
+            handles = list(set(tokenizer.handles(row["user_descriptions"])))
+            row["profile_handles"] = handles
+            print("HANDLES:", handles)
+
+            # these are interesting...
+            #ents = list(set([ent.text for ent in spacy_tokenizer.entity_tokens(row["user_descriptions"])]))
+            #row["ents"] = ents
+            #print("ENTITIES:", ents)
 
     df = DataFrame(results)
     df.to_csv(os.path.join(local_dirpath, "bot_profiles.csv"))
@@ -68,16 +73,17 @@ if __name__ == "__main__":
     # SUMMARIZE BY COMMUNITY...
     #
 
-    groupby = df.groupby(["community_id"])
-
-    for community_id, filtered_df in groupby:
-
-        community_dirpath = os.path.join(local_dirpath, f"community-{community_id}")
-
-        top_tags_df = summarize_token_frequencies(filtered_df["profile_tags"].tolist())
-        top_tags_df.to_csv(os.path.join(community_dirpath, "top_profile_tags.csv"))
-        print(top_tags_df)
+    for community_id, filtered_df in df.groupby(["community_id"]):
 
         top_tokens_df = summarize_token_frequencies(filtered_df["profile_tokens"].tolist())
+        top_tags_df = summarize_token_frequencies(filtered_df["profile_tags"].tolist())
+        top_handles_df = summarize_token_frequencies(filtered_df["profile_handles"].tolist())
+
+        print(top_tokens_df.head())
+        print(top_tags_df.head())
+        print(top_handles_df.head())
+
+        community_dirpath = os.path.join(local_dirpath, f"community-{community_id}")
         top_tokens_df.to_csv(os.path.join(community_dirpath, "top_profile_tokens.csv"))
-        print(top_tokens_df)
+        top_tags_df.to_csv(os.path.join(community_dirpath, "top_profile_tags.csv"))
+        top_handles_df.to_csv(os.path.join(community_dirpath, "top_profile_handles.csv"))

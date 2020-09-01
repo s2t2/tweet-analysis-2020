@@ -82,12 +82,12 @@ class Tokenizer():
 
     def hashtags(self, txt):
         txt = re.sub(TWITTER_ALPHANUMERIC_PATTERN, "", txt.upper())
-        tags = [token for token in txt.split() if token.startswith("#")]
+        tags = [token for token in txt.split() if token.startswith("#") and not token.endswith("#")]
         return tags
 
     def handles(self, txt):
         txt = re.sub(TWITTER_ALPHANUMERIC_PATTERN, "", txt.upper())
-        handlez = [token for token in txt.split() if token.startswith("@")]
+        handlez = [token for token in txt.split() if token.startswith("@") and not token.endswith("@")]
         return handlez
 
 
