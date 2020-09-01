@@ -182,3 +182,7 @@ Grouping and aggregation, working with multi-indices:
 ## Gensim
 
   + https://radimrehurek.com/gensim/models/ldamulticore.html
+
+## Regular Expressions
+
+  + https://stackoverflow.com/questions/2527892/parsing-a-tweet-to-extract-hashtags-into-an-array
