@@ -36,6 +36,7 @@ class BasilicaEmbedder(Job):
                 self.batch = []
                 self.progress_report()
 
+        batch_size = len(self.batch)
         if batch_size >= 0: # LAST BATCH (POSSIBLY NOT FULL)
             self.counter += batch_size
             self.save_batch(self.batch)
