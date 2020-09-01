@@ -191,3 +191,5 @@ Grouping and aggregation, working with multi-indices:
 
   + https://www.basilica.ai/available-embeddings/
   + https://basilica-client.readthedocs.io/en/latest/basilica.html?ref=://#basilica.Connection.embed_sentences
+
+> An text embedding specialized for tweets. You can embed short snippets of text using the endpoint "api.basilica.ai/embed/text/twitter", or using `Connection.embed_sentences` with the optarg `model='twitter'` in the Python client. This embedding works best for tweets, but generalizes well to other short-form informal data like text messages.

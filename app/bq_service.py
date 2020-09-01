@@ -1021,7 +1021,31 @@ class BigQueryService():
         """ # takes 90 seconds for ~25K rows
         return self.execute_query(sql)
 
+    #
+    # NLP
+    #
 
+    @property
+    @lru_cache(maxsize=None)
+    def statuses_table(self):
+        return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
+
+    def fetch_statuses_in_batches(self, selections="status_id, user_id, status_text, created_at", limit=None):
+        sql = f"""
+            SELECT {selections}
+            FROM `{self.dataset_address}.statuses`
+        """
+        if limit:
+            sql += f"LIMIT {int(limit)};"
+        return self.execute_query_in_batches(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def basilica_embeddings_table(self):
+        return self.client.get_table(f"{self.dataset_address}.basilica_embeddings") # an API call (caches results for subsequent inserts)
+
+    def upload_basilica_embeddings(self, records):
+        return self.insert_records_in_batches(self.basilica_embeddings_table, records)
 
 
 if __name__ == "__main__":

@@ -37,5 +37,5 @@ python -m app.basilica_service
 Then fetch embeddings for each status text and store them in an "embeddings" table on BigQuery:
 
 ```sh
-python -m app.nlp.fetch_basilica_embeddings
+BATCH_SIZE=10 LIMIT=105 python -m app.nlp.fetch_basilica_embeddings
 ```
