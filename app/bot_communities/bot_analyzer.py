@@ -48,19 +48,20 @@ if __name__ == "__main__":
             #print("COMMUNITY", row["community_id"], i, row["bot_id"], row["screen_names"])
             #print(row["user_descriptions"])
 
-            tokens = tokenizer.custom_stems(row["user_descriptions"])
+            # we want unique tokens here because otherwise someone changing their sn will have a greater influence over the counts
+            tokens = list(set(tokenizer.custom_stems(row["user_descriptions"])))
             row["profile_tokens"] = tokens
             #print("TOKENS:", tokens)
 
-            lemmas = spacy_tokenizer.custom_stem_lemmas(row["user_descriptions"])
+            lemmas = list(set(spacy_tokenizer.custom_stem_lemmas(row["user_descriptions"])))
             row["profile_lemmas"] = lemmas
             #print("LEMMAS:", lemmas)
 
-            tags = tokenizer.hashtags(row["user_descriptions"])
+            tags = list(set(tokenizer.hashtags(row["user_descriptions"])))
             row["profile_tags"] = tags
             #print("TAGS:", tags)
 
-            handles = tokenizer.handles(row["user_descriptions"])
+            handles = list(set(tokenizer.handles(row["user_descriptions"])))
             row["profile_handles"] = handles
             #print("HANDLES:", handles)
 
