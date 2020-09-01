@@ -21,6 +21,7 @@ scikit-learn
 nltk
 spacy
 gensim
+basilica
 
 matplotlib
 plotly
