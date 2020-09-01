@@ -30,3 +30,7 @@ def test_tokenizers():
     status_text = "STROKE SURVIVOR, MOTHER, GRANDMOTHER, ### LIBERAL DEM, AM THAT NICE LADY @ CHURCH"
     assert tokenizer.handles(status_text) == []
     assert tokenizer.hashtags(status_text) == []
+
+    #user_descriptions = None
+    user_descriptions = ""
+    assert spacy_tokenizer.custom_stem_lemmas(user_descriptions) == []

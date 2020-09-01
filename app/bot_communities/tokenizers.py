@@ -95,8 +95,10 @@ class SpacyTokenizer(Tokenizer):
 
     def __init__(self, model_size=MODEL_SIZE):
         super().__init__()
-        self.nlp = spacy.load(f"en_core_web_{model_size}")
-        print(type(self.nlp))
+        self.model_name = f"en_core_web_{model_size}"
+        self.nlp = spacy.load(self.model_name)
+
+        print("SPACY TOKENIZER:", type(self.nlp), self.model_name.upper())
 
     def custom_stem_lemmas(self, txt):
         txt = txt.lower() # normalize case
