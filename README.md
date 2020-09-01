@@ -77,7 +77,7 @@ The app will run scripts that take a long time. To have those scripts send email
 
 ### Basilica Credentials
 
-If using the Basilica API, obtain an API Key and set the `BASILICA_API_KEY` environment variable accordingly (see environment variable setup below).
+If using the Basilica API, obtain a [Basilica API Key](https://www.basilica.ai/api-keys/) and set the `BASILICA_API_KEY` environment variable accordingly (see environment variable setup below).
 
 ### Local Database
 

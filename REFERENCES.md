@@ -186,3 +186,8 @@ Grouping and aggregation, working with multi-indices:
 ## Regular Expressions
 
   + https://stackoverflow.com/questions/2527892/parsing-a-tweet-to-extract-hashtags-into-an-array
+
+## Basilica
+
+  + https://www.basilica.ai/available-embeddings/
+  + https://basilica-client.readthedocs.io/en/latest/basilica.html?ref=://#basilica.Connection.embed_sentences
