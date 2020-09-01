@@ -9,6 +9,8 @@ from pandas import DataFrame
 
 if __name__ == "__main__":
 
+    local_dirpath = os.path.join(DATA_DIR,"bot_retweet_graphs", "bot_min", str(0.8), "n_communities", str(2))
+
     tokenizer = Tokenizer()
 
     bq_service = BigQueryService()
@@ -52,9 +54,23 @@ if __name__ == "__main__":
             row["profile_tokens"] = tokens
 
     df = DataFrame(results)
-    csv_filepath = os.path.join(DATA_DIR,"bot_retweet_graphs", "bot_min", str(0.8), "n_communities", str(2), "bot_profiles.csv")
-    df.to_csv(csv_filepath)
+    print(df.head())
+    df.to_csv(os.path.join(local_dirpath, "bot_profiles.csv"))
 
+    #
+    # SUMMARIZE BY COMMUNITY...
+    #
 
-    breakpoint()
-    top_tokens_df = summarize_token_frequencies(df["profile_tokens"].tolist())
+    groupby = df.groupby(["community_id"])
+
+    for community_id, filtered_df in groupby:
+
+        community_dirpath = os.path.join(local_dirpath, f"community-{community_id}")
+
+        top_tags_df = summarize_token_frequencies(filtered_df["profile_tags"].tolist())
+        print(top_tags_df)
+        top_tags_df.to_csv(os.path.join(community_dirpath, "top_profile_tags.csv"))
+
+        top_tokens_df = summarize_token_frequencies(filtered_df["profile_tokens"].tolist())
+        print(top_tokens_df)
+        top_tokens_df.to_csv(os.path.join(community_dirpath, "top_profile_tokens.csv"))
