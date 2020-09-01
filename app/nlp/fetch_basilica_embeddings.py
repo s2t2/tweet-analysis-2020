@@ -18,15 +18,34 @@ class BasilicaEmbedder(Job):
         print("  BATCH SIZE:", BATCH_SIZE)
 
         Job.__init__(self)
-        #self.fetch_in_batches = self.bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT)
 
-    def destructively_migrate(self):
+    def perform(self):
+        self.start()
+
         self.bq_service.destructively_migrate_basilica_embeddings_table()
 
-    def save_batch(self, batch):
-        print(f"PROCESSING BATCH OF {batch_size}...")
+        print("FETCHING STATUSES IN BATCHES...")
+        self.batch = []
+        for row in self.bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT):
+            self.batch.append(dict(row))
 
-        embeddings = list(self.bas_service.embed_tweets_in_batches([row["status_text"] for row in batch]))
+            batch_size = len(self.batch)
+            if batch_size >= BATCH_SIZE: # FULL BATCH
+                self.counter += batch_size
+                self.save_batch(self.batch)
+                self.batch = []
+                self.progress_report()
+
+        if batch_size >= 0: # LAST BATCH (POSSIBLY NOT FULL)
+            self.counter += batch_size
+            self.save_batch(self.batch)
+            self.batch = []
+            self.progress_report()
+
+        self.end()
+
+    def save_batch(self, batch):
+        embeddings = list(self.bas_service.embed_tweets([row["status_text"] for row in batch]))
 
         for i, row in enumerate(batch):
             row["embedding"] = embeddings[i]
@@ -37,25 +56,6 @@ class BasilicaEmbedder(Job):
 
 if __name__ == "__main__":
 
-
     embedder = BasilicaEmbedder()
-    embedder.start()
 
-    embedder.destructively_migrate()
-
-    print("FETCHING STATUSES IN BATCHES...")
-    batch = []
-    for row in embedder.bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT):
-        batch.append(dict(row))
-        batch_size = len(batch)
-        embedder.counter += batch_size
-
-        if batch_size >= BATCH_SIZE: # batch is full
-            embedder.save_batch(batch)
-            batch = []
-
-    if batch_size >= 0: # batch is last
-        embedder.save_batch(batch)
-        batch = []
-
-    embedder.end()
+    embedder.perform()

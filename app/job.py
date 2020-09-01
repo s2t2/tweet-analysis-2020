@@ -1,6 +1,7 @@
 
 import time
 
+from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 
 class Job():
@@ -15,6 +16,9 @@ class Job():
         print("JOB STARTING!")
         self.counter = 0
         self.start_at = time.perf_counter()
+
+    def progress_report(self):
+        print(logstamp(), fmt_n(self.counter))
 
     def end(self):
         print("-----------------")

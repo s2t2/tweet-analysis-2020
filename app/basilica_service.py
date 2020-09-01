@@ -20,7 +20,7 @@ class BasilicaService:
         print("BASILICA SERVICE...")
         print("  CLIENT:", type(self.client)) #> <class 'basilica.Connection'>
 
-    def embed_tweets_in_batches(self, status_texts):
+    def embed_tweets(self, status_texts):
         return self.client.embed_sentences(status_texts, model="twitter") #> generator object
 
 
