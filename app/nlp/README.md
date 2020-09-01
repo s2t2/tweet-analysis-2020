@@ -18,14 +18,6 @@ FROM impeachment_production.statuses
 -- same number, looks good. row per unique status. let's go...
 ```
 
-```sql
-DROP TABLE IF EXISTS impeachment_production.basilica_embeddings;
-CREATE TABLE impeachment_production.basilica_embeddings (
-    status_id INT64,
-    embedding ARRAY<FLOAT64>
-);
-```
-
 ## Basilica Embeddings
 
 Run the basilica service to test the credentials:

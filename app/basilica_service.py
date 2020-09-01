@@ -16,8 +16,9 @@ class BasilicaService:
     def __init__(self):
         self.client = basilica.Connection(API_KEY)
 
-        print("BASILICA SERVICE:")
-        print(type(self.client)) #> <class 'basilica.Connection'>
+        print("-------------------------")
+        print("BASILICA SERVICE...")
+        print("  CLIENT:", type(self.client)) #> <class 'basilica.Connection'>
 
     def embed_tweets_in_batches(self, status_texts):
         return self.client.embed_sentences(status_texts, model="twitter") #> generator object
