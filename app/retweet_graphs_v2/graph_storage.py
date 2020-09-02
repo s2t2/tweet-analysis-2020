@@ -196,7 +196,6 @@ class GraphStorage:
     # LOADING AND ANALYSIS
     #
 
-    @profile
     def load_bot_probabilities(self):
         """Assumes the CSV file already exists and is saved locally or remotely"""
         if not os.path.isfile(self.local_bot_probabilities_filepath):

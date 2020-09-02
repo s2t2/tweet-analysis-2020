@@ -18,6 +18,8 @@ networkx
 numpy
 scipy
 scikit-learn
+umap-learn
+
 nltk
 spacy
 gensim
