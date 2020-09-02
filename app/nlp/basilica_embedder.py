@@ -1,5 +1,6 @@
 import os
 
+from app.decorators.datetime_decorators import logstamp
 from app.job import Job
 from app.bq_service import BigQueryService
 from app.basilica_service import BasilicaService
@@ -27,27 +28,29 @@ class BasilicaEmbedder(Job):
         #self.bq_service.destructively_migrate_basilica_embeddings_table()
 
         batch = []
-        fetch_in_batches = True # not (LIMIT and int(LIMIT) <= 200_000) # straight query if a small limit is set
+        fetch_in_batches = not (LIMIT and int(LIMIT) <= 200_000) # straight query if a small limit is set
         for row in self.bq_service.fetch_basilica_embedless_partitioned_statuses(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT, in_batches=fetch_in_batches):
             batch.append(dict(row))
 
             if len(batch) >= BATCH_SIZE: # FULL BATCH
-                self.counter += len(batch)
-                self.save_batch(batch)
+                self.counter += self.save_batch(batch)
                 self.progress_report()
                 batch = []
 
         if len(batch) >= 0: # LAST BATCH (POSSIBLY NOT FULL)
-            self.counter += len(batch)
-            self.save_batch(batch)
+            self.counter += self.save_batch(batch)
             self.progress_report()
             batch = []
 
         self.end()
 
     def save_batch(self, batch):
-        embeddings = list(self.bas_service.embed_tweets([row["status_text"] for row in batch]))
-        print("EMBEDDINGS COMPLETE!")
+        try:
+            embeddings = list(self.bas_service.embed_tweets([row["status_text"] for row in batch]))
+            print(logstamp(), "EMBEDDINGS COMPLETE!")
+        except Exception as err:
+            print(logstamp(), "OOPS", err, "SKIPPING...")
+            return 0
 
         for i, row in enumerate(batch):
             row["embedding"] = embeddings[i]
@@ -55,6 +58,7 @@ class BasilicaEmbedder(Job):
 
         self.bq_service.upload_basilica_embeddings(batch)
         print("UPLOAD COMPLETE!")
+        return len(batch)
 
 
 if __name__ == "__main__":
