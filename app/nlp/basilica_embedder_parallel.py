@@ -23,6 +23,7 @@ def perform(batch, bq_service, bas_service):
     print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
 
     for i, row in enumerate(batch):
+        row = dict(row)
         row["embedding"] = embeddings[i]
         del row["status_text"]
     print(logstamp(), thread_name, "PROCESSING COMPLETE!")
