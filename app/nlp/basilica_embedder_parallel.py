@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import current_thread #, #Thread, Lock, BoundedSemaphore
 
 from app.job import Job
+from app.decorators.datetime_decorators import logstamp
 from app.bq_service import BigQueryService, split_into_batches
 from app.basilica_service import BasilicaService
 
@@ -15,7 +16,7 @@ PARALLEL = (os.getenv("PARALLEL", default="true") == "true")
 MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
 
 def perform(batch, bq_service, bas_service):
-    print(current_thread().name)
+    print(logstamp(), current_thread().name)
     embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
 
     for i, row in enumerate(batch):
