@@ -1,29 +1,16 @@
-#import sqlite3, sys, os, string
-from collections import Counter
-from datetime import datetime, timedelta
 
-import numpy as np
-import pandas as pd
+import os
 
-import networkx as nx
-from networkx.algorithms import community
-import scipy.sparse
-import sklearn.datasets
-import sklearn.feature_extraction.text
+from app.retweet_graphs_v2.graph_storage import GraphStorage
 
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+# for a given day, load daily retweet graph and bot probabilities:
 
-import umap
-import umap.plot
+storage = GraphStorage(dirpath="retweet_graphs_v2/k_days/1/2020-01-01")
 
-import holoviews as hv
-from holoviews import opts
-from bokeh.plotting  import show
-from bokeh.models import HoverTool
+rt_graph = storage.load_graph()
+print(type(rt_graph))
 
-hv.extension("bokeh")
+bot_probabilities_df = storage.load_bot_probabilities()
+print(bot_probabilities_df.head())
 
-defaults = dict(width=600, height=600)
-hv.opts.defaults(
-    opts.EdgePaths(**defaults), opts.Graph(**defaults), opts.Nodes(**defaults))
+#breakpoint()
