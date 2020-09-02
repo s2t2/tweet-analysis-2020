@@ -9,4 +9,5 @@ retweet_grapher: python -m app.retweet_graphs_v2.retweet_grapher
 k_days_grapher: python -m app.retweet_graphs_v2.k_days.grapher
 k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 
-basilica_embedder: python -m app.nlp.basilica_embedder_parallel
+basilica_embedder: python -m app.nlp.basilica_embedder
+basilica_embedder_parallel: python -m app.nlp.basilica_embedder_parallel
