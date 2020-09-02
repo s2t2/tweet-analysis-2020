@@ -22,11 +22,11 @@ class BasilicaEmbedder(Job):
     def perform(self):
         self.start()
 
-        self.bq_service.destructively_migrate_basilica_embeddings_table()
+        #self.bq_service.destructively_migrate_basilica_embeddings_table()
 
         print("FETCHING STATUSES IN BATCHES...")
         self.batch = []
-        for row in self.bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT):
+        for row in self.bq_service.fetch_basilica_embedless_partitioned_statuses(selections="status_id, status_text", limit=LIMIT, in_batches=True):
             self.batch.append(dict(row))
 
             batch_size = len(self.batch)

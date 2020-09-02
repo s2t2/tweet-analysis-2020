@@ -1,8 +1,5 @@
 
 
-
-# web_app/services/basilica_service.py
-
 import basilica
 import os
 from dotenv import load_dotenv
@@ -11,14 +8,13 @@ load_dotenv()
 
 API_KEY = os.getenv("BASILICA_API_KEY")
 
-
 class BasilicaService:
     def __init__(self):
         self.client = basilica.Connection(API_KEY)
 
-        #print("-------------------------")
-        #print("BASILICA SERVICE...")
-        #print("  CLIENT:", type(self.client)) #> <class 'basilica.Connection'>
+        print("-------------------------")
+        print("BASILICA SERVICE...")
+        print("  CLIENT:", type(self.client)) #> <class 'basilica.Connection'>
 
     def embed_tweets(self, status_texts, timeout=100):
         return self.client.embed_sentences(status_texts, model="twitter", timeout=timeout) #> generator object

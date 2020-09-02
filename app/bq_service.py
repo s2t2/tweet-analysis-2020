@@ -1030,15 +1030,6 @@ class BigQueryService():
     #def statuses_table(self):
     #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
 
-    #def fetch_statuses_in_batches(self, selections="status_id, user_id, status_text, created_at", limit=None):
-    #    sql = f"""
-    #        SELECT {selections}
-    #        FROM `{self.dataset_address}.statuses`
-    #    """
-    #    if limit:
-    #        sql += f"LIMIT {int(limit)};"
-    #    return self.execute_query_in_batches(sql)
-
     def destructively_migrate_basilica_embeddings_table(self):
         sql = f"""
             DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
@@ -1057,18 +1048,7 @@ class BigQueryService():
     def upload_basilica_embeddings(self, records):
         return self.insert_records_in_batches(self.basilica_embeddings_table, records)
 
-    #def fetch_basilica_embedless_statuses_in_batches(self, limit=None):
-    #    sql = f"""
-    #        SELECT s.status_id, s.status_text
-    #        FROM `{self.dataset_address}.statuses` s
-    #        LEFT JOIN `{self.dataset_address}.basilica_embeddings` emb ON s.status_id = emb.status_id
-    #        WHERE emb.status_id IS NULL
-    #    """
-    #    if limit:
-    #        sql += f"LIMIT {int(limit)};"
-    #    return self.execute_query_in_batches(sql)
-
-    def fetch_basilica_embedless_partitioned_statuses(self, min_val=0.0, max_val=1.0, limit=None):
+    def fetch_basilica_embedless_partitioned_statuses(self, min_val=0.0, max_val=1.0, limit=None, in_batches=False):
         """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
         sql = f"""
             SELECT ps.status_id, ps.status_text
@@ -1079,31 +1059,11 @@ class BigQueryService():
         """
         if limit:
             sql += f" LIMIT {int(limit)};"
-        return self.execute_query(sql)
 
-    def fetch_basilica_embedless_partitioned_statuses_in_batches(self, min_val=0.0, max_val=1.0, limit=None):
-        """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
-        sql = f"""
-            SELECT ps.status_id, ps.status_text
-            FROM `{self.dataset_address}.partitioned_statuses` ps
-            LEFT JOIN `{self.dataset_address}.basilica_embeddings` emb ON ps.status_id = emb.status_id
-            WHERE emb.status_id IS NULL
-                AND ps.partition_val BETWEEN {float(min_val)} AND {float(max_val)}
-        """
-        if limit:
-            sql += f" LIMIT {int(limit)};"
-        return self.execute_query_in_batches(sql)
-
-    #def fetch_basilica_embedless_statuses_in_range(self, min_id, max_id):
-    #    sql = f"""
-    #        SELECT s.status_id, s.status_text
-    #        FROM `{self.dataset_address}.statuses` s
-    #        LEFT JOIN `{self.dataset_address}.basilica_embeddings` emb ON s.status_id = emb.status_id
-    #        WHERE s.status_id BETWEEN {int(min_id)} AND {int(max_id)}
-    #            AND emb.status_id IS NULL
-    #    """
-    #    return self.execute_query(sql)
-
+        if in_batches:
+            return self.execute_query_in_batches(sql)
+        else:
+            return self.execute_query(sql)
 
 
 if __name__ == "__main__":
