@@ -1030,15 +1030,15 @@ class BigQueryService():
     #def statuses_table(self):
     #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
 
-    def destructively_migrate_basilica_embeddings_table(self):
-        sql = f"""
-            DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
-            CREATE TABLE `{self.dataset_address}.basilica_embeddings` (
-                status_id INT64,
-                embedding ARRAY<FLOAT64>
-            );
-        """
-        return self.execute_query(sql)
+    #def destructively_migrate_basilica_embeddings_table(self):
+    #    sql = f"""
+    #        DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
+    #        CREATE TABLE `{self.dataset_address}.basilica_embeddings` (
+    #            status_id INT64,
+    #            embedding ARRAY<FLOAT64>
+    #        );
+    #    """
+    #    return self.execute_query(sql)
 
     @property
     @lru_cache(maxsize=None)
