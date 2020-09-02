@@ -8,3 +8,5 @@ pg_pipeline_retweeter_details: python -m app.pg_pipeline.retweeter_details
 retweet_grapher: python -m app.retweet_graphs_v2.retweet_grapher
 k_days_grapher: python -m app.retweet_graphs_v2.k_days.grapher
 k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
+
+basilica_embedder: python -m app.nlp.basilica_embedder_parallel

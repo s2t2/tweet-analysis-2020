@@ -1,0 +1,43 @@
+# Deploying
+
+
+```sh
+heroku config:set BASILICA_API_KEY="_______________" -r heroku-2
+heroku config:set BASILICA_API_KEY="_______________" -r heroku-3
+heroku config:set BASILICA_API_KEY="_______________" -r heroku-4
+heroku config:set BASILICA_API_KEY="_______________" -r heroku-5
+
+heroku config:set MIN_VAL="0.1" -r heroku-2
+heroku config:set MIN_VAL="0.2" -r heroku-3
+heroku config:set MIN_VAL="0.3" -r heroku-4
+heroku config:set MIN_VAL="0.4" -r heroku-5
+
+heroku config:set MAX_VAL="0.2" -r heroku-2
+heroku config:set MAX_VAL="0.3" -r heroku-3
+heroku config:set MAX_VAL="0.4" -r heroku-4
+heroku config:set MAX_VAL="0.5" -r heroku-5
+
+heroku config:set LIMIT=50000 -r heroku-2
+heroku config:set LIMIT=50000 -r heroku-3
+heroku config:set LIMIT=50000 -r heroku-4
+heroku config:set LIMIT=50000 -r heroku-5
+
+heroku config:set BATCH_SIZE=1000 -r heroku-2
+heroku config:set BATCH_SIZE=1000 -r heroku-3
+heroku config:set BATCH_SIZE=1000 -r heroku-4
+heroku config:set BATCH_SIZE=1000 -r heroku-5
+
+heroku config:set MAX_THREADS=5 -r heroku-2
+heroku config:set MAX_THREADS=5 -r heroku-3
+heroku config:set MAX_THREADS=5 -r heroku-4
+heroku config:set MAX_THREADS=5 -r heroku-5
+```
+
+```sh
+git push heroku-2 embedz:master -f
+git push heroku-3 embedz:master -f
+git push heroku-4 embedz:master -f
+git push heroku-5 embedz:master -f
+```
+
+Then turn on a "basilica_embedder" dyno.
