@@ -26,9 +26,9 @@ class BasilicaEmbedder(Job):
 
         #self.bq_service.destructively_migrate_basilica_embeddings_table()
 
-        print("FETCHING STATUSES IN BATCHES...")
         batch = []
-        for row in self.bq_service.fetch_basilica_embedless_partitioned_statuses(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT, in_batches=True):
+        fetch_in_batches = not (LIMIT and int(LIMIT) <= 200_000) # straight query if a small limit is set
+        for row in self.bq_service.fetch_basilica_embedless_partitioned_statuses(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT, in_batches=fetch_in_batches):
             batch.append(dict(row))
 
             batch_size = len(batch)
@@ -49,12 +49,14 @@ class BasilicaEmbedder(Job):
 
     def save_batch(self, batch):
         embeddings = list(self.bas_service.embed_tweets([row["status_text"] for row in batch], timeout=50))
+        print("EMBEDDINGS COMPLETE!")
 
         for i, row in enumerate(batch):
             row["embedding"] = embeddings[i]
             del row["status_text"]
 
         self.bq_service.upload_basilica_embeddings(batch)
+        print("UPLOAD COMPLETE!")
 
 
 if __name__ == "__main__":

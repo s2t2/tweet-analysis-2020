@@ -1061,8 +1061,10 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
 
         if in_batches:
+            print("FETCHING STATUSES IN BATCHES...")
             return self.execute_query_in_batches(sql)
         else:
+            print("FETCHING STATUSES...")
             return self.execute_query(sql)
 
 
