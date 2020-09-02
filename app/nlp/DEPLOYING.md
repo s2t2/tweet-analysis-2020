@@ -1,6 +1,10 @@
 # Deploying
 
 
+> FYI: You have to use API Keys from different basilica accounts on each server or else you'll hit lots of Bad Gateway errors.
+
+Configure env vars on the server:
+
 ```sh
 heroku config:set BASILICA_API_KEY="_______________" -r heroku-2
 heroku config:set BASILICA_API_KEY="_______________" -r heroku-3
@@ -22,16 +26,18 @@ heroku config:set LIMIT=50000 -r heroku-3
 heroku config:set LIMIT=50000 -r heroku-4
 heroku config:set LIMIT=50000 -r heroku-5
 
-heroku config:set BATCH_SIZE=1000 -r heroku-2
-heroku config:set BATCH_SIZE=1000 -r heroku-3
-heroku config:set BATCH_SIZE=1000 -r heroku-4
-heroku config:set BATCH_SIZE=1000 -r heroku-5
+heroku config:set BATCH_SIZE=500 -r heroku-2
+heroku config:set BATCH_SIZE=500 -r heroku-3
+heroku config:set BATCH_SIZE=500 -r heroku-4
+heroku config:set BATCH_SIZE=500 -r heroku-5
 
-heroku config:set MAX_THREADS=5 -r heroku-2
-heroku config:set MAX_THREADS=5 -r heroku-3
-heroku config:set MAX_THREADS=5 -r heroku-4
-heroku config:set MAX_THREADS=5 -r heroku-5
+heroku config:set MAX_THREADS=3 -r heroku-2
+heroku config:set MAX_THREADS=3 -r heroku-3
+heroku config:set MAX_THREADS=3 -r heroku-4
+heroku config:set MAX_THREADS=3 -r heroku-5
 ```
+
+Deploy:
 
 ```sh
 git push heroku-2 embedz:master -f
@@ -40,4 +46,4 @@ git push heroku-4 embedz:master -f
 git push heroku-5 embedz:master -f
 ```
 
-Then turn on a "basilica_embedder" dyno.
+Then turn on the "basilica_embedder" dyno on all servers and monitor the logs.

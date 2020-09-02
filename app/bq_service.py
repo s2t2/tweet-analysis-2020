@@ -1030,14 +1030,14 @@ class BigQueryService():
     #def statuses_table(self):
     #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
 
-    def fetch_statuses_in_batches(self, selections="status_id, user_id, status_text, created_at", limit=None):
-        sql = f"""
-            SELECT {selections}
-            FROM `{self.dataset_address}.statuses`
-        """
-        if limit:
-            sql += f"LIMIT {int(limit)};"
-        return self.execute_query_in_batches(sql)
+    #def fetch_statuses_in_batches(self, selections="status_id, user_id, status_text, created_at", limit=None):
+    #    sql = f"""
+    #        SELECT {selections}
+    #        FROM `{self.dataset_address}.statuses`
+    #    """
+    #    if limit:
+    #        sql += f"LIMIT {int(limit)};"
+    #    return self.execute_query_in_batches(sql)
 
     def destructively_migrate_basilica_embeddings_table(self):
         sql = f"""
@@ -1068,7 +1068,7 @@ class BigQueryService():
     #        sql += f"LIMIT {int(limit)};"
     #    return self.execute_query_in_batches(sql)
 
-    def fetch_basilica_embedless_statuses_in_partition(self, min_val=0.0, max_val=1.0, limit=None):
+    def fetch_basilica_embedless_partitioned_statuses_in_batches(self, min_val=0.0, max_val=1.0, limit=None):
         """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
         sql = f"""
             SELECT ps.status_id, ps.status_text
