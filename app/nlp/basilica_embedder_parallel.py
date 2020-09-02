@@ -19,17 +19,21 @@ def perform(batch, bq_service, bas_service):
     thread_name = current_thread().name
     print(logstamp(), thread_name, "...")
 
-    embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
-    print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
+    try:
+        embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
+        print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
+    except Exception as err:
+        print(logstamp(), thread_name, "OOPS", err, "SKIPPING...")
+        return False
 
     for i, row in enumerate(batch):
         row = dict(row)
         row["embedding"] = embeddings[i]
         del row["status_text"]
-    print(logstamp(), thread_name, "PROCESSING COMPLETE!")
+    #print(logstamp(), thread_name, "PROCESSING COMPLETE!")
 
     bq_service.upload_basilica_embeddings(batch)
-    print(logstamp(), thread_name, "UPLOAD COMPLETE!")
+    #print(logstamp(), thread_name, "UPLOAD COMPLETE!")
 
 
 if __name__ == "__main__":
