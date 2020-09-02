@@ -25,6 +25,7 @@ Working with BigQuery:
   + https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
   + https://stackoverflow.com/a/46012467/670433
   + https://vverma.net/querying-arrays-in-bigquery.html
+  + https://stackoverflow.com/questions/53737407/resources-exceeded-bigquery/53739742
 
 ## Twitter Resources
 
@@ -186,3 +187,17 @@ Grouping and aggregation, working with multi-indices:
 ## Regular Expressions
 
   + https://stackoverflow.com/questions/2527892/parsing-a-tweet-to-extract-hashtags-into-an-array
+
+## Basilica
+
+  + https://www.basilica.ai/available-embeddings/
+  + https://basilica-client.readthedocs.io/en/latest/basilica.html?ref=://#basilica.Connection.embed_sentences
+
+> An text embedding specialized for tweets. You can embed short snippets of text using the endpoint "api.basilica.ai/embed/text/twitter", or using `Connection.embed_sentences` with the optarg `model='twitter'` in the Python client. This embedding works best for tweets, but generalizes well to other short-form informal data like text messages.
+
+  + https://basilica-client.readthedocs.io/en/latest/_modules/basilica.html#Connection
+  + https://stackoverflow.com/a/13582705/670433
+
+## Python Lists and Generators
+
+  + https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks

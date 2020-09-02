@@ -1021,7 +1021,51 @@ class BigQueryService():
         """ # takes 90 seconds for ~25K rows
         return self.execute_query(sql)
 
+    #
+    # NLP
+    #
 
+    #@property
+    #@lru_cache(maxsize=None)
+    #def statuses_table(self):
+    #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
+
+    #def destructively_migrate_basilica_embeddings_table(self):
+    #    sql = f"""
+    #        DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
+    #        CREATE TABLE `{self.dataset_address}.basilica_embeddings` (
+    #            status_id INT64,
+    #            embedding ARRAY<FLOAT64>
+    #        );
+    #    """
+    #    return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def basilica_embeddings_table(self):
+        return self.client.get_table(f"{self.dataset_address}.basilica_embeddings") # an API call (caches results for subsequent inserts)
+
+    def upload_basilica_embeddings(self, records):
+        return self.insert_records_in_batches(self.basilica_embeddings_table, records)
+
+    def fetch_basilica_embedless_partitioned_statuses(self, min_val=0.0, max_val=1.0, limit=None, in_batches=False):
+        """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
+        sql = f"""
+            SELECT ps.status_id, ps.status_text
+            FROM `{self.dataset_address}.partitioned_statuses` ps
+            LEFT JOIN `{self.dataset_address}.basilica_embeddings` emb ON ps.status_id = emb.status_id
+            WHERE emb.status_id IS NULL
+                AND ps.partition_val BETWEEN {float(min_val)} AND {float(max_val)}
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+
+        if in_batches:
+            print("FETCHING STATUSES IN BATCHES...")
+            return self.execute_query_in_batches(sql)
+        else:
+            print("FETCHING STATUSES...")
+            return self.execute_query(sql)
 
 
 if __name__ == "__main__":

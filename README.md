@@ -75,6 +75,10 @@ FYI: in the bucket, there will also exist some temporary tables used by BigQuery
 
 The app will run scripts that take a long time. To have those scripts send emails when they are done, first obtain a [SendGrid API Key](https://app.sendgrid.com/settings/api_keys), then set it as an environment variable (see environment variable setup below).
 
+### Basilica Credentials
+
+If using the Basilica API, obtain a [Basilica API Key](https://www.basilica.ai/api-keys/) and set the `BASILICA_API_KEY` environment variable accordingly (see environment variable setup below).
+
 ### Local Database
 
 To download some of the data from BigQuery into a local database, first create a local PostgreSQL database called something like "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
@@ -108,6 +112,11 @@ GCS_BUCKET_NAME="impeachment-analysis-2020"
 # SENDGRID_API_KEY="__________"
 # MY_EMAIL_ADDRESS="hello@example.com"
 
+#
+# NLP
+#
+
+# BASILICA_API_KEY="______________"
 ```
 
 ## Usage
