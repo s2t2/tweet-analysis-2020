@@ -1,16 +1,33 @@
 
 import os
 
+#from pandas import to_numeric
 from app.retweet_graphs_v2.graph_storage import GraphStorage
 
-# for a given day, load daily retweet graph and bot probabilities:
+BOT_MIN = 0.8
+DATE = "2020-01-23"
 
-storage = GraphStorage(dirpath="retweet_graphs_v2/k_days/1/2020-01-01")
+storage = GraphStorage(dirpath=f"retweet_graphs_v2/k_days/1/{DATE}")
 
-rt_graph = storage.load_graph()
-print(type(rt_graph))
+df = storage.load_bot_probabilities()
+df["bot_probability"] = df["bot_probability"].astype(float)
+#df["bot_probability"] = to_numeric(df["bot_probability"], errors="coerce")
 
-bot_probabilities_df = storage.load_bot_probabilities()
-print(bot_probabilities_df.head())
+bot_ids = df[df["bot_probability"] >= BOT_MIN]
+print("BOTS:", len(bot_ids))
 
-#breakpoint()
+
+
+
+
+
+
+
+
+exit()
+
+
+
+
+
+graph = storage.load_graph()
