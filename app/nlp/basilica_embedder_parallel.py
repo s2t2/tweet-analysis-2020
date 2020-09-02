@@ -16,7 +16,7 @@ MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
 
 def perform(batch, bq_service, bas_service):
     print(current_thread().name)
-    embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch]))
+    embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
 
     for i, row in enumerate(batch):
         row["embedding"] = embeddings[i]

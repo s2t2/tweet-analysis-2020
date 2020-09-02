@@ -20,8 +20,8 @@ class BasilicaService:
         print("BASILICA SERVICE...")
         print("  CLIENT:", type(self.client)) #> <class 'basilica.Connection'>
 
-    def embed_tweets(self, status_texts):
-        return self.client.embed_sentences(status_texts, model="twitter") #> generator object
+    def embed_tweets(self, status_texts, timeout=100):
+        return self.client.embed_sentences(status_texts, model="twitter", timeout=timeout) #> generator object
 
 
 if __name__ == "__main__":
@@ -42,3 +42,8 @@ if __name__ == "__main__":
     print("EMBEDDINGS...")
     print(type(embeddings))
     print(list(embeddings)) # [[0.8556405305862427, ...], ...]
+
+    embeddings = bas.client.embed_sentences(sentences, model="twitter", timeout=100)
+    print("EMBEDDINGS...")
+    print(type(embeddings))
+    print(list(embeddings))
