@@ -31,10 +31,10 @@ heroku config:set BATCH_SIZE=500 -r heroku-3
 heroku config:set BATCH_SIZE=500 -r heroku-4
 heroku config:set BATCH_SIZE=500 -r heroku-5
 
-heroku config:set MAX_THREADS=5 -r heroku-2
-heroku config:set MAX_THREADS=5 -r heroku-3
-heroku config:set MAX_THREADS=5 -r heroku-4
-heroku config:set MAX_THREADS=5 -r heroku-5
+heroku config:set MAX_THREADS=3 -r heroku-2
+heroku config:set MAX_THREADS=3 -r heroku-3
+heroku config:set MAX_THREADS=3 -r heroku-4
+heroku config:set MAX_THREADS=3 -r heroku-5
 ```
 
 Deploy:
