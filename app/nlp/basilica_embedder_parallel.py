@@ -16,15 +16,19 @@ PARALLEL = (os.getenv("PARALLEL", default="true") == "true")
 MAX_THREADS = int(os.getenv("MAX_THREADS", default=10))
 
 def perform(batch, bq_service, bas_service):
-    print(logstamp(), current_thread().name)
+    thread_name = current_thread().name
+    print(logstamp(), thread_name, "...")
+
     embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
+    print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
 
     for i, row in enumerate(batch):
         row["embedding"] = embeddings[i]
         del row["status_text"]
+    print(logstamp(), thread_name, "PROCESSING COMPLETE!")
 
     bq_service.upload_basilica_embeddings(batch)
-    print("UPLOAD COMPLETE!")
+    print(logstamp(), thread_name, "UPLOAD COMPLETE!")
 
 
 if __name__ == "__main__":
@@ -42,9 +46,6 @@ if __name__ == "__main__":
     job = Job()
     job.start()
 
-    #records = list(bq_service.fetch_statuses_in_batches(selections="status_id, status_text", limit=LIMIT))
-    #records = list(bq_service.fetch_basilica_embedless_statuses_in_batches(limit=LIMIT))
-    #records = bq_service.fetch_basilica_embedless_statuses_in_range(min_id=MIN_ID, max_id=MAX_ID)
     records = list(bq_service.fetch_basilica_embedless_statuses_in_partition(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT))
     job.counter = len(records)
 
@@ -55,9 +56,6 @@ if __name__ == "__main__":
     del records
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
-
-        #for batch in batches:
-        #    executor.submit(perform, batch)
 
         futures = [executor.submit(perform, batch, bq_service, bas_service) for batch in batches]
         for future in as_completed(futures):
