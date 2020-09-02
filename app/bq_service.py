@@ -1068,6 +1068,19 @@ class BigQueryService():
     #        sql += f"LIMIT {int(limit)};"
     #    return self.execute_query_in_batches(sql)
 
+    def fetch_basilica_embedless_partitioned_statuses(self, min_val=0.0, max_val=1.0, limit=None):
+        """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
+        sql = f"""
+            SELECT ps.status_id, ps.status_text
+            FROM `{self.dataset_address}.partitioned_statuses` ps
+            LEFT JOIN `{self.dataset_address}.basilica_embeddings` emb ON ps.status_id = emb.status_id
+            WHERE emb.status_id IS NULL
+                AND ps.partition_val BETWEEN {float(min_val)} AND {float(max_val)}
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
     def fetch_basilica_embedless_partitioned_statuses_in_batches(self, min_val=0.0, max_val=1.0, limit=None):
         """Params min_val and max_val reference partition decimal values from 0.0 to 1.0"""
         sql = f"""

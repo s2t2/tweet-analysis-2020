@@ -21,10 +21,10 @@ def perform(batch, bq_service, bas_service):
 
     try:
         embeddings = list(bas_service.embed_tweets([row["status_text"] for row in batch], timeout=100))
-        #print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
+        print(logstamp(), thread_name, "EMBEDDINGS COMPLETE!")
     except Exception as err:
         print(logstamp(), thread_name, "OOPS", err, "SKIPPING...")
-        return False
+        return 0
 
     for i, row in enumerate(batch):
         row = dict(row)
@@ -34,6 +34,8 @@ def perform(batch, bq_service, bas_service):
 
     bq_service.upload_basilica_embeddings(batch)
     #print(logstamp(), thread_name, "UPLOAD COMPLETE!")
+
+    return len(batch)
 
 
 if __name__ == "__main__":
@@ -47,26 +49,24 @@ if __name__ == "__main__":
 
     bq_service = BigQueryService()
     bas_service = BasilicaService()
-
     job = Job()
-    job.start()
 
-    records = list(bq_service.fetch_basilica_embedless_partitioned_statuses_in_batches(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT))
+    job.start()
+    records = list(bq_service.fetch_basilica_embedless_partitioned_statuses(min_val=MIN_VAL, max_val=MAX_VAL, limit=LIMIT))
     job.counter = len(records)
 
     batches = list(split_into_batches(records, BATCH_SIZE))
     print("BATCHES:", len(batches))
-
     job.end()
     del records
 
     job.start()
+
     with ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="THREAD") as executor:
 
         futures = [executor.submit(perform, batch, bq_service, bas_service) for batch in batches]
         for future in as_completed(futures):
-            future.result()
-            job.counter += BATCH_SIZE
+            job.counter += future.result()
             job.progress_report()
 
     job.end()
