@@ -57,7 +57,7 @@ class BasilicaEmbedder(Job):
             del row["status_text"]
 
         self.bq_service.upload_basilica_embeddings(batch)
-        print("UPLOAD COMPLETE!")
+        print(logstamp(), "UPLOAD COMPLETE!")
         return len(batch)
 
 
