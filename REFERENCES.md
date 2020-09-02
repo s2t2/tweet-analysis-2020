@@ -74,6 +74,7 @@ Locks and Semaphores:
   + https://networkx.github.io/documentation/latest/reference/convert.html
   + https://networkx.github.io/documentation/latest/reference/generated/networkx.convert_matrix.from_pandas_edgelist.html
   + https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.algorithms.link_prediction.jaccard_coefficient.html
+  + https://networkx.github.io/documentation/stable/reference/classes/generated/networkx.DiGraph.predecessors.html
 
 ## Google Cloud Storage
 
