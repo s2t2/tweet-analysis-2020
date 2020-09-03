@@ -17,11 +17,16 @@ from app.retweet_graphs_v2.graph_storage import GraphStorage
 DATE = "2020-01-23"
 BOT_MIN = 0.8
 
-SOURCE_MIN = 200 # considered a beneficiary if at least this many bots are retweeting you on a given day
-
 MIN_DIST = 1
 N_NEIGHBORS = 25
 
+#def subgraph_coords(graph, source_ids, min_dist=MIN_DIST, n_neighbors=N_NEIGHBORS):
+#    subgraph = graph.subgraph(source_ids).copy()
+#    subgraph_matrix = adjacency_matrix(subgraph)
+#    print("MATRIX", type(subgraph_matrix), subgraph_matrix.shape) #> <class 'scipy.sparse.csr.csr_matrix'> (4872, 4872)
+#    reducer = UMAP(metric="cosine", min_dist=min_dist, n_neighbors=n_neighbors)
+#    embedding = reducer.fit_transform(subgraph_matrix)
+#    return embedding
 
 #
 # RETWEET GRAPH
@@ -40,8 +45,9 @@ bots_df = df[df["bot_probability"] >= BOT_MIN]
 bot_ids = bots_df["user_id"].tolist()
 print("BOTS:", fmt_n(len(bots_df))) #> 5034
 
+
 #
-# FOLLOWER GRAPH
+# BOT FOLLOWER GRAPH
 #
 
 follower_graph_storage = GraphStorage(dirpath=f"bot_follower_graphs/bot_min/{BOT_MIN}")
@@ -85,14 +91,22 @@ for user_id in retweet_graph.nodes():
         source_ids += retweet_graph.successors(user_id) #> <class 'dict_keyiterator'>
 print("BOT RETWEET BENEFICIARIES:", fmt_n(len(source_ids)), f"({fmt_n(len(set(source_ids)))}) UNIQUE")
 
+
+SOURCE_MIN = 200 # considered a beneficiary if at least this many bots are retweeting you on a given day
 source_counter = Counter(source_ids)
 pprint(source_counter.most_common(10))
-
 # users retweeted by at least X bots
 #top_source_ids = list([user_id for user_id in source_counter.keys() if source_counter[user_id] >= SOURCE_MIN])
 top_source_ids = [k for k, v in source_counter.items() if v >= SOURCE_MIN]
 # TODO: why top X?
 # TODO: should we ensure no bots are in the source list?
+
+
+
+
+
+
+
 
 source_follower_subgraph = follower_graph.subgraph(source_ids).copy()
 source_follower_matrix = adjacency_matrix(source_follower_subgraph)

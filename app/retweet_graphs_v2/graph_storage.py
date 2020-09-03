@@ -203,7 +203,7 @@ class GraphStorage:
 
         return self.read_bot_probabilities_from_file()
 
-    @profile
+    #@profile
     def load_graph(self):
         """Assumes the graph already exists and is saved locally or remotely"""
         if not os.path.isfile(self.local_graph_filepath):

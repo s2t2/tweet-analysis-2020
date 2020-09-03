@@ -59,6 +59,21 @@ CREATE TABLE impeachment_production.user_follower_lists as (
             ,ARRAY_AGG(DISTINCT follower_screen_name) as follower_screen_names
         FROM impeachment_production.user_followers
         GROUP BY 1
-    )
-); -- 4 min 17 sec - 117,437,748 distinct user screen names
+    ) -- 3-4 mins for 117,437,748 distinct user screen names
+);
+```
+
+## More Queries
+
+```sql
+SELECT
+    uf.user_screen_name
+    ,uf.follower_count
+    --,uf.follower_screen_names
+FROM impeachment_production.user_follower_lists uf
+JOIN (
+  SELECT distinct upper(rt.user_screen_name) as user_screen_name
+  FROM impeachment_production.retweets rt
+  WHERE rt.created_at BETWEEN '2020-01-01' AND '2020-01-02' -- 111,623 screen names
+) retweeters ON retweeters.user_screen_name = uf.user_screen_name
 ```
