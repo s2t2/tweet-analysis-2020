@@ -206,6 +206,8 @@ Grouping and aggregation, working with multi-indices:
 
 ## UMAP
 
+Uniform Manifold Approximation and Projection
+
   + https://github.com/lmcinnes/umap
   + https://umap-learn.readthedocs.io/en/latest/basic_usage.html
 
