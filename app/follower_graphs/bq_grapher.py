@@ -44,6 +44,8 @@ class FollowerGrapher(GraphStorage, Job):
         for row in self.bq_service.fetch_follower_lists(limit=self.limit):
             user = row["user_screen_name"]
             self.graph.add_edges_from([(follower, user) for follower in row["follower_names"]])
+            #user = row["user_id"]
+            #self.graph.add_edges_from([(follower, user) for follower in row["follower_ids"]])
 
             self.counter += 1
             if self.counter % self.batch_size == 0:

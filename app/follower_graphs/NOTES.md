@@ -77,3 +77,9 @@ JOIN (
   WHERE rt.created_at BETWEEN '2020-01-01' AND '2020-01-02' -- 111,623 screen names
 ) retweeters ON retweeters.user_screen_name = uf.user_screen_name
 ```
+
+```sql
+SELECT distinct user_screen_name
+FROM impeachment_production.user_followers uf
+WHERE user_id is null
+```
