@@ -1022,6 +1022,35 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
+    # FOLLOWER GRAPHS
+    #
+
+    #def destructively_migrate_followers_table(self):
+    #    sql = f"""
+    #        DROP TABLE IF EXISTS `{self.dataset_address}.user_followers`;
+    #        CREATE TABLE `{self.dataset_address}.user_followers` as (
+    #            SELECT
+    #                sn.user_id -- lots of nulls
+    #                ,uff.friend_name as user_screen_name
+    #                ,uff.user_id as follower_id
+    #                ,uff.screen_name as follower_screen_name
+    #            FROM `{self.dataset_address}.user_friends_flat` uff
+    #            LEFT JOIN `{self.dataset_address}.user_screen_names` sn ON sn.screen_name = uff.friend_name
+    #        );
+    #    """
+    #    return self.execute_query(sql)
+
+    #def fetch_follower_lists(self, limit=None):
+    #    sql = f"""
+    #        SELECT user_screen_name, ARRAY_AGG(distinct follower_screen_name) as follower_screen_names
+    #        FROM `{self.dataset_address}.user_followers`
+    #        GROUP BY 1
+    #    """ # takes X seconds for ~X rows
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)}; "
+    #    return self.execute_query(sql)
+
+    #
     # NLP
     #
 
