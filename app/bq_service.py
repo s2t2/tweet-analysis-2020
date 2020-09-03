@@ -1065,13 +1065,15 @@ class BigQueryService():
 
 
 
-    def fetch_idless_friend_names(self):
+    def fetch_idless_friend_names_in_batches(self, limit=None):
         sql = f"""
             SELECT distinct user_screen_name
             FROM `{self.dataset_address}.user_followers` uf
             WHERE user_id IS NULL
         """ # 114,450,235
-        return self.execute_query(sql)
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
 
     #def migrate_friend_id_lookups_table(self):
     #    sql = ""
