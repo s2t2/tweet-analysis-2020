@@ -19,7 +19,7 @@ class FollowerGrapher(GraphStorage, Job):
 
         Job.__init__(self)
 
-        storage_dirpath = storage_dirpath or "follower_graphs/example"
+        storage_dirpath = storage_dirpath or "follower_graphs/all_users"
         GraphStorage.__init__(self, dirpath=storage_dirpath)
 
         print("-------------------------")
@@ -41,7 +41,7 @@ class FollowerGrapher(GraphStorage, Job):
         self.start()
 
         print("FETCHING FOLLOWERS...")
-        for row in self.bq_service.fetch_follower_lists(limit=self.limit):
+        for row in self.bq_service.fetch_follower_name_lists(limit=self.limit):
             user = row["user_screen_name"]
             self.graph.add_edges_from([(follower, user) for follower in row["follower_names"]])
             #user = row["user_id"]
@@ -53,7 +53,7 @@ class FollowerGrapher(GraphStorage, Job):
 
         self.end()
         self.report()
-        self.write_graph_to_file()
+        self.save_graph()
 
 
 if __name__ == "__main__":
