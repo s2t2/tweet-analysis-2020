@@ -74,6 +74,7 @@ Locks and Semaphores:
   + https://networkx.github.io/documentation/latest/reference/convert.html
   + https://networkx.github.io/documentation/latest/reference/generated/networkx.convert_matrix.from_pandas_edgelist.html
   + https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.algorithms.link_prediction.jaccard_coefficient.html
+  + https://networkx.github.io/documentation/stable/reference/classes/generated/networkx.DiGraph.predecessors.html
 
 ## Google Cloud Storage
 
@@ -128,6 +129,7 @@ autopep8 --in-place --aggressive --recursive app/bot
 
   + https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.normal.html
   + https://stackoverflow.com/questions/9452775/converting-numpy-dtypes-to-native-python-types/11389998
+  + https://numpy.org/doc/stable/reference/generated/numpy.arange.html
 
 ## Scipy and K-S Tests
 
@@ -201,3 +203,18 @@ Grouping and aggregation, working with multi-indices:
 ## Python Lists and Generators
 
   + https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+
+## UMAP
+
+Uniform Manifold Approximation and Projection
+
+  + https://github.com/lmcinnes/umap
+  + https://umap-learn.readthedocs.io/en/latest/basic_usage.html
+
+
+  + https://github.com/holoviz/holoviews
+  + http://holoviews.org/
+
+
+  + https://github.com/bokeh/bokeh
+  + https://bokeh.org/

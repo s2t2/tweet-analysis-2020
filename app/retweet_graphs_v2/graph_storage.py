@@ -6,7 +6,7 @@ from sys import getsizeof
 from memory_profiler import profile #, memory_usage
 from pprint import pprint
 
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from networkx import write_gpickle, read_gpickle
 from dotenv import load_dotenv
 
@@ -112,6 +112,10 @@ class GraphStorage:
         print(logstamp(), "READING GRAPH...")
         return read_gpickle(self.local_graph_filepath)
 
+    def read_bot_probabilities_from_file(self):
+        print(logstamp(), "READING BOT PROBABILITIES CSV...")
+        return read_csv(self.local_bot_probabilities_filepath)
+
     #
     # REMOTE STORAGE
     #
@@ -189,10 +193,17 @@ class GraphStorage:
             self.upload_graph()
 
     #
-    # GRAPH LOADING AND ANALYSIS
+    # LOADING AND ANALYSIS
     #
 
-    @profile
+    def load_bot_probabilities(self):
+        """Assumes the CSV file already exists and is saved locally or remotely"""
+        if not os.path.isfile(self.local_bot_probabilities_filepath):
+            self.download_bot_probabilities()
+
+        return self.read_bot_probabilities_from_file()
+
+    #@profile
     def load_graph(self):
         """Assumes the graph already exists and is saved locally or remotely"""
         if not os.path.isfile(self.local_graph_filepath):

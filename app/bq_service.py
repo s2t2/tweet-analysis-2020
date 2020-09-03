@@ -1022,6 +1022,90 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
+    # FOLLOWER GRAPHS
+    #
+
+    #def destructively_migrate_followers_table(self):
+    #    sql = f"""
+    #        DROP TABLE IF EXISTS `{self.dataset_address}.user_followers`;
+    #        CREATE TABLE `{self.dataset_address}.user_followers` as (
+    #            SELECT
+    #                sn.user_id -- lots of nulls
+    #                ,uff.friend_name as user_screen_name
+    #                ,uff.user_id as follower_id
+    #                ,uff.screen_name as follower_screen_name
+    #            FROM `{self.dataset_address}.user_friends_flat` uff
+    #            LEFT JOIN `{self.dataset_address}.user_screen_names` sn ON sn.screen_name = uff.friend_name
+    #        );
+    #    """
+    #    return self.execute_query(sql)
+
+    #def fetch_follower_lists(self, limit=None):
+    #    sql = f"""
+    #        SELECT user_screen_name, ARRAY_AGG(distinct follower_screen_name) as follower_screen_names
+    #        FROM `{self.dataset_address}.user_followers`
+    #        GROUP BY 1
+    #    """ # takes X seconds for ~X rows
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)}; "
+    #    return self.execute_query(sql)
+
+    def fetch_follower_name_lists(self, sort=False, limit=None):
+        sql = f"""
+            SELECT user_screen_name ,follower_count ,follower_screen_names
+            FROM `{self.dataset_address}.user_follower_lists`
+            WHERE follower_count > 0
+        """
+        if sort:
+            sql += " ORDER BY 2 DESC " # takes a long time, beware
+        if limit:
+            sql += f" LIMIT {int(limit)}; "
+        return self.execute_query(sql)
+
+
+
+
+
+    def fetch_idless_friend_names_in_batches(self, limit=None):
+        sql = f"""
+            SELECT distinct user_screen_name
+            FROM `{self.dataset_address}.user_followers` uf
+            WHERE user_id IS NULL
+        """ # 114,450,235
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
+
+    #def migrate_friend_id_lookups_table(self):
+    #    sql = ""
+    #    if self.destructive:
+    #        sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.friend_id_lookups`; "
+    #    sql += f"""
+    #        CREATE TABLE `{self.dataset_address}.friend_id_lookups` (
+    #            lookup_at TIMESTAMP,
+    #            counter INT64,
+    #            screen_name STRING,
+    #            user_id STRING,
+    #            message STRING
+    #        );
+    #    """
+    #    return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def friend_id_lookups_table(self):
+        return self.client.get_table(f"{self.dataset_address}.friend_id_lookups") # an API call (caches results for subsequent inserts)
+
+    def upload_friend_id_lookups(self, records):
+        return self.insert_records_in_batches(self.friend_id_lookups_table, records)
+
+
+
+
+
+
+
+    #
     # NLP
     #
 
