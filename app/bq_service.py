@@ -1025,6 +1025,25 @@ class BigQueryService():
     # NLP
     #
 
+    def fetch_user_details_v3_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id
+                ,user_created_at
+                ,tweet_count
+                -- ,screen_name_count
+                -- ,user_name_count
+                -- ,user_description_count as description_count
+                ,screen_names
+                ,user_names
+                ,user_descriptions as descriptions
+            FROM `{self.dataset_address}.user_details_v3`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
+
+
     #@property
     #@lru_cache(maxsize=None)
     #def statuses_table(self):
