@@ -1050,6 +1050,17 @@ class BigQueryService():
     #        sql += f" LIMIT {int(limit)}; "
     #    return self.execute_query(sql)
 
+    def fetch_follower_lists(self, sort=False, limit=None):
+        sql = f"""
+            SELECT user_screen_name ,follower_count ,follower_screen_names
+            FROM `{self.dataset_address}.user_follower_lists`
+        """
+        if sort:
+            sql += " ORDER BY 2 DESC " # takes a long time, beware
+        if limit:
+            sql += f" LIMIT {int(limit)}; "
+        return self.execute_query(sql)
+
     #
     # NLP
     #

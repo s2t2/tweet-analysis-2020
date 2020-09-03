@@ -50,8 +50,15 @@ DROP TABLE IF EXISTS impeachment_production.user_follower_lists;
 CREATE TABLE impeachment_production.user_follower_lists as (
     SELECT
         user_screen_name
-        ,ARRAY_AGG(DISTINCT follower_screen_name) as follower_screen_names
-    FROM impeachment_production.user_followers
-    GROUP BY 1
-);
+        ,ARRAY_LENGTH(follower_screen_names) as follower_count
+        ,follower_screen_names
+    FROM (
+        SELECT
+            user_screen_name
+            -- ,ARRAY_LENGTH(DISTINCT follower_screen_names) as follower_count -- can't use distinct here
+            ,ARRAY_AGG(DISTINCT follower_screen_name) as follower_screen_names
+        FROM impeachment_production.user_followers
+        GROUP BY 1
+    )
+); -- 4 min 17 sec - 117,437,748 distinct user screen names
 ```
