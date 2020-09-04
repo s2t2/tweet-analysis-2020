@@ -281,7 +281,6 @@ order by 3,1
 ```
 
 ```sql
-
 SELECT
   community_id
   ,sort_order
@@ -312,3 +311,41 @@ community_id	| sort_order |	user_id
 
 
 Now we're going to get a stratified random sample of their tweets...
+
+```sql
+SELECT l.community_id ,count(distinct l.user_id) as user_count, sum(l.community_score) as profile_tag_count
+  ,count(distinct t.status_id) as tweet_count
+FROM impeachment_production.user_2_community_assignments l
+JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = l.user_id
+GROUP BY 1
+```
+
+```sql
+SELECT
+  ul.user_id
+  ,ul.community_id
+  --,ul.community_score
+  ,t.status_id
+  ,t.status_text
+  ,t.created_at
+FROM impeachment_production.user_2_community_assignments ul
+JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
+WHERE ul.community_id = 1 -- 0
+LIMIT 10
+-- post to sheets
+```
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.2_community_labeled_tweets;
+CREATE TABLE impeachment_production.2_community_labeled_tweets as (
+  SELECT
+    ul.user_id
+    ,ul.community_id
+    ,ul.community_score
+    ,t.status_id
+    ,t.status_text
+    ,t.created_at
+  FROM impeachment_production.user_2_community_assignments ul
+  JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
+);
+```
