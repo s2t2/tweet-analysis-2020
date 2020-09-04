@@ -36,30 +36,3 @@ if __name__ == "__main__":
         matching_users = bq_service.fetch_users_by_profile_tag(red_tag)
         breakpoint()
         token_counter.update(tokens)
-
-
-
-
-
-
-WHEN '#RESIST'
-WHEN '#THERESISTANCE'
-WHEN '#RESISTANCE'
-WHEN '#FBR'
-WHEN '#VOTEBLUENOMATTERWHO'
-WHEN '#VOTEBLUE'
-WHEN '#BLUEWAVE2020'
-WHEN '#IMPEACHTRUMP'
-WHEN '#BIDEN2020'
-WHEN '#IMPEACHTRUMPNOW'
-WHEN '#METOO'
-WHEN '#IMPEACH'
-WHEN '#BLUEWAVE'
-WHEN '#VOTEBLUE2020'
-WHEN '#WTP2020'
-WHEN '#BLM'
-WHEN '#IMPEACHANDREMOVE'
-WHEN '#RESISTER'
-WHEN '#IMPOTUS'
-WHEN '#NOTMYPRESIDENT'
-WHEN '#DEMCAST
