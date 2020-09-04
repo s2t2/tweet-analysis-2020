@@ -1052,7 +1052,6 @@ class BigQueryService():
                 ,community_id
                 --,community_score
             FROM `{self.dataset_address}.2_community_labeled_tweets`
-            limit 10
         """
         if limit:
             sql += f" LIMIT {int(limit)}"
