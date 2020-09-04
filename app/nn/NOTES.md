@@ -1,7 +1,4 @@
-
-# Notes
-
-## Summary
+# Summary
 
 For each user, we examined their profiles to see if any of the community tags appear in their user names or descriptions. Of the original 3.6M users, 138,001 had community tag matches. Of the 138,001 users, 541 (0.4%) had tags from more than one community, and were excluded. The distribution of the remaining 137,460 users is below:
 
@@ -12,10 +9,9 @@ community_id	| user_count	| community_score
 
 For training the model, we will pick a random sample of equal size from each of these groups.
 
+# Notes
 
-
-
-## Queries
+## Dataset Labeling
 
 ```sql
 SELECT status_id, user_id, status_text, created_at
@@ -37,8 +33,6 @@ GROUP BY 1
 --ORDER BY 1
 limit 10
 ```
-
-## Migrations
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.user_details_v3;
@@ -94,7 +88,6 @@ CREATE TABLE impeachment_production.user_details_v3 as (
 )
 ```
 
-## Seeding
 
 Add mutually exclusive hashtags used by members of each community.
 
@@ -108,7 +101,6 @@ community_id,hashtag,description
 
 Upload the CSV to BigQuery as the "2_community_tags" table, where "2" is the number of communities you're using.
 
-## Queries and Migrations (Exploration)
 
 Labeling tweets...
 
@@ -270,3 +262,53 @@ FROM impeachment_production.user_details_v3 u
 JOIN impeachment_production.user_2_community_assignments l ON l.user_id = u.user_id
 -- downloading as CSV, and charting the distributions in tableau
 ```
+
+
+
+## Stratified Random Sampling
+
+```sql
+-- h/t: https://calogica.com/sql/2018/07/21/random-sampling-within-groups-snowflake-sql.html
+SELECT
+  community_id,
+  user_id,
+  row_number() OVER (
+    PARTITION BY community_id
+    ORDER BY RAND()
+   ) as random_sort
+FROM impeachment_production.user_2_community_assignments
+order by 3,1
+```
+
+```sql
+
+SELECT
+  community_id
+  ,sort_order
+  ,user_id
+FROM (
+  SELECT
+    community_id,
+    user_id,
+    row_number() OVER (
+      PARTITION BY community_id
+      ORDER BY RAND()
+     ) as sort_order
+  FROM impeachment_production.user_2_community_assignments
+)
+WHERE sort_order <= 3
+ORDER BY 2,1
+```
+
+
+community_id	| sort_order |	user_id
+--- | --- | ---
+0	| 1	| userA
+1	| 1	| userB
+0	| 2	| userC
+1	| 2	| userD
+0	| 3	| userE
+1	| 3	| userF
+
+
+Now we're going to get a stratified random sample of their tweets...

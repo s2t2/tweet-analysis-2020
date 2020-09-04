@@ -11,6 +11,23 @@ LIMIT = 100_000
 
 if __name__ == "__main__":
 
+
+
+
+    # TODO
+
+
+
+
+
+
+
+
+
+
+
+
+    exit()
     local_dirpath = os.path.join(DATA_DIR, "nn", "n_communities", str(2))
     os.makedirs(local_dirpath) # should already be there
 
