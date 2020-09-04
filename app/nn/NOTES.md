@@ -349,3 +349,31 @@ CREATE TABLE impeachment_production.2_community_labeled_tweets as (
   JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
 );
 ```
+
+
+```sql
+SELECT
+  community_id
+  ,sort_order
+  ,user_id
+  ,status_id
+  ,status_text
+FROM (
+  SELECT
+    community_id
+    ,user_id
+    ,status_id
+    ,status_text
+    ,row_number() OVER (
+      PARTITION BY community_id -- and day of status created_at
+      ORDER BY RAND()
+    ) as sort_order
+  FROM impeachment_production.2_community_labeled_tweets
+)
+WHERE sort_order <= 3
+-- ORDER BY 2,1
+
+-- Resources exceeded during query execution: The query could not be executed in the allotted memory. Peak usage: 129% of limit. Top memory consumer(s): sort operations used for analytic OVER() clauses: 98% other/unattributed: 2%
+```
+
+We can partition them in Python. Should be able to hold all ____ in memory.

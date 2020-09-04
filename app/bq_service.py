@@ -1025,23 +1025,38 @@ class BigQueryService():
     # NN (STRATIFIED RANDOM SAMPLING)
     #
 
-    def fetch_stratified_random_sample_of_user_community_labels(self, limit=1200):
+    #def fetch_stratified_random_sample_of_user_community_labels(self, limit=1200):
+    #    sql = f"""
+    #        SELECT
+    #            community_id
+    #            -- ,sort_order
+    #            ,user_id
+    #        FROM (
+    #        SELECT
+    #            community_id,
+    #            user_id,
+    #            row_number() OVER (PARTITION BY community_id ORDER BY RAND()) as sort_order
+    #        FROM `{self.dataset_address}.user_2_community_assignments`
+    #        )
+    #        WHERE sort_order <= {int(limit)}
+    #        -- ORDER BY 2,1
+    #    """
+    #    return self.execute_query(sql)
+
+
+    def fetch_labeled_tweets_in_batches(self, limit=None):
         sql = f"""
             SELECT
-                community_id
-                -- ,sort_order
-                ,user_id
-            FROM (
-            SELECT
-                community_id,
-                user_id,
-                row_number() OVER (PARTITION BY community_id ORDER BY RAND()) as sort_order
-            FROM `{self.dataset_address}.user_2_community_assignments`
-            )
-            WHERE sort_order <= {int(limit)}
-            -- ORDER BY 2,1
+                status_id
+                ,status_text
+                ,community_id
+                --,community_score
+            FROM `{self.dataset_address}.2_community_labeled_tweets`
+            limit 10
         """
-        return self.execute_query(sql)
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
 
     #
     # NLP

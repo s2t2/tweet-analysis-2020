@@ -1,55 +1,36 @@
 
-import os
-from collections import Counter
 
-from pandas import read_csv
+from pandas import DataFrame
+from sklearn.model_selection import train_test_split
 
 from app import DATA_DIR
+from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
 
-LIMIT = 100_000
 
 if __name__ == "__main__":
 
-
-
-
-    # TODO
-
-
-
-
-
-
-
-
-
-
-
-
-    exit()
-    local_dirpath = os.path.join(DATA_DIR, "nn", "n_communities", str(2))
-    os.makedirs(local_dirpath) # should already be there
-
-    tags_csv_filepath = os.path.join(local_dirpath, "community_tags.csv") # should already be there
-    tags_df = read_csv(tags_csv_filepath)
-    blue_tags = tags_df[tags_df["community_id"] == 0]["hashtag"].tolist()
-    red_tags = tags_df[tags_df["community_id"] == 1]["hashtag"].tolist()
-
     bq_service = BigQueryService()
 
-    ##results = []
-    ##for row in bq_service.fetch_user_details_v3_in_batches(limit=LIMIT):
-    ##    user_names = " | ".join(row["user_names"])
-    ##    descriptions = " | ".join(row["descriptions"])
-    ##    #results.append(dict(row))
-    ##    for red_tag in red_tags:
-    ##    results.append({**dict(row), **{"red_score": red_score, "blue_score:" blue_score}})
+    print("--------------------------")
+    tweets = []
+    for row in bq_service.fetch_labeled_tweets_in_batches():
+        tweets.append(dict(row))
+    print("LABELED TWEETS:", fmt_n(len(tweets)))
 
-    red_counter = Counter()
-    for red_tag in red_tags:
-        # get all users with that tag in their name or description
-        # count their user_ids
-        matching_users = bq_service.fetch_users_by_profile_tag(red_tag)
-        breakpoint()
-        token_counter.update(tokens)
+    tweets_df = DataFrame(tweets)
+    print(tweets_df.head())
+
+    stratify = tweets_df["community_id"] # population[['income', 'sex', 'age']]
+    train_df, test_df = train_test_split(tweets_df, stratify=stratify, test_size=0.2, random_state=99)
+    print("TEST/TRAIN SPLIT:", fmt_n(len(train_df)), fmt_n(len(test_df)))
+    del test_df # we don't want to see you no mo!
+
+    print("--------------------------")
+    print("TRAINING DATA...")
+    print(train_df.head())
+    print(train_df["community_id"].value_counts()) # should be equal for each class!
+    #raise ValueError("EXPECTING EQUAL NUMBER OF DATAPOINTS IN EACH COMMUNITY") unless both are the same
+    breakpoint()
+
+    #print("TRAIN/EVAL SPLIT:")
