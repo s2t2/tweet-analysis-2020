@@ -205,4 +205,3 @@ Grouping and aggregation, working with multi-indices:
 ## SKLearn
 
   + https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
-  + https://github.com/s2t2/titanic-survival-py/blob/3a5827ad5ce57ebaf12b21b31dfd38494b28bff6/app/importer.py
