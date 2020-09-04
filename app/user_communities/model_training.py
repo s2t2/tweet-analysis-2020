@@ -1,5 +1,6 @@
 
 import os
+import pickle
 
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
@@ -12,13 +13,13 @@ from sklearn.naive_bayes import MultinomialNB
 #from sklearn.pipeline import Pipeline
 #from sklearn.model_selection import GridSearchCV
 
-from app import DATA_DIR
+from app import DATA_DIR, seek_confirmation
 from app.job import Job
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
 
 LIMIT = os.getenv("LIMIT") # just used to get smaller datasets for development purposes
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="10000"))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
 
 def get_training_data():
     bq_service = BigQueryService()
@@ -52,10 +53,12 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("TRAINING DATA...")
-    print(len(train_df)) #> 800
+    print(fmt_n(len(train_df))) #> 800
     print(train_df.head())
     print(train_df["community_id"].value_counts()) # should be equal for each class!
     #raise ValueError("Expecting balanced training data") unless all counts are equal
+    print("TESTING DATA...")
+    print(test_df["community_id"].value_counts())
 
     print("--------------------------")
     print("VECTORIZING...")
@@ -73,6 +76,9 @@ if __name__ == "__main__":
     # BINARY CLASSIFIERS
     #
 
+    MODELS_DIRPATH = os.path.join(DATA_DIR, "user_communities", "n_communities", str(2), "tweet_classifier", "models")
+    os.makedirs(MODELS_DIRPATH)
+
     print("--------------------------")
     print("LOGISTIC REGRESSION...")
 
@@ -87,6 +93,10 @@ if __name__ == "__main__":
     test_score = accuracy_score(test_labels, test_predictions)
     print("ACCY (TEST):", test_score) #> 0.935
 
+    print("SAVING/OVERWRITING (BEST) MODEL...")
+    with open(os.path.join(MODELS_DIRPATH, "logistic_regression.gpickle"), "wb") as f:
+        pickle.dump(clf, f)
+
     print("--------------------------")
     print("NAIVE BAYES (MULTINOMIAL)...")
 
@@ -100,3 +110,7 @@ if __name__ == "__main__":
     test_predictions = clf.predict(test_matrix)
     test_score = accuracy_score(test_labels, test_predictions)
     print("ACCY (TEST):", test_score) #> 0.935
+
+    print("SAVING/OVERWRITING (BEST) MODEL...")
+    with open(os.path.join(MODELS_DIRPATH, "multinomial_nb.gpickle"), "wb") as f:
+        pickle.dump(clf, f)
