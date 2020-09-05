@@ -79,14 +79,6 @@ CREATE TABLE impeachment_production.user_2_community_assignments as (
 )
 ```
 
-Of the original 3.6M users, 138,001 had community tag matches. Of these 138,001 users, 541 (0.4%) had tags from more than one community, and were excluded. The distribution of the remaining 137,460 users is below:
-
-community_id	| user_count	| community_score
----             | ---           | ---
-0	            | 59792	        | 90645
-1	            | 77668	        | 166383
-
-
 Finally apply these user community labels to their tweets:
 
 ```sql
