@@ -1022,23 +1022,8 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # NLP
+    # NLP (BASILICA)
     #
-
-    #@property
-    #@lru_cache(maxsize=None)
-    #def statuses_table(self):
-    #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
-
-    #def destructively_migrate_basilica_embeddings_table(self):
-    #    sql = f"""
-    #        DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
-    #        CREATE TABLE `{self.dataset_address}.basilica_embeddings` (
-    #            status_id INT64,
-    #            embedding ARRAY<FLOAT64>
-    #        );
-    #    """
-    #    return self.execute_query(sql)
 
     @property
     @lru_cache(maxsize=None)
@@ -1066,6 +1051,23 @@ class BigQueryService():
         else:
             print("FETCHING STATUSES...")
             return self.execute_query(sql)
+
+    #
+    # NLP (CUSTOM)
+    #
+
+    def fetch_labeled_tweets_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,community_id
+                --,community_score
+            FROM `{self.dataset_address}.2_community_labeled_tweets`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
 
 
 if __name__ == "__main__":

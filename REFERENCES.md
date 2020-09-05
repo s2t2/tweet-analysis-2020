@@ -201,3 +201,10 @@ Grouping and aggregation, working with multi-indices:
 ## Python Lists and Generators
 
   + https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+
+## SKLearn
+
+  + https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
