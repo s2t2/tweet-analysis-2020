@@ -1,6 +1,5 @@
 
 import os
-import pickle
 
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
@@ -17,6 +16,7 @@ from app import DATA_DIR, seek_confirmation
 from app.job import Job
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
+from app.nlp.model_storage import save_model, MODELS_DIRPATH
 
 LIMIT = os.getenv("LIMIT") # just used to get smaller datasets for development purposes
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
@@ -76,7 +76,6 @@ if __name__ == "__main__":
     # BINARY CLASSIFIERS
     #
 
-    MODELS_DIRPATH = os.path.join(DATA_DIR, "user_communities", "n_communities", str(2), "tweet_classifier", "models")
     os.makedirs(MODELS_DIRPATH)
 
     print("--------------------------")
@@ -94,8 +93,8 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    with open(os.path.join(MODELS_DIRPATH, "logistic_regression.gpickle"), "wb") as f:
-        pickle.dump(clf, f)
+    local_filepath = os.path.join(MODELS_DIRPATH, "logistic_regression.gpickle")
+    save_model(clf, local_filepath)
 
     print("--------------------------")
     print("NAIVE BAYES (MULTINOMIAL)...")
@@ -112,5 +111,5 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    with open(os.path.join(MODELS_DIRPATH, "multinomial_nb.gpickle"), "wb") as f:
-        pickle.dump(clf, f)
+    local_filepath = os.path.join(MODELS_DIRPATH, "multinomial_nb.gpickle")
+    save_model(clf, local_filepath)
