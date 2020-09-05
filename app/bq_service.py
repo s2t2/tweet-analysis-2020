@@ -1022,78 +1022,8 @@ class BigQueryService():
         return self.execute_query(sql)
 
     #
-    # NN (STRATIFIED RANDOM SAMPLING)
+    # NLP (BASILICA)
     #
-
-    #def fetch_stratified_random_sample_of_user_community_labels(self, limit=1200):
-    #    sql = f"""
-    #        SELECT
-    #            community_id
-    #            -- ,sort_order
-    #            ,user_id
-    #        FROM (
-    #        SELECT
-    #            community_id,
-    #            user_id,
-    #            row_number() OVER (PARTITION BY community_id ORDER BY RAND()) as sort_order
-    #        FROM `{self.dataset_address}.user_2_community_assignments`
-    #        )
-    #        WHERE sort_order <= {int(limit)}
-    #        -- ORDER BY 2,1
-    #    """
-    #    return self.execute_query(sql)
-
-
-    def fetch_labeled_tweets_in_batches(self, limit=None):
-        sql = f"""
-            SELECT
-                status_id
-                ,status_text
-                ,community_id
-                --,community_score
-            FROM `{self.dataset_address}.2_community_labeled_tweets`
-        """
-        if limit:
-            sql += f" LIMIT {int(limit)}"
-        return self.execute_query_in_batches(sql)
-
-    #
-    # NLP
-    #
-
-    def fetch_user_details_v3_in_batches(self, limit=None):
-        sql = f"""
-            SELECT
-                user_id
-                ,user_created_at
-                ,tweet_count
-                -- ,screen_name_count
-                -- ,user_name_count
-                -- ,user_description_count as description_count
-                ,screen_names
-                ,user_names
-                ,user_descriptions as descriptions
-            FROM `{self.dataset_address}.user_details_v3`
-        """
-        if limit:
-            sql += f" LIMIT {int(limit)}"
-        return self.execute_query_in_batches(sql)
-
-
-    #@property
-    #@lru_cache(maxsize=None)
-    #def statuses_table(self):
-    #    return self.client.get_table(f"{self.dataset_address}.statuses") # an API call (caches results for subsequent inserts)
-
-    #def destructively_migrate_basilica_embeddings_table(self):
-    #    sql = f"""
-    #        DROP TABLE IF EXISTS `{self.dataset_address}.basilica_embeddings`;
-    #        CREATE TABLE `{self.dataset_address}.basilica_embeddings` (
-    #            status_id INT64,
-    #            embedding ARRAY<FLOAT64>
-    #        );
-    #    """
-    #    return self.execute_query(sql)
 
     @property
     @lru_cache(maxsize=None)
@@ -1121,6 +1051,23 @@ class BigQueryService():
         else:
             print("FETCHING STATUSES...")
             return self.execute_query(sql)
+
+    #
+    # NLP (CUSTOM)
+    #
+
+    def fetch_labeled_tweets_in_batches(self, limit=None):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,community_id
+                --,community_score
+            FROM `{self.dataset_address}.2_community_labeled_tweets`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query_in_batches(sql)
 
 
 if __name__ == "__main__":
