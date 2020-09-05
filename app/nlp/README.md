@@ -1,9 +1,9 @@
 
 # Natural Language Processing (NLP)
 
-## Prep (Labeling Tweets)
+## Tweet Labeling
 
-Identify a list of around ten hashtags used by members of each community, and store this information in a CSV file:
+Identify a list of around ten hashtags used by members of each of N communities (i.e. two), and store this information in a CSV file:
 
 ```csv
 community_id,hashtag,description
@@ -17,7 +17,9 @@ community_id,hashtag,description
 
 Upload this CSV file to BigQuery as the "2_community_tags" table.
 
-A table of user information, with all their names and descriptions represented as a single pipe-concatenated string.
+### Migrations
+
+A table of user information, with all their names and descriptions represented as a single pipe-concatenated string:
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.user_details_v3;
@@ -77,7 +79,15 @@ CREATE TABLE impeachment_production.user_2_community_assignments as (
 )
 ```
 
-Use the user labels to label tweets by those users. We'll use these labeled tweets as the training data.
+Of the original 3.6M users, 138,001 had community tag matches. Of these 138,001 users, 541 (0.4%) had tags from more than one community, and were excluded. The distribution of the remaining 137,460 users is below:
+
+community_id	| user_count	| community_score
+---             | ---           | ---
+0	            | 59792	        | 90645
+1	            | 77668	        | 166383
+
+
+Finally apply these user community labels to their tweets:
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.2_community_labeled_tweets;
@@ -93,6 +103,8 @@ CREATE TABLE impeachment_production.2_community_labeled_tweets as (
   JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
 );
 ```
+
+We'll use these labeled tweets as the training data.
 
 ## Usage
 
