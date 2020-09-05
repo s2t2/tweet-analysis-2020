@@ -205,3 +205,6 @@ Grouping and aggregation, working with multi-indices:
 ## SKLearn
 
   + https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
