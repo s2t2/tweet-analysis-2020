@@ -10,42 +10,18 @@ from nltk.corpus import stopwords
 from keras.preprocessing import sequence
 import sys
 
+def my_replace(match):
+    match = match.group()
+    return ' '.join(segment(match))
 
-# In[240]:
-def get_xy(n, save = False):
-    '''
-    n = size of the data you want to process
-    save = Whether you want the generated X and Y to be saved in you directory for future use.
-    '''
+def process_rep(twt):
+    try:
+        return(re.sub('#\w+', my_replace, twt))
+    except Exception as e:
+        #print(e)
+        return(None)
 
-    data = pd.read_csv('Data/modeling_1.csv', nrows=n, index_col = 0)
-
-
-    print('size of data is: ', data.shape)
-
-
-    # ## wordsegment
-    load()
-
-    def my_replace(match):
-        match = match.group()
-        return ' '.join(segment(match))
-
-    def process_rep(twt):
-        try:
-            return(re.sub('#\w+', my_replace, twt))
-        except Exception as e:
-            #print(e)
-            return(None)
-
-    print('segmenting ...')
-    data['tweet_s'] = data.tweet.apply(process_rep)
-
-
-
-    # ## Cleaning
-
-    def clean(twt):
+ def clean(twt):
         #print('Before :', twt)
         #remove punctutation
         try:
@@ -60,11 +36,47 @@ def get_xy(n, save = False):
             #print(e)
             return(None)
 
+def transform(twt, seq_len):
+    #twt = clean(twt).split()
+    l = []
+    for i in twt:
+        try:
+            l.append(1 + dictionary.token2id[i])
+        except:
+            l.append(0)
+    twt = sequence.pad_sequences([l], maxlen=seq_len)
+    return(twt)
 
-    # ### For X
+ def transform_s(twt, seq_len):
+        #twt = clean(twt).split()
+        l = []
+        for i in twt:
+            try:
+                l.append(1 + dictionary_s.token2id[i])
+            except Exception as e:
+                print(e)
+                l.append(0)
+        twt = sequence.pad_sequences([l], maxlen=seq_len)
+        return(twt)
 
+def get_xy(n, save=False):
+    '''
+    n = size of the data you want to process
+    save = Whether you want the generated X and Y to be saved in you directory for future use.
+    '''
 
+    data = pd.read_csv('Data/modeling_1.csv', nrows=n, index_col = 0)
+    print('size of data is: ', data.shape)
 
+    # ## wordsegment
+    load()
+
+    print('segmenting ...')
+    data['tweet_s'] = data.tweet.apply(process_rep)
+
+    #
+    # X
+    #
 
     print('cleaning ..')
     bar = progressbar.ProgressBar()
@@ -75,10 +87,6 @@ def get_xy(n, save = False):
         if a != None:
             l.append([a.split(), twt['rep/dem']])
 
-
-
-    # In[247]:
-
     print('making dictionaries for non-segment')
     d_id = pd.DataFrame(l, columns = ['twt', 'rep/dem'])
     dictionary = corpora.Dictionary(d_id.twt)
@@ -88,11 +96,9 @@ def get_xy(n, save = False):
     dictionary_size = len(dictionary.keys())
     print("dictionary size: ", dictionary_size)
 
-
-    # ### For X_s
-
-    # In[248]:
-
+    #
+    # X-SEGMENTED
+    #
 
     print('cleaning ..')
     bar = progressbar.ProgressBar()
@@ -104,8 +110,6 @@ def get_xy(n, save = False):
             l.append([a.split(), twt['rep/dem']])
 
 
-    # In[249]:
-
     print('making dictionaries for segment')
     d_id_s = pd.DataFrame(l, columns = ['twt', 'rep/dem'])
     dictionary_s = corpora.Dictionary(d_id_s.twt)
@@ -113,8 +117,6 @@ def get_xy(n, save = False):
     print('dic made')
     dictionary_size_s = len(dictionary_s.keys())
     print("dictionary size: ", dictionary_size_s)
-
-    #get seq_len
 
     mean_length = d_id.twt.apply(lambda x: len(x)).mean()
     sd_length = d_id.twt.apply(lambda x: len(x)).std()
@@ -129,41 +131,8 @@ def get_xy(n, save = False):
 
     print('the sequence length we will use is ', seq_len)
 
-
-    def transform(twt, seq_len):
-        #twt = clean(twt).split()
-        l = []
-        for i in twt:
-            try:
-                l.append(1 + dictionary.token2id[i])
-            except:
-                l.append(0)
-        twt = sequence.pad_sequences([l], maxlen=seq_len)
-        return(twt)
-
-
     print('transforming non-segmented to numerical')
     d_id.twt = d_id.twt.apply(lambda x: transform(x, seq_len))
-
-
-
-    # In[254]:
-
-
-    def transform_s(twt, seq_len):
-        #twt = clean(twt).split()
-        l = []
-        for i in twt:
-            try:
-                l.append(1 + dictionary_s.token2id[i])
-            except Exception as e:
-                print(e)
-                l.append(0)
-        twt = sequence.pad_sequences([l], maxlen=seq_len)
-        return(twt)
-
-
-    # In[255]:
 
     print('transforming segmented to numerical')
     d_id_s.twt = d_id_s.twt.apply(lambda x: transform_s(x, seq_len))
@@ -190,6 +159,3 @@ def get_xy(n, save = False):
         np.save('Y_s', Y_s)
 
     return(X, X_s, Y, dictionary_size, dictionary_size_s, seq_len)
-
-
-#get_xy(n = 100, save = False)
