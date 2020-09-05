@@ -376,4 +376,4 @@ WHERE sort_order <= 3
 -- Resources exceeded during query execution: The query could not be executed in the allotted memory. Peak usage: 129% of limit. Top memory consumer(s): sort operations used for analytic OVER() clauses: 98% other/unattributed: 2%
 ```
 
-We can partition them in Python. Should be able to hold all ____ in memory.
+Hmm OK. We can partition them in Python. Should be able to hold all in memory.
