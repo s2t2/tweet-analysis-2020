@@ -72,11 +72,11 @@ python -m app.basilica_service
 Then fetch embeddings for each status text and store them in an "embeddings" table on BigQuery:
 
 ```sh
-APP_ENV="prodlike" MIN_VAL="0.0" MAX_VAL="0.1" LIMIT=5000 BATCH_SIZE=500 python -m app.nlp.basilica_embedder
+APP_ENV="prodlike" MIN_VAL="0.0" MAX_VAL="0.1" LIMIT=5000 BATCH_SIZE=500 python -m app.nlp.basilica.embedder
 ```
 
 Alternatively there is a parallel processing version:
 
 ```sh
-APP_ENV="prodlike" MIN_VAL="0.0" MAX_VAL="0.1" LIMIT=5000 BATCH_SIZE=500 MAX_THREADS=5 python -m app.nlp.basilica_embedder_parallel
+APP_ENV="prodlike" MIN_VAL="0.0" MAX_VAL="0.1" LIMIT=5000 BATCH_SIZE=500 MAX_THREADS=5 python -m app.nlp.basilica.embedder_parallel
 ```

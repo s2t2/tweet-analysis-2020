@@ -3,7 +3,7 @@ import os
 from app.decorators.datetime_decorators import logstamp
 from app.job import Job
 from app.bq_service import BigQueryService
-from app.basilica_service import BasilicaService
+from app.nlp.basilica.service import BasilicaService
 
 MIN_VAL = float(os.getenv("MIN_VAL", default="0.0"))
 MAX_VAL = float(os.getenv("MAX_VAL", default="1.0"))
