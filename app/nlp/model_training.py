@@ -16,7 +16,7 @@ from app import DATA_DIR, seek_confirmation
 from app.job import Job
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.nlp.model_storage import save_model, MODELS_DIRPATH
+from app.nlp.model_storage import ModelStorage, MODELS_DIRPATH
 
 LIMIT = os.getenv("LIMIT") # just used to get smaller datasets for development purposes
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
@@ -72,11 +72,12 @@ if __name__ == "__main__":
     print("FEATURE MATRIX (TRAIN):", type(training_matrix), training_matrix.shape) # sparse (800, 3842)
     print("FEATURE MATRIX (TEST):", type(test_matrix), test_matrix.shape) # sparse (800, 3842)
 
+
+
+
     #
     # BINARY CLASSIFIERS
     #
-
-    os.makedirs(MODELS_DIRPATH)
 
     print("--------------------------")
     print("LOGISTIC REGRESSION...")
@@ -93,8 +94,9 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    local_filepath = os.path.join(MODELS_DIRPATH, "logistic_regression.gpickle")
-    save_model(clf, local_filepath)
+    storage = ModelStorage(dirpath=os.path.join(MODELS_DIRPATH, "logistic_regression"))
+    storage.save_vectorizer(tv)
+    storage.save_model(clf)
 
     print("--------------------------")
     print("NAIVE BAYES (MULTINOMIAL)...")
@@ -111,5 +113,6 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    local_filepath = os.path.join(MODELS_DIRPATH, "multinomial_nb.gpickle")
-    save_model(clf, local_filepath)
+    storage = ModelStorage(dirpath=os.path.join(MODELS_DIRPATH, "multinomial_nb"))
+    storage.save_vectorizer(tv)
+    storage.save_model(clf)
