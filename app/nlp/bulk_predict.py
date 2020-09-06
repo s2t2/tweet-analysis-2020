@@ -12,17 +12,16 @@ BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
 
 if __name__ == "__main__":
 
-    bq_service = BigQueryService()
-
-    print("DESTROYING PREDICTIONS TABLE?")
-    seek_confirmation()
-
-    print("DESTROYING PREDICTIONS TABLE...")
-    bq_service.destructively_migrate_2_community_predictions_table()
-
     storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{MODEL_NAME}")
     tv = storage.load_vectorizer()
     clf = storage.load_model()
+
+    bq_service = BigQueryService()
+
+    print("DESTROYING PREDICTIONS TABLE???")
+    seek_confirmation()
+    print("DESTROYING PREDICTIONS TABLE...")
+    bq_service.destructively_migrate_2_community_predictions_table()
 
     job = Job()
     job.start()
