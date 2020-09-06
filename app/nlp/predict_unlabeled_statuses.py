@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     bq_service = BigQueryService()
 
+    print("DESTROYING PREDICTIONS TABLE...")
     bq_service.destructively_migrate_2_community_predictions_table()
 
     storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{MODEL_NAME}")
