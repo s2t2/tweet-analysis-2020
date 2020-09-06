@@ -377,3 +377,47 @@ WHERE sort_order <= 3
 ```
 
 Hmm OK. We can partition them in Python. Should be able to hold all in memory.
+
+## Prediction Analysis
+
+Run this query and download the CSV file and import into Tableau:
+
+```sql
+SELECT t.user_id ,upper(t.user_screen_name) as screen_name
+   ,t.status_id ,t.status_text, t.created_at, p.predicted_community_id
+FROM impeachment_production.2_community_predictions p --  53,615,945
+JOIN impeachment_production.tweets t on cast(t.status_id as int64) = p.status_id
+WHERE t.created_at BETWEEN '2019-12-12' AND '2020-02-10' -- 46,772,345
+
+-- limit 10
+```
+
+> Table ... too large to be exported to a single file. Specify a uri including a * to shard export. See 'Exporting data into one or more files' in https://cloud.google.com/bigquery/docs/exporting-data.
+
+We can download just the predictions to CSV:
+
+```sql
+select status_id ,predicted_community_id
+from impeachment_production.2_community_predictions
+```
+
+And import them into PG locally, as the "2_community_predictions" table. And after downloading tweets via the PG Pipeline, should be able to process this local PG query:
+
+
+```sql
+SELECT t.user_id ,upper(t.user_screen_name) as screen_name
+   ,t.status_id ,t.status_text, t.created_at, p.predicted_community_id
+FROM 2_community_predictions p --  53,615,945
+JOIN tweets t on cast(t.status_id as int64) = p.status_id
+WHERE t.created_at BETWEEN '2019-12-12' AND '2020-02-10' -- 46,772,345
+```
+
+And export that to CSV for Tableau.
+
+JK the community_predictions table doesn't fully download, is capped at 1GB. So let's use the PG pipeline:
+
+
+```sh
+#USERS_LIMIT=1000 BATCH_SIZE=100 python -m app.pg_pipeline.community_predictions
+BATCH_SIZE=100000 python -m app.pg_pipeline.community_predictions
+```

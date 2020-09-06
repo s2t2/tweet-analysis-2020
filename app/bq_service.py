@@ -1100,6 +1100,17 @@ class BigQueryService():
     def upload_predictions_in_batches(self, records):
         return self.insert_records_in_batches(self.community_predictions_table, records)
 
+    def fetch_predictions(self, limit=None):
+        sql = f"""
+            SELECT status_id, predicted_community_id
+            FROM `{self.dataset_address}.2_community_predictions`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+            return self.execute_query(sql)
+        else:
+            return self.execute_query_in_batches(sql)
+
 
 if __name__ == "__main__":
 

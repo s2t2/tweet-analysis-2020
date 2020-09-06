@@ -26,6 +26,8 @@ Working with BigQuery:
   + https://stackoverflow.com/a/46012467/670433
   + https://vverma.net/querying-arrays-in-bigquery.html
   + https://stackoverflow.com/questions/53737407/resources-exceeded-bigquery/53739742
+  + https://cloud.google.com/bigquery/docs/exporting-data#bigquery_extract_table_compressed-python
+
 
 ## Twitter Resources
 
