@@ -14,6 +14,9 @@ if __name__ == "__main__":
 
     bq_service = BigQueryService()
 
+    print("DESTROYING PREDICTIONS TABLE?")
+    seek_confirmation()
+
     print("DESTROYING PREDICTIONS TABLE...")
     bq_service.destructively_migrate_2_community_predictions_table()
 
@@ -40,7 +43,6 @@ if __name__ == "__main__":
             ids_batch = []
             statuses_batch = []
             batch = []
-
 
     if len(statuses_batch) > 0:
         results = clf.predict(tv.transform(statuses_batch))
