@@ -113,3 +113,9 @@ Train some models on the labeled training data:
 
 APP_ENV="prodlike" BATCH_SIZE=25000 python -m app.nlp.model_training
 ```
+
+Save the best model as "current_best" and use the trained model to make ad-hoc predictions:
+
+```sh
+python -m app.nlp.client
+``

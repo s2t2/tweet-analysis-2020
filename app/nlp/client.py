@@ -1,12 +1,13 @@
 import os
 
+from app import seek_confirmation
 from app.nlp.model_storage import ModelStorage, MODELS_DIRPATH
 
 MODEL_NAME = os.getenv("MODEL_NAME", default="current_best")
 
 if __name__ == "__main__":
 
-    storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{MODEL_NAME")
+    storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{MODEL_NAME}")
 
     tv = storage.load_vectorizer()
     print(type(tv))
@@ -15,14 +16,15 @@ if __name__ == "__main__":
     clf = storage.load_model()
     print(type(clf))
 
-    breakpoint()
 
-    status_text = "Hello 123"
+    while True:
 
-    matrix = tv.transform(status_text)
-    print(matrix)
+        status_text = input("Status Text: ") or "Hello 123"
 
-    prediction = clf.predict(matrix)
-    print(prediction)
+        matrix = tv.transform([status_text])
+        #print(matrix)
 
-    breakpoint()
+        result = clf.predict(matrix)
+        print("PREDICTED COMMUNITY ID:", result[0])
+
+        seek_confirmation()

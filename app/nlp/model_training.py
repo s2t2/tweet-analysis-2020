@@ -103,6 +103,8 @@ if __name__ == "__main__":
     #    storage.save_vectorizer(tv)
     #    storage.save_model(clf)
 
+    # TODO: write accy scores to scores.json file or something
+
     print("--------------------------")
     print("LOGISTIC REGRESSION...")
 
