@@ -35,7 +35,7 @@ if __name__ == "__main__":
         job.counter += 1
         if job.counter % BATCH_SIZE == 0:
             results = clf.predict(tv.transform(statuses_batch))
-            batch = [{"status_id": status_id, "community_id":int(i)} for status_id, i in zip(ids_batch, results)]
+            batch = [{"status_id": s, "predicted_community_id": int(i)} for s, i in zip(ids_batch, results)]
             bq_service.upload_predictions_in_batches(batch)
 
             job.progress_report()
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     if len(statuses_batch) > 0:
         results = clf.predict(tv.transform(statuses_batch))
-        batch = [{"status_id": status_id, "community_id":int(i)} for status_id, i in zip(ids_batch, results)]
+        batch = [{"status_id": s, "predicted_community_id": int(i)} for s, i in zip(ids_batch, results)]
         bq_service.upload_predictions_in_batches(batch)
 
         job.progress_report()
