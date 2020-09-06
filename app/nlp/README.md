@@ -124,6 +124,6 @@ python -m app.nlp.client
 Or to score all the unseen tweets:
 
 ```sh
-# LIMIT=10000 BATCH_SIZE=1000 python -m app.nlp.upload_predictions
-APP_ENV="prodlike" python -m app.nlp.upload_predictions
+# LIMIT=10000 BATCH_SIZE=1000 python -m app.nlp.bulk_predict
+APP_ENV="prodlike" python -m app.nlp.bulk_predict
 ```

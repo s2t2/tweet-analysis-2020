@@ -1069,9 +1069,9 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)}"
         return self.execute_query_in_batches(sql)
 
-    def fetch_unlabeled_statuses_in_batches(self, selections="s.status_id, s.status_text", limit=None):
+    def fetch_unlabeled_statuses_in_batches(self, limit=None):
         sql = f"""
-            SELECT {selections}
+            SELECT s.status_id, s.status_text
             FROM `{self.dataset_address}.statuses` s
             LEFT JOIN `{self.dataset_address}.2_community_labeled_tweets` l ON l.status_id = s.status_id
             WHERE l.status_id IS NULL
@@ -1089,7 +1089,7 @@ class BigQueryService():
                 status_id INT64,
                 predicted_community_id INT64
             );
-        """ # 1,976,670,168 rows WAT
+        """
         return self.execute_query(sql)
 
     @property
