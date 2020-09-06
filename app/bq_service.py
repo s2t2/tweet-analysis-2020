@@ -1069,6 +1069,37 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)}"
         return self.execute_query_in_batches(sql)
 
+    def fetch_unlabeled_statuses_in_batches(self, selections="s.status_id, s.status_text", limit=None):
+        sql = f"""
+            SELECT {selections}
+            FROM `{self.dataset_address}.statuses` s
+            LEFT JOIN `{self.dataset_address}.2_community_labeled_tweets` l ON l.status_id = s.status_id
+            WHERE l.status_id IS NULL
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+            return self.execute_query(sql)
+        else:
+            return self.execute_query_in_batches(sql)
+
+    def destructively_migrate_2_community_predictions_table(self):
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.2_community_predictions`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.2_community_predictions` (
+                status_id INT64,
+                predicted_community_id INT64
+            );
+        """ # 1,976,670,168 rows WAT
+        return self.execute_query(sql)
+
+    @property
+    @lru_cache(maxsize=None)
+    def community_predictions_table(self):
+        return self.client.get_table(f"{self.dataset_address}.2_community_predictions") # an API call (caches results for subsequent inserts)
+
+    def upload_predictions_in_batches(self, records):
+        return self.insert_records_in_batches(self.community_predictions_table, records)
+
 
 if __name__ == "__main__":
 

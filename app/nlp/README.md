@@ -110,12 +110,20 @@ Train some models on the labeled training data:
 
 ```py
 #LIMIT=100000 BATCH_SIZE=1000 python -m app.nlp.model_training
-
 APP_ENV="prodlike" BATCH_SIZE=25000 python -m app.nlp.model_training
 ```
 
-Save the best model as "current_best" and use the trained model to make ad-hoc predictions:
+Save the best model as "current_best".
+
+And use the trained model to make ad-hoc predictions:
 
 ```sh
 python -m app.nlp.client
-``
+```
+
+Or to score all the unseen tweets:
+
+```sh
+# LIMIT=10000 BATCH_SIZE=1000 python -m app.nlp.upload_predictions
+APP_ENV="prodlike" python -m app.nlp.upload_predictions
+```
