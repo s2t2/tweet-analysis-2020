@@ -401,23 +401,82 @@ select status_id ,predicted_community_id
 from impeachment_production.2_community_predictions
 ```
 
-And import them into PG locally, as the "2_community_predictions" table. And after downloading tweets via the PG Pipeline, should be able to process this local PG query:
-
-
-```sql
-SELECT t.user_id ,upper(t.user_screen_name) as screen_name
-   ,t.status_id ,t.status_text, t.created_at, p.predicted_community_id
-FROM 2_community_predictions p --  53,615,945
-JOIN tweets t on cast(t.status_id as int64) = p.status_id
-WHERE t.created_at BETWEEN '2019-12-12' AND '2020-02-10' -- 46,772,345
-```
-
-And export that to CSV for Tableau.
-
-JK the community_predictions table doesn't fully download, is capped at 1GB. So let's use the PG pipeline:
+JK the community_predictions table doesn't fully download, is capped at 1GB. So let's use the PG pipeline, And import them into PG locally, as the "2_community_predictions" table:
 
 
 ```sh
-#USERS_LIMIT=1000 BATCH_SIZE=100 python -m app.pg_pipeline.community_predictions
-BATCH_SIZE=100000 python -m app.pg_pipeline.community_predictions
+#PG_DESTRUCTIVE=true USERS_LIMIT=1000 BATCH_SIZE=100 python -m app.pg_pipeline.community_predictions
+PG_DESTRUCTIVE=true BATCH_SIZE=100000 python -m app.pg_pipeline.community_predictions
 ```
+
+And after downloading tweets and predictions via the PG Pipeline, should be able to execute this PG query:
+
+```sql
+CREATE TABLE predictions_export as (
+SELECT
+  t.user_id
+  ,upper(t.user_screen_name) as screen_name
+  ,t.status_id
+  ,t.status_text
+  ,t.created_at
+  ,p.predicted_community_id
+FROM "2_community_predictions" p --  53,615,945
+JOIN tweets t on t.status_id = p.status_id
+WHERE t.created_at BETWEEN '2019-12-12' AND '2020-02-10' -- 46,772,345
+)
+```
+
+And export that table to CSV and import to Tableau.
+
+JK Tableau trial expired and its too expensive to justify. So let's just query to learn more...
+
+
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_screen_names_most_followed;
+CREATE TABLE impeachment_production.user_screen_names_most_followed as (
+  SELECT
+      uff.friend_name as user_screen_name
+      ,count(distinct uff.user_id) as follower_id_count
+      ,count(distinct uff.screen_name) as follower_screen_name_count
+  FROM impeachment_production.user_friends_flat uff
+  GROUP BY 1
+  -- ORDER BY 2 desc
+  -- LIMIT 100000
+);
+```
+
+
+```sql
+SELECT
+  sn.user_screen_name
+  ,max(sn.follower_id_count) as follower_count
+  ,count(distinct t.status_id) as tweet_count
+  ,sum(case when t.retweet_status_id is not null then 1 else 0 end) as rt_count
+FROM impeachment_production.user_screen_names_most_followed sn
+JOIN impeachment_production.tweets t on upper(t.user_screen_name) = sn.user_screen_name
+
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 500
+```
+
+
+```sql
+SELECT
+  sn.user_screen_name
+  ,max(sn.follower_id_count) as follower_count
+  ,count(distinct t.status_id) as tweet_count
+  ,sum(case when t.retweet_status_id is not null then 1 else 0 end) as rt_count
+  ,avg(p.predicted_community_id) as mean_opinion_score
+
+FROM impeachment_production.user_screen_names_most_followed sn
+JOIN impeachment_production.tweets t on upper(t.user_screen_name) = sn.user_screen_name
+LEFT JOIN impeachment_production.2_community_predictions p on p.status_id = cast(t.status_id as int64)
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 500
+```
+
+Doing charts and graphs in Google Sheets wow.

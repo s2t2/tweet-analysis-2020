@@ -149,6 +149,7 @@ autopep8 --in-place --aggressive --recursive app/bot
   + [Custom Bins for Histograms of Continuous Variables](https://www.rigordatasolutions.com/post/2018/08/11/tableau-charts-histogram-graph)
   + [Filter Top N Rows per Category](https://kb.tableau.com/articles/howto/finding-the-top-n-within-a-category)
   + [Converting Timezones](https://community.tableau.com/s/question/0D54T00000C6L60/convert-utc-timezone-to-est-timezone)
+  + [Completely Uninstalling](https://kb.tableau.com/articles/howto/completely-removing-tableau-desktop)
 
 ## Pandas
 
