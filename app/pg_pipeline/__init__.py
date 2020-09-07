@@ -7,7 +7,7 @@ from app import APP_ENV
 from app.decorators.datetime_decorators import logstamp
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail #, BotFollower
+from app.pg_pipeline.models import BoundSession, db, Tweet, UserFriend, UserDetail, RetweeterDetail, CommunityPrediction #, BotFollower
 # todo: inherit start and end from Job class
 
 load_dotenv()
@@ -236,6 +236,23 @@ class Pipeline():
     #            self.batch = []
     #
     #    self.end_job()
+
+    def download_community_predictions(self, start_at=None, end_at=None):
+        self.start_job()
+        self.destructively_migrate(CommunityPrediction)
+
+        print(logstamp(), "DATA FLOWING...")
+        for row in self.bq_service.fetch_predictions(limit=self.tweets_limit):
+            self.batch.append(dict(row))
+
+            self.counter+=1
+            if len(self.batch) >= self.batch_size:
+                print(logstamp(), fmt_n(self.counter), "SAVING BATCH...")
+                self.pg_session.bulk_insert_mappings(CommunityPrediction, self.batch)
+                self.pg_session.commit()
+                self.batch = []
+
+        self.end_job()
 
 
 if __name__ == "__main__":

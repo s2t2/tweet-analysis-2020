@@ -16,7 +16,7 @@ from app import DATA_DIR, seek_confirmation
 from app.job import Job
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService
-from app.nlp.model_storage import save_model, MODELS_DIRPATH
+from app.nlp.model_storage import ModelStorage, MODELS_DIRPATH
 
 LIMIT = os.getenv("LIMIT") # just used to get smaller datasets for development purposes
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
@@ -76,7 +76,34 @@ if __name__ == "__main__":
     # BINARY CLASSIFIERS
     #
 
-    os.makedirs(MODELS_DIRPATH)
+    #classifiers = [
+    #    {"model": LogisticRegression(random_state=99), "dirpath": f"{MODELS_DIRPATH}/logistic_regression"}
+    #    {"model": MultinomialNB(),                     "dirpath": f"{MODELS_DIRPATH}/multinomial_nb"}
+    #]
+    #for metadata in classifiers:
+    #    clf = metadata["model"]
+    #    model_name = str(type(clf)) # todo: MultinomialNB --> "multinomial_nb"
+    #    dirpath = metadata["dirpath"] # todo: derive from model name
+#
+    #    print("--------------------------")
+    #    print(f"{model_name}...")
+#
+    #    clf.fit(training_matrix, training_labels)
+#
+    #    training_predictions = clf.predict(training_matrix)
+    #    training_score = accuracy_score(training_labels, training_predictions)
+    #    print("ACCY (TRAIN):", training_score) #> 0.935
+#
+    #    test_predictions = clf.predict(test_matrix)
+    #    test_score = accuracy_score(test_labels, test_predictions)
+    #    print("ACCY (TEST):", test_score) #> 0.935
+#
+    #    print("SAVING/OVERWRITING (BEST) MODEL...")
+    #    storage = ModelStorage(dirpath=dirpath)
+    #    storage.save_vectorizer(tv)
+    #    storage.save_model(clf)
+
+    # TODO: write accy scores to scores.json file or something
 
     print("--------------------------")
     print("LOGISTIC REGRESSION...")
@@ -93,8 +120,9 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    local_filepath = os.path.join(MODELS_DIRPATH, "logistic_regression.gpickle")
-    save_model(clf, local_filepath)
+    storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/logistic_regression")
+    storage.save_vectorizer(tv)
+    storage.save_model(clf)
 
     print("--------------------------")
     print("NAIVE BAYES (MULTINOMIAL)...")
@@ -111,5 +139,6 @@ if __name__ == "__main__":
     print("ACCY (TEST):", test_score) #> 0.935
 
     print("SAVING/OVERWRITING (BEST) MODEL...")
-    local_filepath = os.path.join(MODELS_DIRPATH, "multinomial_nb.gpickle")
-    save_model(clf, local_filepath)
+    storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/multinomial_nb")
+    storage.save_vectorizer(tv)
+    storage.save_model(clf)

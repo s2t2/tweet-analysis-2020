@@ -13,9 +13,9 @@ TWEETS_TABLE_NAME = os.getenv("TWEETS_TABLE_NAME", default="tweets")
 USER_FRIENDS_TABLE_NAME = os.getenv("USER_FRIENDS_TABLE_NAME", default="user_friends") # can customize different sizes, like "user_friends_10k", for testing
 USER_DETAILS_TABLE_NAME = os.getenv("USER_DETAILS_TABLE_NAME", default="user_details")
 RETWEETER_DETAILS_TABLE_NAME = os.getenv("RETWEETER_DETAILS_TABLE_NAME", default="retweeter_details")
-
 #BOT_MIN = float(os.getenv("BOT_MIN", default="0.8"))
 #BOT_FOLLOWERS_TABLE_NAME = f"bot_followers_above_{int(BOT_MIN * 100)}"
+COMMUNITY_PREDICTIONS_TABLE_NAME = os.getenv("COMMUNITY_PREDICTIONS_TABLE_NAME", default="2_community_predictions")
 
 db = create_engine(DATABASE_URL)
 Base = declarative_base()
@@ -111,6 +111,10 @@ class RetweeterDetail(Base):
 #    bot_id = Column(BigInteger, index=True)
 #    follower_id = Column(BigInteger, index=True)
 
+class CommunityPrediction(Base):
+    __tablename__ = COMMUNITY_PREDICTIONS_TABLE_NAME
+    status_id = Column(BigInteger, primary_key=True)
+    predicted_community_id = Column(Integer, index=True)
 
 
 if __name__ == "__main__":
