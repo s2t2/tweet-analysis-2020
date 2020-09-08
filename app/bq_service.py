@@ -1067,7 +1067,9 @@ class BigQueryService():
         """
         if limit:
             sql += f" LIMIT {int(limit)}"
-        return self.execute_query_in_batches(sql)
+            return self.execute_query(sql)
+        else:
+            return self.execute_query_in_batches(sql)
 
     def fetch_unlabeled_statuses_in_batches(self, limit=None):
         sql = f"""

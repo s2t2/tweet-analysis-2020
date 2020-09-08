@@ -109,7 +109,8 @@ python -m app.nlp.model_storage
 Train some models on the labeled training data:
 
 ```py
-#LIMIT=100000 BATCH_SIZE=1000 python -m app.nlp.model_training
+# LIMIT=10000 BATCH_SIZE=1000 python -m app.nlp.model_training
+
 APP_ENV="prodlike" BATCH_SIZE=25000 python -m app.nlp.model_training
 ```
 
