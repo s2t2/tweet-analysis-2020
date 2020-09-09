@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
         print("SAVING...")
         if APP_ENV == "development":
-            model_id = "dev"
+            model_id = "dev" # overwrite same model in development
         else:
             model_id = datetime.now().strftime("%Y-%m-%d-%H%M")
         storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")

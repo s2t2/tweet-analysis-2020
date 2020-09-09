@@ -1,17 +1,20 @@
 import os
 import pickle
 import json
+from pprint import pprint
 
 from memory_profiler import profile
 
-from app import DATA_DIR
+from app import DATA_DIR, seek_confirmation
 from app.file_storage import FileStorage
 from app.decorators.datetime_decorators import logstamp
 
 MODELS_DIRPATH = "tweet_classifier/models" # os.path.join(DATA_DIR, "tweet_classifier", "models")
+EXAMPLE_MODEL_DIRPATH = f"{MODELS_DIRPATH}/example"
+BEST_MODEL_DIRPATH = f"{MODELS_DIRPATH}/current_best"
 
 class ModelStorage(FileStorage):
-    def  __init__(self, dirpath=f"{MODELS_DIRPATH}/example"):
+    def  __init__(self, dirpath=EXAMPLE_MODEL_DIRPATH):
         super().__init__(dirpath=dirpath)
 
         self.local_model_filepath = os.path.join(self.local_dirpath, "model.gpickle")
@@ -103,6 +106,32 @@ class ModelStorage(FileStorage):
         self.write_scores(scores)
         if self.wifi:
             self.upload_scores()
+
+    #
+    # MODEL PROMOTION
+    #
+
+    def promote_model(self, destination=BEST_MODEL_DIRPATH):
+        # 'tweet_classifier/models/logistic_regression/2020-09-08-1229'
+
+        # copy local dirpath to best
+
+        # copy remote dirpath
+
+        blobs = list(self.gcs_service.bucket.list_blobs())
+        matching_blobs = [blob for blob in blobs if self.dirpath in blob.name]
+        print("MODEL FILES TO PROMOTE...")
+        pprint(matching_blobs)
+        seek_confirmation()
+
+        print("PROMOTING MODEL FILES...")
+        for blob in matching_blobs:
+            file_name = blob.name.split("/")[-1] #> 'model.gpickle'
+            new_path = self.compile_gcs_dirpath(f"{destination}/{file_name}") #f"storage/data/{destination}/{file_name}"
+            self.gcs_service.bucket.copy_blob(blob, destination_bucket=self.gcs_service.bucket, new_name=new_path)
+
+
+
 
 
 if __name__ == "__main__":

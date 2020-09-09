@@ -85,6 +85,7 @@ Locks and Semaphores:
   + https://cloud.google.com/storage/docs/naming-objects
   + https://googleapis.dev/python/storage/latest/blobs.html
   + https://github.com/googleapis/python-storage/issues/74#issuecomment-603296568
+  + https://googleapis.dev/python/storage/latest/buckets.html#google.cloud.storage.bucket.Bucket.copy_blob
 
 ## SQLAlchemy
 
