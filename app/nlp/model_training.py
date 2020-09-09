@@ -1,9 +1,11 @@
 
 import os
 from datetime import datetime
+from pprint import pprint
+
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score #, classification_report
+from sklearn.metrics import classification_report # accuracy_score
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -46,7 +48,7 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("TRAINING DATA...")
-    print(fmt_n(len(train_df))) #> 800
+    print(fmt_n(len(train_df)))
     print(train_df.head())
     print(train_df["community_id"].value_counts()) # should be equal for each class!
     #raise ValueError("Expecting balanced training data") unless all counts are equal
@@ -55,7 +57,7 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("TESTING DATA...")
-    print(fmt_n(len(train_df))) #> 200
+    print(fmt_n(len(test_df)))
     print(test_df["community_id"].value_counts())
     test_text = test_df["status_text"]
     test_labels = test_df["community_id"]
@@ -65,13 +67,13 @@ if __name__ == "__main__":
 
     tv = TfidfVectorizer()
     tv.fit(training_text)
-    print("FEATURES / TOKENS:", fmt_n(len(tv.get_feature_names()))) #> 3842
+    print("FEATURES / TOKENS:", fmt_n(len(tv.get_feature_names())))
 
     training_matrix = tv.transform(training_text)
-    print("FEATURE MATRIX (TRAIN):", type(training_matrix), training_matrix.shape) # sparse (800, 3842)
+    print("FEATURE MATRIX (TRAIN):", type(training_matrix), training_matrix.shape)
 
     test_matrix = tv.transform(test_text)
-    print("FEATURE MATRIX (TEST):", type(test_matrix), test_matrix.shape) # sparse (800, 3842)
+    print("FEATURE MATRIX (TEST):", type(test_matrix), test_matrix.shape)
 
     #
     # MODELS (CUSTOM PIPELINE)
@@ -92,25 +94,36 @@ if __name__ == "__main__":
         model.fit(training_matrix, training_labels)
 
         training_predictions = model.predict(training_matrix)
-        training_score = accuracy_score(training_labels, training_predictions)
-        print("ACCY SCORE (TRAIN):", training_score) #> 0.935
+        #training_score = accuracy_score(training_labels, training_predictions)
+        #print("ACCY SCORE (TRAIN):", training_score)
+        training_scores = classification_report(training_labels, training_predictions, output_dict=True)
+        #print("ACCY SCORE (TRAIN):", training_scores["accuracy"])
+        print("TRAINING SCORES...")
+        pprint(training_scores)
 
         test_predictions = model.predict(test_matrix)
-        test_score = accuracy_score(test_labels, test_predictions)
-        print("ACCY SCORE (TEST):", test_score) #> 0.935
+        #test_score = accuracy_score(test_labels, test_predictions)
+        #print("ACCY SCORE (TEST):", test_score)
+        test_scores = classification_report(test_labels, test_predictions, output_dict=True)
+        #print("ACCY SCORE (TEST):", test_scores["accuracy"])
+        print("TEST SCORES...")
+        pprint(test_scores)
 
         print("SAVING...")
-        if APP_ENV == "development":
-            model_id = "dev" # overwrite same model in development
-        else:
-            model_id = datetime.now().strftime("%Y-%m-%d-%H%M")
+        #if APP_ENV == "development":
+        #    model_id = "dev" # overwrite same model in development
+        #else:
+        #    model_id = datetime.now().strftime("%Y-%m-%d-%H%M")
+        model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
         storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")
         storage.save_vectorizer(tv)
         storage.save_model(model)
         storage.save_scores({
             "features": len(tv.get_feature_names()),
             "training_matrix": training_matrix.shape,
-            "training_accy": training_score,
             "test_matrix": test_matrix.shape,
-            "test_accy": test_score
+            #"training_accy": training_score,
+            #"test_accy": test_score
+            "training_scores": training_scores,
+            "test_scores": test_scores
         })
