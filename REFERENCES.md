@@ -212,3 +212,4 @@ Grouping and aggregation, working with multi-indices:
   + https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
   + https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
   + https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
