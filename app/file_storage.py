@@ -29,7 +29,7 @@ class FileStorage:
 
         self.dirpath = dirpath or DIRPATH
         self.gcs_dirpath = self.compile_gcs_dirpath(self.dirpath)
-        self.local_dirpath = os.path.join(DATA_DIR, self.dirpath) # TODO: to make compatible on windows, split the dirpath on "/" and re-join using os.sep
+        self.local_dirpath = self.compile_local_dirpath(self.dirpath)
 
         #print("-------------------------")
         print("FILE STORAGE...")
@@ -42,6 +42,10 @@ class FileStorage:
 
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
+
+    @staticmethod
+    def compile_local_dirpath(dirpath):
+        return os.path.join(DATA_DIR, dirpath)
 
     @staticmethod
     def compile_gcs_dirpath(dirpath):

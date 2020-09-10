@@ -33,7 +33,7 @@ Version 2 (current, stable, mature):
 Dependencies:
 
   + Git
-  + Python 3.7
+  + Python 3.8
   + PostgreSQL (optional)
 
 Clone this repo onto your local machine and navigate there from the command-line:
@@ -45,8 +45,8 @@ cd tweet-analysis-py/
 Create and activate a virtual environment, using anaconda for example, if you like that kind of thing:
 
 ```sh
-conda create -n tweet-analyzer-env python=3.7
-conda activate tweet-analyzer-env
+conda create -n tweet-analyzer-env-38 python=3.8
+conda activate tweet-analyzer-env-38
 ```
 
 Install package dependencies:

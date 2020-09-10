@@ -2,6 +2,7 @@ import os
 import pickle
 import json
 from pprint import pprint
+from shutil import copytree
 
 from memory_profiler import profile
 
@@ -112,25 +113,22 @@ class ModelStorage(FileStorage):
     #
 
     def promote_model(self, destination=BEST_MODEL_DIRPATH):
-        # 'tweet_classifier/models/logistic_regression/2020-09-08-1229'
-
-        # copy local dirpath to best
-
-        # copy remote dirpath
-
         blobs = list(self.gcs_service.bucket.list_blobs())
         matching_blobs = [blob for blob in blobs if self.dirpath in blob.name]
         print("MODEL FILES TO PROMOTE...")
         pprint(matching_blobs)
         seek_confirmation()
 
-        print("PROMOTING MODEL FILES...")
+        print("PROMOTING GCS MODEL FILES...")
         for blob in matching_blobs:
             file_name = blob.name.split("/")[-1] #> 'model.gpickle'
             new_path = self.compile_gcs_dirpath(f"{destination}/{file_name}") #f"storage/data/{destination}/{file_name}"
             self.gcs_service.bucket.copy_blob(blob, destination_bucket=self.gcs_service.bucket, new_name=new_path)
 
-
+        print("PROMOTING LOCAL MODEL FILES...")
+        local_destination = self.compile_local_dirpath(destination)
+        local_source = self.local_dirpath
+        copytree(local_source, local_destination, dirs_exist_ok=True)
 
 
 
