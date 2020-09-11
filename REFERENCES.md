@@ -85,6 +85,7 @@ Locks and Semaphores:
   + https://cloud.google.com/storage/docs/naming-objects
   + https://googleapis.dev/python/storage/latest/blobs.html
   + https://github.com/googleapis/python-storage/issues/74#issuecomment-603296568
+  + https://googleapis.dev/python/storage/latest/buckets.html#google.cloud.storage.bucket.Bucket.copy_blob
 
 ## SQLAlchemy
 
@@ -211,3 +212,5 @@ Grouping and aggregation, working with multi-indices:
   + https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
   + https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
   + https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
+  + https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+  + https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html

@@ -109,11 +109,16 @@ python -m app.nlp.model_storage
 Train some models on the labeled training data:
 
 ```py
-#LIMIT=100000 BATCH_SIZE=1000 python -m app.nlp.model_training
+# LIMIT=10000 BATCH_SIZE=1000 python -m app.nlp.model_training
+
 APP_ENV="prodlike" BATCH_SIZE=25000 python -m app.nlp.model_training
 ```
 
-Save the best model as "current_best".
+Promote a given model to use for classifications:
+
+```sh
+MODEL_DIRPATH="tweet_classifier/models/logistic_regression/2020-09-09-1719" python -m app.nlp.model_promotion python -m app.nlp.model_promotion
+```
 
 And use the trained model to make ad-hoc predictions:
 

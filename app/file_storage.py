@@ -28,10 +28,10 @@ class FileStorage:
         self.gcs_service = gcs_service or GoogleCloudStorageService()
 
         self.dirpath = dirpath or DIRPATH
-        self.gcs_dirpath = os.path.join("storage", "data", self.dirpath)
-        self.local_dirpath = os.path.join(DATA_DIR, self.dirpath) # TODO: to make compatible on windows, split the dirpath on "/" and re-join using os.sep
+        self.gcs_dirpath = self.compile_gcs_dirpath(self.dirpath)
+        self.local_dirpath = self.compile_local_dirpath(self.dirpath)
 
-        print("-------------------------")
+        #print("-------------------------")
         print("FILE STORAGE...")
         print("   DIRPATH:",  self.dirpath)
         print("   GCS DIRPATH:", self.gcs_dirpath)
@@ -42,6 +42,14 @@ class FileStorage:
 
         if not os.path.exists(self.local_dirpath):
             os.makedirs(self.local_dirpath)
+
+    @staticmethod
+    def compile_local_dirpath(dirpath):
+        return os.path.join(DATA_DIR, dirpath)
+
+    @staticmethod
+    def compile_gcs_dirpath(dirpath):
+        return os.path.join("storage", "data", dirpath)
 
     #
     # REMOTE STORAGE
