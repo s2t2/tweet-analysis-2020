@@ -50,8 +50,7 @@ if __name__ == "__main__":
     print("TRAINING DATA...")
     print(fmt_n(len(train_df)))
     print(train_df.head())
-    print(train_df["community_id"].value_counts()) # should be equal for each class!
-    #raise ValueError("Expecting balanced training data") unless all counts are equal
+    print(train_df["community_id"].value_counts()) # should ideally be around equal for each class!
     training_text = train_df["status_text"]
     training_labels = train_df["community_id"]
 
@@ -91,39 +90,32 @@ if __name__ == "__main__":
         print(f"{model_name.upper()}...")
         print(model)
 
+        print("TRAINING...")
         model.fit(training_matrix, training_labels)
 
-        training_predictions = model.predict(training_matrix)
-        #training_score = accuracy_score(training_labels, training_predictions)
-        #print("ACCY SCORE (TRAIN):", training_score)
-        training_scores = classification_report(training_labels, training_predictions, output_dict=True)
-        #print("ACCY SCORE (TRAIN):", training_scores["accuracy"])
         print("TRAINING SCORES...")
+        training_predictions = model.predict(training_matrix)
+        training_scores = classification_report(training_labels, training_predictions, output_dict=True)
+        print("ACCY:", training_scores["accuracy"])
         pprint(training_scores)
 
-        test_predictions = model.predict(test_matrix)
-        #test_score = accuracy_score(test_labels, test_predictions)
-        #print("ACCY SCORE (TEST):", test_score)
-        test_scores = classification_report(test_labels, test_predictions, output_dict=True)
-        #print("ACCY SCORE (TEST):", test_scores["accuracy"])
         print("TEST SCORES...")
+        test_predictions = model.predict(test_matrix)
+        test_scores = classification_report(test_labels, test_predictions, output_dict=True)
+        print("ACCY:", test_scores["accuracy"])
         pprint(test_scores)
 
-        print("SAVING...")
-        #if APP_ENV == "development":
-        #    model_id = "dev" # overwrite same model in development
-        #else:
-        #    model_id = datetime.now().strftime("%Y-%m-%d-%H%M")
+        print("SAVING MODEL FILES...")
         model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
         storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")
         storage.save_vectorizer(tv)
         storage.save_model(model)
         storage.save_scores({
+            "model_name": model_name,
+            "model_id": model_id,
             "features": len(tv.get_feature_names()),
             "training_matrix": training_matrix.shape,
             "test_matrix": test_matrix.shape,
-            #"training_accy": training_score,
-            #"test_accy": test_score
             "training_scores": training_scores,
             "test_scores": test_scores
         })
