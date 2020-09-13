@@ -14,12 +14,7 @@ def about():
     print("VISITED THE ABOUT PAGE")
     return render_template("about.html")
 
-@home_routes.route("/events")
+@home_routes.route("/prototype/politico")
 def events():
-    print("VISITED THE EVENTS PAGE")
-    return render_template("events.html")
-
-@home_routes.route("/topics")
-def topics():
-    print("VISITED THE TOPICS PAGE")
-    return render_template("topics.html", event_name="impeachment")
+    print("PROTOTYPE: POLITICO")
+    return render_template("prototype_politico.html")

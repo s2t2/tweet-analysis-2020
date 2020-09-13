@@ -1,0 +1,19 @@
+{% extends "bootstrap_layout.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='prototype_politico.css') }}">
+{% endblock %}
+
+{% block content %}
+    <h1>@POLITCO</h1>
+
+    <ul>
+        <li>Tweet 1</li>
+        <li>Tweet 2</li>
+        <li>Tweet 3</li>
+    </ul>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="{{ url_for('static', filename='prototype_politico.js') }}"></script>
+{% endblock %}
