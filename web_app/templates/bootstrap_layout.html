@@ -2,10 +2,10 @@
 <html>
   <head>
     <title>Tweet Analyzer</title>
-
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    {% block css %}
+    {% endblock %}
   </head>
-
   <body>
 
     <!-- FLASH MESSAGING -->
@@ -26,8 +26,7 @@
     <!-- see: https://jinja.palletsprojects.com/en/2.11.x/tricks/ -->
     <!-- see: https://getbootstrap.com/docs/4.0/components/navbar/ -->
     {% set nav_links = [
-        ('/about', 'about', 'About'),
-        ('/events', 'events', 'Events')
+        ('/about', 'about', 'About')
       ] -%}
     {% set active_page = active_page|default('index') -%}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -62,8 +61,7 @@
       <!-- FOOTER -->
       <div id="footer">
         <hr>
-        &copy; Copyright 2020 MJ Rossetti |
-        <a href="https://github.com/s2t2/tweet-analyzer-py/blob/master/web_app">source</a>
+        <a href="https://github.com/s2t2/tweet-analyzer-py/">source code</a>
       </div>
     </div>
 
@@ -71,14 +69,8 @@
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-    <script type="text/javascript">
-
-        console.log("Thanks for the page visit!")
-
-        // closes data-dismiss="alert" flash messages
-        // see: https://getbootstrap.com/docs/4.3/components/alerts/#javascript-behavior
-        //$().alert('close')
-
-    </script>
+    <script type="text/javascript" src="https://d3js.org/d3.v2.js"></script>
+    {% block js %}
+    {% endblock %}
   </body>
 </html>
