@@ -11,3 +11,5 @@ k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 
 basilica_embedder: python -m app.nlp.basilica.embedder
 basilica_embedder_parallel: python -m app.nlp.basilica.embedder_parallel
+
+web: gunicorn "api:create_app()"

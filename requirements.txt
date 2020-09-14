@@ -30,6 +30,7 @@ squarify
 #pyldavis
 
 Flask
+gunicorn
 
 # formerly known as dev dependencies:
 pytest
