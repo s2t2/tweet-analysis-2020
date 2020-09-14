@@ -5,6 +5,7 @@ from pprint import pprint
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
+from google.cloud.bigquery import QueryJobConfig, ScalarQueryParameter
 
 from app import APP_ENV, seek_confirmation
 from app.decorators.number_decorators import fmt_n
@@ -1121,6 +1122,8 @@ class BigQueryService():
     #
 
     def fetch_user_details_api_v0(self, screen_name="politico"):
+        # TODO: super-charge this with cool stuff, like mention counts, average opinion score, etc.
+        # TODO: create some temporary tables, to make the query faster
         sql = f"""
             SELECT
                 user_id
@@ -1134,11 +1137,22 @@ class BigQueryService():
             WHERE UPPER(@screen_name) in UNNEST(SPLIT(screen_names, '|'))
             LIMIT 1
         """
-        job_config = bigquery.QueryJobConfig(
-            query_parameters=[
-                bigquery.ScalarQueryParameter("screen_name", "STRING", screen_name)
-            ]
-        )
+        job_config = bigquery.QueryJobConfig(query_parameters=[bigquery.ScalarQueryParameter("screen_name", "STRING", screen_name)])
+        return self.client.query(sql, job_config=job_config)
+
+    def fetch_user_tweets_api_v0(self, screen_name="politico"):
+        # TODO: create some temporary tables maybe, to make the query faster
+        sql = f"""
+            SELECT
+                t.status_id
+                ,t.status_text
+                ,t.created_at
+                ,p.predicted_community_id as opinion_score
+            FROM `{self.dataset_address}.tweets` t
+            LEFT JOIN `{self.dataset_address}.2_community_predictions` p ON p.status_id = cast(t.status_id as int64)
+            WHERE upper(t.user_screen_name) = upper(@screen_name)
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("screen_name", "STRING", screen_name)])
         return self.client.query(sql, job_config=job_config)
 
 
