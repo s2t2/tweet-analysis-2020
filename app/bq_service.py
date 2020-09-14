@@ -37,13 +37,14 @@ def split_into_batches(my_list, batch_size=9000):
 class BigQueryService():
 
     def __init__(self, project_name=PROJECT_NAME, dataset_name=DATASET_NAME,
-                        verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS):
+                        verbose=VERBOSE_QUERIES, destructive=DESTRUCTIVE_MIGRATIONS, cautious=True):
         self.project_name = project_name
         self.dataset_name = dataset_name
         self.dataset_address = f"{self.project_name}.{self.dataset_name}"
 
         self.verbose = (verbose == True)
         self.destructive = (destructive == True)
+        self.cautious = (cautious == True)
 
         self.client = bigquery.Client()
 
@@ -53,7 +54,8 @@ class BigQueryService():
         print("  DESTRUCTIVE MIGRATIONS:", self.destructive)
         print("  VERBOSE QUERIES:", self.verbose)
 
-        seek_confirmation()
+        if self.cautious:
+            seek_confirmation()
 
     @property
     def metadata(self):
@@ -1112,6 +1114,38 @@ class BigQueryService():
             return self.execute_query(sql)
         else:
             return self.execute_query_in_batches(sql)
+
+    #
+    # API - V0
+    # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
+    #
+
+    def fetch_user_details_api_v0(self, screen_name="politico"):
+        sql = f"""
+            SELECT
+                user_id
+                ,user_created_at
+                ,tweet_count
+                ,screen_name_count
+                ,screen_names
+                ,user_names
+                ,user_descriptions
+            FROM `{self.dataset_address}.user_details_v3`
+            WHERE UPPER(@screen_name) in UNNEST(SPLIT(screen_names, '|'))
+            LIMIT 1
+        """
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("screen_name", "STRING", screen_name)
+            ]
+        )
+        return self.client.query(sql, job_config=job_config)
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
