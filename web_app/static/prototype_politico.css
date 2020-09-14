@@ -1,11 +1,17 @@
 
 
+/* source: https://gist.github.com/ameyms/9184728 */
 
+.chart-gauge { width: 400px; margin: 100px auto}
 
-h1 {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+.chart-filled {fill: steelblue;}
+.chart-empty {fill: #dedede;}
+/*
+.chart-color1 {fill: steelblue}
+.chart-color2 {fill: #ccc}
+.chart-color3{fill: #D62021}
+*/
 
-.mean-opinion-score {
-    color:rebeccapurple
-}
+.needle, .needle-center {fill: #464A4F;}
+
+svg {font: 10px sans-serif;}
