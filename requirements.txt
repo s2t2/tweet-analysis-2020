@@ -29,6 +29,8 @@ kaleido # required by plotly to save static images
 squarify
 #pyldavis
 
+Flask
+gunicorn
 
 # formerly known as dev dependencies:
 pytest
