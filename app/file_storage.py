@@ -51,6 +51,16 @@ class FileStorage:
     def compile_gcs_dirpath(dirpath):
         return os.path.join("storage", "data", dirpath)
 
+    @property
+    def metadata(self):
+        return {
+            "dirpath": self.dirpath,
+            #"local_dirpath": os.path.abspath(self.local_dirpath),
+            #"gcs_dirpath": self.gcs_dirpath,
+            "gcs_service": self.gcs_service.metadata,
+            "wifi_enabled": self.wifi
+        }
+
     #
     # REMOTE STORAGE
     #

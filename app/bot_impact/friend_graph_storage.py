@@ -24,22 +24,22 @@ class FriendGraphStorage(FileStorage):
         self.local_subgraph_filepath = os.path.join(self.local_dirpath, "subgraph.gpickle")
         self.gcs_subgraph_filepath = os.path.join(self.gcs_dirpath, "subgraph.gpickle")
 
-    def save_metadata(self, metadata):
+    def save_metadata(self):
         print(logstamp(), "SAVING METADATA...")
         with open(self.local_metadata_filepath, "w") as f:
-            json.dump(metadata, f)
+            json.dump(self.metadata, f)
         if self.wifi:
             self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
 
-    def save_graph(self, graph):
+    def save_graph(self):
         print(logstamp(), "SAVING GRAPH...")
-        write_gpickle(graph, self.local_graph_filepath)
+        write_gpickle(self.graph, self.local_graph_filepath)
         if self.wifi:
             self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
-    def save_subgraph(self, subgraph):
+    def save_subgraph(self):
         print(logstamp(), "SAVING SUBGRAPH...")
-        write_gpickle(subgraph, self.local_graph_filepath)
+        write_gpickle(self.subgraph, self.local_graph_filepath)
         if self.wifi:
             self.upload_file(self.local_subgraph_filepath, self.gcs_subgraph_filepath)
 
@@ -49,6 +49,12 @@ class FriendGraphStorage(FileStorage):
         print("  NODES:", fmt_n(graph.number_of_nodes()))
         print("  EDGES:", fmt_n(graph.number_of_edges()))
         print("-------------------")
+
+    def graph_report(self):
+        self.report(self.graph)
+
+    def subgraph_report(self):
+        self.report(self.subgraph)
 
 
     # AFTER YOU HAVE ALREADY SAVED THE ARTIFACTS...

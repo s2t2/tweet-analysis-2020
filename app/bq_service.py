@@ -1159,7 +1159,7 @@ class BigQueryService():
     # DAILY FRIEND GRAPHS
     #
 
-    def fetch_tweeter_friend_lists(self, date=None):
+    def fetch_tweeter_friend_lists(self, date=None, limit=None):
         """
         Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
 
@@ -1167,14 +1167,17 @@ class BigQueryService():
         """
         sql = f"""
             SELECT
-                ,upper(t.user_screen_name) as user_screen_name
+                upper(t.user_screen_name) as user_screen_name
                 ,uf.friend_count
                 ,uf.friend_names
             FROM `{self.dataset_address}.user_friends` uf
             JOIN `{self.dataset_address}.tweets` t ON upper(t.user_screen_name) = upper(uf.screen_name)
         """
         if date:
-            sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}'"
+            sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}' "
+        if limit:
+            sql += f" LIMIT {int(limit)} "
+
         return self.execute_query_in_batches(sql)
 
 
