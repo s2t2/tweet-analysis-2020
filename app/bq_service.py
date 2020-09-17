@@ -1155,7 +1155,37 @@ class BigQueryService():
         job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("screen_name", "STRING", screen_name)])
         return self.client.query(sql, job_config=job_config)
 
+    #
+    # DAILY FRIEND GRAPHS
+    #
 
+    def fetch_tweeter_friend_lists(self, date=None):
+        """
+        Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
+
+        Params: date (str) like "2020-01-01"
+        """
+        sql = f"""
+
+            SELECT user_id, ARRAY_AGG(distinct friend_id) as friend_ids
+            FROM (
+
+
+                SELECT ...
+                FROM `{self.dataset_address}._______`
+            )
+
+        """
+
+        if date:
+            sql += f" WHERE EXTRACT(DAY from t.created_at) = {date}"
+
+        sql += f"""
+
+            GROUP BY 1
+        """
+
+        return self.execute_query(sql)
 
 
 
