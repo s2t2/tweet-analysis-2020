@@ -49,6 +49,12 @@ class DailyFriendGrapher(GraphStorage, Job):
 
         self.end()
 
+    def graph_report(self):
+        self.report(self.graph)
+
+    def subgraph_report(self):
+        self.report(self.subgraph)
+
 
 if __name__ == "__main__":
 
