@@ -1166,26 +1166,16 @@ class BigQueryService():
         Params: date (str) like "2020-01-01"
         """
         sql = f"""
-
-            SELECT user_id, ARRAY_AGG(distinct friend_id) as friend_ids
-            FROM (
-
-
-                SELECT ...
-                FROM `{self.dataset_address}._______`
-            )
-
+            SELECT
+                ,upper(t.user_screen_name) as user_screen_name
+                ,uf.friend_count
+                ,uf.friend_names
+            FROM `{self.dataset_address}.user_friends` uf
+            JOIN `{self.dataset_address}.tweets` t ON upper(t.user_screen_name) = upper(uf.screen_name)
         """
-
         if date:
-            sql += f" WHERE EXTRACT(DAY from t.created_at) = {date}"
-
-        sql += f"""
-
-            GROUP BY 1
-        """
-
-        return self.execute_query(sql)
+            sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}'"
+        return self.execute_query_in_batches(sql)
 
 
 

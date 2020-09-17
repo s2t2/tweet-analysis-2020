@@ -11,7 +11,7 @@ from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
 from app.file_storage import FileStorage
 
-class DailyFriendGraphStorage(FileStorage):
+class FriendGraphStorage(FileStorage):
     def  __init__(self, dirpath):
         super().__init__(dirpath=dirpath)
 
