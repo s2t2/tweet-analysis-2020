@@ -48,7 +48,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             #print(user, row["friend_count"])
 
             #self.edges += [(user, friend.upper()) for friend in row["friend_names"]]
-            #self.graph.add_edges_from([(user, friend.upper()) for friend in row["friend_names"]])
+            self.graph.add_edges_from([(user, friend.upper()) for friend in row["friend_names"]])
 
             self.counter += 1
             if self.counter % self.batch_size == 0:

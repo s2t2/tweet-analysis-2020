@@ -9,6 +9,7 @@ from networkx import write_gpickle #,read_gpickle
 
 from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
+from app.decorators.number_decorators import fmt_n
 from app.file_storage import FileStorage
 
 class FriendGraphStorage(FileStorage):

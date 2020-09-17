@@ -1175,10 +1175,13 @@ class BigQueryService():
         """
         if date:
             sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}' "
+
         if limit:
             sql += f" LIMIT {int(limit)} "
+            return self.execute_query(sql)
+        else:
+            return self.execute_query_in_batches(sql)
 
-        return self.execute_query_in_batches(sql)
 
 
 
