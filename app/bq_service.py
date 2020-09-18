@@ -1166,28 +1166,42 @@ class BigQueryService():
     # DAILY FRIEND GRAPHS
     #
 
-    def fetch_tweeter_friend_lists(self, date=None, limit=None):
+    #def fetch_tweeter_friend_lists(self, date=None, limit=None):
+    #    """
+    #    Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
+    #
+    #    Params: date (str) like "2020-01-01"
+    #    """
+    #    sql = f"""
+    #        SELECT
+    #            upper(t.user_screen_name) as user_screen_name
+    #            ,uf.friend_count
+    #            ,uf.friend_names
+    #        FROM `{self.dataset_address}.user_friends` uf
+    #        JOIN `{self.dataset_address}.tweets` t ON upper(t.user_screen_name) = upper(uf.screen_name)
+    #    """
+    #    if date:
+    #        sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}' " # AND uf.friend_count > 0
+    #
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)} "
+    #        return self.execute_query(sql)
+    #    else:
+    #        return self.execute_query_in_batches(sql)
+
+    def fetch_daily_user_friends(self, date, limit=None):
         """
         Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
 
         Params: date (str) like "2020-01-01"
         """
+        table_suffix = date.replace("-","") #> 20200205
         sql = f"""
-            SELECT
-                upper(t.user_screen_name) as user_screen_name
-                ,uf.friend_count
-                ,uf.friend_names
-            FROM `{self.dataset_address}.user_friends` uf
-            JOIN `{self.dataset_address}.tweets` t ON upper(t.user_screen_name) = upper(uf.screen_name)
+            SELECT screen_name, friend_names
+            FROM `{self.dataset_address}.user_friends_{table_suffix}` uf
         """
-        if date:
-            sql += f" WHERE EXTRACT(DATE FROM t.created_at) = '{date}' "
+        return self.execute_query_with_limit(sql, limit)
 
-        if limit:
-            sql += f" LIMIT {int(limit)} "
-            return self.execute_query(sql)
-        else:
-            return self.execute_query_in_batches(sql)
 
     def fetch_daily_user_friends_flat(self, date, limit=None):
         """

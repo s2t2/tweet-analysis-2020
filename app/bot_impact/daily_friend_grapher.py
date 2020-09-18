@@ -36,33 +36,29 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     def metadata(self):
         return {**super().metadata, **{"bq_service": self.bq_service.metadata, "date": self.date, "batch_size": self.batch_size, "limit":self.limit}}
 
-    #@profile
-    #def perform(self):
-    #    self.start()
-    #    #self.edges = set()
-    #    self.graph = DiGraph()
-    #    print("FETCHING TWEETERS AND THEIR FRIENDS...")
-    #    for row in self.bq_service.fetch_tweeter_friend_lists(date=self.date, limit=self.limit):
-    #        user = row["user_screen_name"].upper()
-    #        #print(user, row["friend_count"])
-    #        #self.edges.update([(user, friend.upper()) for friend in row["friend_names"]])
-    #        self.graph.add_edges_from([(user, friend.upper()) for friend in row["friend_names"]])
-    #        self.counter += 1
-    #        if self.counter % self.batch_size == 0:
-    #            self.progress_report()
-    #    self.end()
-
     @profile
     def perform(self):
         self.start()
         self.graph = DiGraph()
         print("FETCHING TWEETERS AND THEIR FRIENDS...")
-        for row in self.bq_service.fetch_daily_user_friends_flat(date=self.date, limit=self.limit):
-            self.graph.add_edge(row["screen_name"], row["friend_name"])
+        for row in self.bq_service.fetch_daily_user_friends(date=self.date, limit=self.limit):
+            self.graph.add_edges_from([(row["screen_name"], friend_name) for friend_name in row["friend_names"]])
             self.counter += 1
             if self.counter % self.batch_size == 0:
                 self.progress_report()
         self.end()
+
+    #@profile
+    #def perform(self):
+    #    self.start()
+    #    self.graph = DiGraph()
+    #    print("FETCHING TWEETERS AND THEIR FRIENDS...")
+    #    for row in self.bq_service.fetch_daily_user_friends_flat(date=self.date, limit=self.limit):
+    #        self.graph.add_edge(row["screen_name"], row["friend_name"])
+    #        self.counter += 1
+    #        if self.counter % self.batch_size == 0:
+    #            self.progress_report()
+    #    self.end()
 
 
 if __name__ == "__main__":

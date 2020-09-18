@@ -60,10 +60,12 @@ GROUP BY 1
 ORDER BY 1
 ```
 
-## Migrations
+## BQ Migrations
+
+Bad migrations:
 
 ```sql
-
+/*
 DROP TABLE IF EXISTS impeachment_production.user_friends_flat_20200205;
 CREATE TABLE impeachment_production.user_friends_flat_20200205 as (
   SELECT
@@ -73,11 +75,99 @@ CREATE TABLE impeachment_production.user_friends_flat_20200205 as (
   WHERE EXTRACT(DATE FROM t.created_at) = "2020-02-05"
   -- LIMIT 10
 )
+
+
+SELECT count(screen_name) as row_count
+FROM impeachment_production.user_friends_flat_20200205
+-- 322,144,795 edges on this day
+
+*/
+
+
+/*
+DROP TABLE IF EXISTS impeachment_production.user_friends_20200205;
+CREATE TABLE impeachment_production.user_friends_20200205 as (
+
+  SELECT
+    uf.screen_name
+    ,uf.friend_names
+  FROM impeachment_production.user_friends uf
+  JOIN impeachment_production.statuses t on t.user_id = uf.user_id
+  WHERE uf.friend_count > 0
+    AND extract(date from t.created_at) = "2020-02-05"
+
+);
+-- 1,031,392
+```
+
+Do it right:
+
+``` sql
+DROP TABLE IF EXISTS impeachment_production.user_friends_v2;
+CREATE TABLE impeachment_production.user_friends_v2 as (
+  SELECT
+    uff.user_id
+    ,uff.screen_name
+    --,uff.friend_name
+    ,ARRAY_AGG(DISTINCT UPPER(uff.friend_name) IGNORE NULLS) as friend_names
+  FROM impeachment_production.user_friends_flat uff
+  GROUP BY 1,2
+);
+```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_friends_20200205;
+CREATE TABLE impeachment_production.user_friends_20200205 as (
+  SELECT uf.user_id ,uf.screen_name ,uf.friend_names
+  FROM impeachment_production.user_friends_v2 uf
+  JOIN (
+    SELECT DISTINCT user_id FROM impeachment_production.tweets t
+    WHERE extract(date from t.created_at) = "2020-02-05"
+  ) t ON t.user_id = uf.user_id
+);
+
+/*
+SELECT count(screen_name) as row_count, sum(array_length(friend_names)) as edge_count
+FROM impeachment_production.user_friends_20200205
+-- 361,505
+-- 322,146,064
+*/
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## PG Migrations
+
+```sql
+
+DROP TABLE IF EXISTS user_friends_20200205;
+CREATE TABLE user_friends_20200205 as (
+
+  SELECT
+    t.user_screen_name as screen_name
+    ,uf.friend_names
+  FROM user_friends uf
+  JOIN tweets t ON upper(t.user_screen_name) = upper(uf.screen_name)
+  WHERE t.created_at::date = '2020-02-05'
+    AND uf.friend_count > 0
+  -- LIMIT 10
+)
 ```
 
 
 ```sql
 SELECT count(screen_name) as row_count
-FROM impeachment_production.user_friends_flat_20200205
--- 322,144,795 edges on this day
+FROM user_friends_20200205
+-- 998,295 tweeters
 ```
