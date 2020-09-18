@@ -50,3 +50,12 @@ WHERE EXTRACT(DATE FROM t.created_at) = "2020-02-05"
 
 -- 53.6 sec elapsed, 27.7 GB processed
 ```
+
+```sql
+SELECT
+  EXTRACT(DATE FROM created_at) as date
+  ,count(distinct user_id) as user_count
+FROM impeachment_production.tweets
+GROUP BY 1
+ORDER BY 1
+```

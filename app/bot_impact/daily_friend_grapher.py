@@ -39,7 +39,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     @profile
     def perform(self):
         self.start()
-        #self.edges = {}
+        #self.edges = set()
         self.graph = DiGraph()
 
         print("FETCHING TWEETERS AND THEIR FRIENDS...")
@@ -47,7 +47,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             user = row["user_screen_name"].upper()
             #print(user, row["friend_count"])
 
-            #self.edges += [(user, friend.upper()) for friend in row["friend_names"]]
+            #self.edges.update([(user, friend.upper()) for friend in row["friend_names"]])
             self.graph.add_edges_from([(user, friend.upper()) for friend in row["friend_names"]])
 
             self.counter += 1
@@ -73,7 +73,6 @@ if __name__ == "__main__":
     grapher.graph_report()
     grapher.save_graph()
 
-    breakpoint()
-
+    #breakpoint()
     #grapher.subgraph_report()
     #grapher.save_subgraph()
