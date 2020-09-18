@@ -42,6 +42,10 @@ def get_tweets():
 if __name__ == "__main__":
 
     tweets_df = get_tweets()
+    LABELED_TWEETS_CSV_FILEPATH = os.path.join(DATA_DIR, "user_communities", "n_communities", "2", "labeled_tweets.csv")
+    tweets_df.to_csv(LABELED_TWEETS_CSV_FILEPATH)
+
+    seek_confirmation()
 
     train_df, test_df = train_test_split(tweets_df, stratify=tweets_df["community_id"], test_size=0.2, random_state=99)
     print("TEST/TRAIN SPLIT:", fmt_n(len(train_df)), fmt_n(len(test_df))) # consider: THREE-WAY SPLIT (test/train/eval)
