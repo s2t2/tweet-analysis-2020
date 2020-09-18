@@ -87,6 +87,13 @@ class BigQueryService():
         print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
         return job
 
+    def execute_query_with_limit(self, sql, limit=None):
+        if limit:
+            sql += f" LIMIT {int(limit)} "
+            return self.execute_query(sql)
+        else:
+            return self.execute_query_in_batches(sql)
+
     def insert_records_in_batches(self, table, records):
         """
         Params:
@@ -1181,6 +1188,19 @@ class BigQueryService():
             return self.execute_query(sql)
         else:
             return self.execute_query_in_batches(sql)
+
+    def fetch_daily_user_friends(self, date, limit=None):
+        """
+        Returns a row for each user who tweeted on that day, for each user they follow.
+
+        Params: date (str) like "2020-01-01"
+        """
+        table_suffix = date.replace("-","") #> 20200205
+        sql = f"""
+            SELECT screen_name, friend_name
+            FROM `{self.dataset_address}.user_friends_flat_{table_suffix}` uf
+        """
+        return self.execute_query_with_limit(sql, limit)
 
 
 

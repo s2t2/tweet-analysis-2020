@@ -28,6 +28,9 @@ Working with BigQuery:
   + https://stackoverflow.com/questions/53737407/resources-exceeded-bigquery/53739742
   + https://cloud.google.com/bigquery/docs/exporting-data#bigquery_extract_table_compressed-python
   + https://cloud.google.com/bigquery/docs/parameterized-queries
+  + https://cloud.google.com/bigquery/docs/partitioned-tables#date_timestamp_partitioned_tables
+  + https://cloud.google.com/bigquery/docs/creating-column-partitions
+  + https://cloud.google.com/bigquery/docs/managing-partitioned-tables
 
 
 ## Twitter Resources

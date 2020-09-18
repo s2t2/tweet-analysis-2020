@@ -59,3 +59,25 @@ FROM impeachment_production.tweets
 GROUP BY 1
 ORDER BY 1
 ```
+
+## Migrations
+
+```sql
+
+DROP TABLE IF EXISTS impeachment_production.user_friends_flat_20200205;
+CREATE TABLE impeachment_production.user_friends_flat_20200205 as (
+  SELECT
+    DISTINCT uff.screen_name, uff.friend_name
+  FROM impeachment_production.user_friends_flat uff
+  JOIN impeachment_production.tweets t ON t.user_id = uff.user_id
+  WHERE EXTRACT(DATE FROM t.created_at) = "2020-02-05"
+  -- LIMIT 10
+)
+```
+
+
+```sql
+SELECT count(screen_name) as row_count
+FROM impeachment_production.user_friends_flat_20200205
+-- 322,144,795 edges on this day
+```
