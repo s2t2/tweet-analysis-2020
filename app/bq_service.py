@@ -1222,6 +1222,23 @@ class BigQueryService():
 
 
 
+    def fetch_daily_community_friends(self, date, community_id, limit=None):
+        """
+        Returns a row for each community member who tweeted on that day, with a list of aggregated friend ids.
+
+        Params: date (str) like "2020-01-01"
+        """
+        table_suffix = date.replace("-","") #> 20200205
+        sql = f"""
+            SELECT screen_name, friend_names
+            FROM `{self.dataset_address}.community_{community_id}_friends_{table_suffix}` uf
+        """
+        #return self.execute_query_with_limit(sql, limit)
+        # let's see if its faster without batch job...
+        if limit:
+            sql += f" LIMIT {int(limit)} "
+        return self.execute_query(sql)
+
 
 
 
