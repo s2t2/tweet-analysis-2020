@@ -1200,7 +1200,11 @@ class BigQueryService():
             SELECT screen_name, friend_names
             FROM `{self.dataset_address}.user_friends_{table_suffix}` uf
         """
-        return self.execute_query_with_limit(sql, limit)
+        #return self.execute_query_with_limit(sql, limit)
+        # let's see if its faster without batch job...
+        if limit:
+            sql += f" LIMIT {int(limit)} "
+        return self.execute_query(sql)
 
 
     def fetch_daily_user_friends_flat(self, date, limit=None):
