@@ -56,17 +56,12 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     def perform(self):
         self.start()
         self.graph = DiGraph()
-
         print("FETCHING TWEETERS AND THEIR FRIENDS...")
-
-        for row in self.bq_service.fetch_daily_user_friends(date=self.date, limit=self.limit):
-
-            #self.graph.add_edge(row["screen_name"], row["friend_name"])
-
+        for row in self.bq_service.fetch_daily_user_friends_flat(date=self.date, limit=self.limit):
+            self.graph.add_edge(row["screen_name"], row["friend_name"])
             self.counter += 1
             if self.counter % self.batch_size == 0:
                 self.progress_report()
-
         self.end()
 
 

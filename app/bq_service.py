@@ -1189,7 +1189,7 @@ class BigQueryService():
         else:
             return self.execute_query_in_batches(sql)
 
-    def fetch_daily_user_friends(self, date, limit=None):
+    def fetch_daily_user_friends_flat(self, date, limit=None):
         """
         Returns a row for each user who tweeted on that day, for each user they follow.
 
@@ -1201,6 +1201,8 @@ class BigQueryService():
             FROM `{self.dataset_address}.user_friends_flat_{table_suffix}` uf
         """
         return self.execute_query_with_limit(sql, limit)
+
+
 
 
 
