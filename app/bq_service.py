@@ -1206,7 +1206,6 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)} "
         return self.execute_query(sql)
 
-
     def fetch_daily_user_friends_flat(self, date, limit=None):
         """
         Returns a row for each user who tweeted on that day, for each user they follow.
@@ -1220,24 +1219,46 @@ class BigQueryService():
         """
         return self.execute_query_with_limit(sql, limit)
 
+    #def fetch_daily_community_friends(self, date, community_id, limit=None):
+    #    """
+    #    Returns a row for each community member who tweeted on that day, with a list of aggregated friend ids.
+#
+    #    Params: date (str) like "2020-01-01"
+    #    """
+    #    table_suffix = date.replace("-","") #> 20200205
+    #    sql = f"""
+    #        SELECT screen_name, friend_names
+    #        FROM `{self.dataset_address}.community_{community_id}_friends_{table_suffix}` uf
+    #    """
+    #    #return self.execute_query_with_limit(sql, limit)
+    #    # let's see if its faster without batch job...
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)} "
+    #    return self.execute_query(sql)
 
-
-    def fetch_daily_community_friends(self, date, community_id, limit=None):
+    def fetch_daily_user_friends_for_active_tweeters(self, date, tweet_min=4, limit=None):
         """
-        Returns a row for each community member who tweeted on that day, with a list of aggregated friend ids.
+        Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
 
         Params: date (str) like "2020-01-01"
+                tweet_min (int) users who have tweeted at least this many times will be included in the graph
         """
-        table_suffix = date.replace("-","") #> 20200205
         sql = f"""
-            SELECT screen_name, friend_names
-            FROM `{self.dataset_address}.community_{community_id}_friends_{table_suffix}` uf
+            SELECT uf.user_id ,uf.screen_name, uf.friend_names
+            FROM `{self.dataset_address}.user_friends_v2` uf
+            JOIN (
+                SELECT user_id --, count(distinct status_id) as status_count
+                FROM `{self.dataset_address}.tweets` t
+                WHERE EXTRACT(DATE FROM t.created_at) = '{date}'
+                GROUP BY 1
+                HAVING count(distinct status_id) >= {int(tweet_min)}
+                -- ORDER BY 2 DESC
+            ) u ON u.user_id = uf.user_id
         """
-        #return self.execute_query_with_limit(sql, limit)
-        # let's see if its faster without batch job...
         if limit:
             sql += f" LIMIT {int(limit)} "
         return self.execute_query(sql)
+
 
 
 

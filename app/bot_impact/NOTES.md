@@ -247,6 +247,55 @@ CREATE TABLE impeachment_production.community_1_friends_20200205 as (
 
 ```
 
+```sql
+/*
+SELECT user_id
+FROM impeachment_production.statuses t -- 3,600,545
+GROUP BY 1
+-- HAVING count(distinct status_id) > 3 -- 1,082,362
+-- LIMIT 10
+*/
+
+SELECT user_id, count(distinct status_id) as status_count
+FROM impeachment_production.tweets t -- 3,600,545
+WHERE t.created_at between '2020-02-05' and '2020-02-06' -- 376,192
+GROUP BY 1
+-- HAVING count(distinct status_id) > 2 -- 101,397
+HAVING count(distinct status_id) > 3 -- 72,327
+ORDER BY 2 DESC
+-- LIMIT 10
+
+
+
+SELECT uf.*
+FROM impeachment_production.user_friends_v2 uf
+JOIN (
+  SELECT user_id, count(distinct status_id) as status_count
+  FROM impeachment_production.tweets t -- 3,600,545
+  WHERE t.created_at between '2020-02-05' and '2020-02-06' -- 376,192
+  GROUP BY 1
+  HAVING count(distinct status_id) > 3 -- 72,327
+  ORDER BY 2 DESC
+) u ON u.user_id = uf.user_id -- 69,699 excludes friend-less
+-- LIMIT 10
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
