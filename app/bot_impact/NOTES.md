@@ -108,7 +108,7 @@ CREATE TABLE impeachment_production.user_friends_v2 as (
   SELECT
     uff.user_id
     ,uff.screen_name
-    --,uff.friend_name
+    --,uff.friend_count
     ,ARRAY_AGG(DISTINCT UPPER(uff.friend_name) IGNORE NULLS) as friend_names
   FROM impeachment_production.user_friends_flat uff
   GROUP BY 1,2
@@ -287,18 +287,111 @@ JOIN (
 
 
 
+```sql
+/*
+SELECT status_id, predicted_community_id
+FROM impeachment_production.2_community_predictions
+limit 10
+*/
+
+SELECT
+  uf.user_id
+  ,uf.screen_name
+  ,u.status_count
+  ,u.prediction_count
+  ,u.mean_opinion_score
+  ,ARRAY_LENGTH(uf.friend_names) as friend_count
+  ,uf.friend_names
+
+FROM impeachment_production.user_friends_v2 uf
+JOIN (
+    SELECT
+      user_id
+      ,count(distinct t.status_id) as status_count
+      ,count(distinct p.status_id) as prediction_count
+      ,avg(p.predicted_community_id) as mean_opinion_score
+    FROM impeachment_production.tweets t
+    JOIN impeachment_production.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+    WHERE EXTRACT(DATE FROM t.created_at) = '2020-02-05'
+    GROUP BY 1
+    HAVING count(distinct t.status_id) >= 45
+) u ON u.user_id = uf.user_id
+
+```
 
 
 
 
+```sql
+
+SELECT
+  uf.user_id
+  ,uf.screen_name
+  ,u.status_count
+  ,u.prediction_count
+  ,u.mean_opinion_score
+  ,ARRAY_LENGTH(uf.friend_names) as friend_count
+  --,uf.friend_names
+  ,case when community_id is not null then true else false end is_bot
+
+FROM impeachment_production.user_friends_v2 uf
+JOIN (
+    SELECT
+      t.user_id
+      ,count(distinct t.status_id) as status_count
+      ,count(distinct p.status_id) as prediction_count
+      ,avg(p.predicted_community_id) as mean_opinion_score
+    FROM impeachment_production.tweets t
+    JOIN impeachment_production.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+    WHERE EXTRACT(DATE FROM t.created_at) = '2020-02-05'
+    GROUP BY 1
+    HAVING count(distinct t.status_id) >= 45
+) u ON u.user_id = uf.user_id
+LEFT JOIN impeachment_production.2_bot_communities b ON b.user_id = cast(u.user_id as int64)
 
 
+```
 
 
+```sql
+-- this could use optimization. there's no need to hit tweets in the subquery
+SELECT
+  timeframe.first_day
+  ,timeframe.last_day
+  ,timeframe.num_days
+  ,cast(t.user_id as int64) as user_id
+  ,count(distinct t.status_id) as status_count
+  ,count(distinct t.status_id) / timeframe.num_days as tweets_per_day
+FROM (
+  SELECT
+    EXTRACT(DATE FROM min(t.created_at)) as first_day
+    ,EXTRACT(DATE FROM max(t.created_at)) as last_day
+    ,DATE_DIFF(
+      EXTRACT(DATE FROM max(t.created_at))
+      ,EXTRACT(DATE FROM min(t.created_at))
+      ,DAY
+    ) as num_days
+  FROM impeachment_production.tweets t
+  WHERE t.created_at BETWEEN '2019-12-20' AND '2020-02-20'
+) timeframe
+JOIN impeachment_production.tweets t on t.created_at BETWEEN '2019-12-20' AND '2020-02-20'
+GROUP BY 1,2,3,4
+
+```
 
 
-
-
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_tweet_rates;
+CREATE TABLE impeachment_production.user_tweet_rates as (
+  SELECT
+    cast(t.user_id as int64) as user_id
+    --,count(distinct t.status_id) as status_count
+    ,count(distinct t.status_id) / 62 as tweets_per_day
+  FROM impeachment_production.tweets t
+  WHERE t.created_at BETWEEN '2019-12-20' AND '2020-02-20' -- a time period of consistent collection
+  GROUP BY 1
+)
+```
 
 
 
