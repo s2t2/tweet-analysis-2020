@@ -1,10 +1,13 @@
 
 import os
 from memory_profiler import profile
+from functools import lru_cache
 
+from pandas import DataFrame
 from networkx import DiGraph
 
 from app import seek_confirmation
+from app.decorators.number_decorators import fmt_n
 from app.job import Job
 from app.bq_service import BigQueryService
 from app.bot_impact.friend_graph_storage import FriendGraphStorage
@@ -25,6 +28,9 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
         Job.__init__(self)
         FriendGraphStorage.__init__(self, dirpath=f"active_tweeter_friend_graphs/tweet_min/{self.tweet_min}/daily/{self.date}")
+
+        self.graph = None
+        self.nodes = None
 
         print("-------------------------")
         print("DAILY FRIEND GRAPHER...")
@@ -47,13 +53,41 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
         }}
 
     @profile
+    def fetch_nodes(self):
+        self.start()
+        self.nodes = []
+        print("FETCHING DAILY ACTIVE TWEETERS AND THEIR FRIENDS...")
+        for row in self.bq_service.fetch_daily_active_user_friends(date=self.date, tweet_min=self.tweet_min, limit=self.limit):
+            #self.nodes.append({
+            #    "user_id": row["user_id"],
+            #    "screen_name": row["screen_name"],
+            #    "status_count": row["status_count"],
+            #    "prediction_count": row["prediction_count"],
+            #    "mean_opinion_score": row["mean_opinion_score"],
+            #    "friend_count": row["friend_count"],
+            #    "is_bot": row["is_bot"],
+            #    "tweet_rate": row["is_bot"]
+            #})
+            self.nodes.append(dict(row))
+
+            self.counter += 1
+            if self.counter % self.batch_size == 0:
+                self.progress_report()
+        self.end()
+
+    @property
+    @lru_cache(maxsize=None)
+    def nodes_df(self):
+        if not self.nodes:
+            self.fetch_nodes()
+        return DataFrame(self.nodes)
+
+    @profile
     def compile_graph(self):
+        print("COMPILING FRIEND GRAPH...")
         self.start()
         self.graph = DiGraph()
-
-        print("FETCHING TWEETERS AND THEIR FRIENDS...")
-
-        for row in self.bq_service.fetch_daily_active_user_friends(date=self.date, tweet_min=self.tweet_min, limit=self.limit):
+        for row in self.nodes_df.iterrows():
             self.graph.add_edges_from([(row["screen_name"], friend_name) for friend_name in row["friend_names"]])
 
             self.counter += 1
@@ -63,9 +97,8 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
     @profile
     def compile_subgraph(self):
-        #breakpoint()
+        #print("COMPILING SUB-GRAPH...")
         pass
-
 
 
 if __name__ == "__main__":
@@ -79,10 +112,14 @@ if __name__ == "__main__":
     grapher = DailyFriendGrapher()
     grapher.save_metadata()
 
+    grapher.fetch_nodes()
+    print(grapher.nodes_df.head())
+    grapher.save_nodes()
+
     grapher.compile_graph()
     grapher.graph_report()
     grapher.save_graph()
 
-    grapher.compile_subgraph()
-    grapher.subgraph_report()
-    grapher.save_subgraph()
+    #grapher.compile_subgraph()
+    #grapher.subgraph_report()
+    #grapher.save_subgraph()

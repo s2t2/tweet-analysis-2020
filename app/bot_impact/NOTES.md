@@ -396,11 +396,57 @@ CREATE TABLE impeachment_production.user_tweet_rates as (
 
 
 
+```sql
+SELECT
+  uf.user_id
+  ,uf.screen_name
+  ,u.status_count
+  ,u.prediction_count
+  ,u.mean_opinion_score
+  ,ARRAY_LENGTH(uf.friend_names) as friend_count
+  --,uf.friend_names
+  ,case when community_id is not null then true else false end is_bot
+  ,tr.tweets_per_day as tweet_rate
+FROM impeachment_production.user_friends_v2 uf
+JOIN (
+    SELECT
+      cast(t.user_id as int64) as user_id
+      ,count(distinct t.status_id) as status_count
+      ,count(distinct p.status_id) as prediction_count
+      ,avg(p.predicted_community_id) as mean_opinion_score
+    FROM impeachment_production.tweets t
+    JOIN impeachment_production.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+    WHERE EXTRACT(DATE FROM t.created_at) = '2020-02-05'
+    GROUP BY 1
+    HAVING count(distinct t.status_id) >= 45
+) u ON u.user_id = cast(uf.user_id as int64)
+JOIN impeachment_production.user_tweet_rates tr ON tr.user_id = u.user_id
+LEFT JOIN impeachment_production.2_bot_communities b ON b.user_id = u.user_id
+-- and export to CSV for the given day --> nodes.csv
+```
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<hr>
 
 
 

@@ -1236,24 +1236,61 @@ class BigQueryService():
     #        sql += f" LIMIT {int(limit)} "
     #    return self.execute_query(sql)
 
+    #def fetch_daily_active_user_friends(self, date, tweet_min=4, limit=None):
+    #    """
+    #    Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
+    #
+    #    Params: date (str) like "2020-01-01"
+    #            tweet_min (int) users who have tweeted at least this many times will be included in the graph
+    #    """
+    #    sql = f"""
+    #        SELECT uf.user_id ,uf.screen_name, uf.friend_names
+    #        FROM `{self.dataset_address}.user_friends_v2` uf
+    #        JOIN (
+    #            SELECT user_id --, count(distinct status_id) as status_count
+    #            FROM `{self.dataset_address}.tweets` t
+    #            WHERE EXTRACT(DATE FROM t.created_at) = '{date}'
+    #            GROUP BY 1
+    #            HAVING count(distinct status_id) >= {int(tweet_min)}
+    #            -- ORDER BY 2 DESC
+    #        ) u ON u.user_id = uf.user_id
+    #    """
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)} "
+    #    return self.execute_query(sql)
+
     def fetch_daily_active_user_friends(self, date, tweet_min=4, limit=None):
         """
         Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
-
         Params: date (str) like "2020-01-01"
                 tweet_min (int) users who have tweeted at least this many times will be included in the graph
         """
         sql = f"""
-            SELECT uf.user_id ,uf.screen_name, uf.friend_names
+            SELECT
+                uf.user_id
+                ,uf.screen_name
+                ,u.status_count
+                ,u.prediction_count
+                ,u.mean_opinion_score
+                ,CASE WHEN community_id IS NOT NULL THEN true ELSE false END is_bot
+                ,tr.tweets_per_day as tweet_rate
+                ,ARRAY_LENGTH(uf.friend_names) as friend_count
+                ,uf.friend_names
             FROM `{self.dataset_address}.user_friends_v2` uf
             JOIN (
-                SELECT user_id --, count(distinct status_id) as status_count
+                SELECT
+                cast(t.user_id as int64) as user_id
+                ,count(distinct t.status_id) as status_count
+                ,count(distinct p.status_id) as prediction_count
+                ,avg(p.predicted_community_id) as mean_opinion_score
                 FROM `{self.dataset_address}.tweets` t
+                JOIN `{self.dataset_address}.2_community_predictions` p ON p.status_id = cast(t.status_id as int64)
                 WHERE EXTRACT(DATE FROM t.created_at) = '{date}'
                 GROUP BY 1
-                HAVING count(distinct status_id) >= {int(tweet_min)}
-                -- ORDER BY 2 DESC
-            ) u ON u.user_id = uf.user_id
+                HAVING count(distinct t.status_id) >= {int(tweet_min)}
+            ) u ON u.user_id = cast(uf.user_id as int64)
+            JOIN `{self.dataset_address}.user_tweet_rates` tr ON tr.user_id = u.user_id
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` b ON b.user_id = u.user_id
         """
         if limit:
             sql += f" LIMIT {int(limit)} "
