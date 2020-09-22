@@ -5,8 +5,9 @@ from functools import lru_cache
 
 from pandas import DataFrame
 from networkx import DiGraph
+import matplotlib.pyplot as plt
 
-from app import seek_confirmation
+from app import seek_confirmation, APP_ENV
 from app.decorators.number_decorators import fmt_n
 from app.job import Job
 from app.bq_service import BigQueryService
@@ -83,11 +84,22 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             self.fetch_nodes()
         return DataFrame(self.nodes)
 
+    def generate_mean_opinions_histogram(self):
+        plt.hist(self.nodes_df["mean_opinion_score"])
+        plt.grid()
+        plt.title(f"Distribution of Mean Opinion Scores for Active Tweeters on {self.date}")
+        plt.xlabel("Mean Opinion Score (0:left, 1:right)")
+        plt.ylabel(f"User Count (>= {self.tweet_min} Tweets)")
+        if APP_ENV == "development":
+            plt.show()
+        plt.savefig(self.local_histogram_filepath)
+        self.upload_file(self.local_histogram_filepath, self.gcs_histogram_filepath)
+
     @profile
     def compile_graph(self):
-        print("COMPILING FRIEND GRAPH...")
         self.start()
         self.graph = DiGraph()
+        print("COMPILING FRIEND GRAPH...")
         for i, row in self.nodes_df.iterrows():
             self.graph.add_edges_from([(row["screen_name"], friend_name) for friend_name in row["friend_names"]])
 
@@ -98,8 +110,12 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
     @profile
     def compile_subgraph(self):
-        #print("COMPILING SUB-GRAPH...")
-        pass
+        self.start()
+        self.subgraph = DiGraph()
+        print("COMPILING SUB-GRAPH...")
+        breakpoint()
+
+        self.end()
 
 
 if __name__ == "__main__":
@@ -115,11 +131,12 @@ if __name__ == "__main__":
 
     grapher.fetch_nodes()
     grapher.save_nodes()
+    grapher.generate_mean_opinions_histogram()
 
     grapher.compile_graph()
     grapher.graph_report()
     grapher.save_graph()
 
-    #grapher.compile_subgraph()
-    #grapher.subgraph_report()
-    #grapher.save_subgraph()
+    grapher.compile_subgraph()
+    grapher.subgraph_report()
+    grapher.save_subgraph()

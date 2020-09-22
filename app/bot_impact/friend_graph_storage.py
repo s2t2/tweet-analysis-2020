@@ -22,6 +22,9 @@ class FriendGraphStorage(FileStorage):
         self.local_nodes_filepath = os.path.join(self.local_dirpath, "nodes.csv")
         self.gcs_nodes_filepath = os.path.join(self.gcs_dirpath, "nodes.csv")
 
+        self.local_histogram_filepath = os.path.join(self.local_dirpath, "histogram.png")
+        self.gcs_histogram_filepath = os.path.join(self.gcs_dirpath, "histogram.png")
+
         self.local_graph_filepath = os.path.join(self.local_dirpath, "graph.gpickle")
         self.gcs_graph_filepath = os.path.join(self.gcs_dirpath, "graph.gpickle")
 
