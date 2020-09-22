@@ -1236,7 +1236,7 @@ class BigQueryService():
     #        sql += f" LIMIT {int(limit)} "
     #    return self.execute_query(sql)
 
-    def fetch_daily_user_friends_for_active_tweeters(self, date, tweet_min=4, limit=None):
+    def fetch_daily_active_user_friends(self, date, tweet_min=4, limit=None):
         """
         Returns a row for each user who tweeted on that day, with a list of aggregated friend ids.
 

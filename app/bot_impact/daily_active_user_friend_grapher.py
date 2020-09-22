@@ -53,7 +53,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
         print("FETCHING TWEETERS AND THEIR FRIENDS...")
 
-        for row in self.bq_service.fetch_daily_user_friends_for_active_tweeters(date=self.date, tweet_min=self.tweet_min, limit=self.limit):
+        for row in self.bq_service.fetch_daily_active_user_friends(date=self.date, tweet_min=self.tweet_min, limit=self.limit):
             self.graph.add_edges_from([(row["screen_name"], friend_name) for friend_name in row["friend_names"]])
 
             self.counter += 1
