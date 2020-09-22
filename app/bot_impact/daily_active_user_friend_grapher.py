@@ -65,6 +65,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             #    "prediction_count": row["prediction_count"],
             #    "mean_opinion_score": row["mean_opinion_score"],
             #    "friend_count": row["friend_count"],
+            #    "friend_names": row["friend_names"],
             #    "is_bot": row["is_bot"],
             #    "tweet_rate": row["is_bot"]
             #})
@@ -87,7 +88,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
         print("COMPILING FRIEND GRAPH...")
         self.start()
         self.graph = DiGraph()
-        for row in self.nodes_df.iterrows():
+        for i, row in self.nodes_df.iterrows():
             self.graph.add_edges_from([(row["screen_name"], friend_name) for friend_name in row["friend_names"]])
 
             self.counter += 1
@@ -113,7 +114,6 @@ if __name__ == "__main__":
     grapher.save_metadata()
 
     grapher.fetch_nodes()
-    print(grapher.nodes_df.head())
     grapher.save_nodes()
 
     grapher.compile_graph()
