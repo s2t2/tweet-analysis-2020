@@ -89,8 +89,8 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     @property
     @lru_cache(maxsize=None)
     def nodes_df(self):
-        if os.path.isfile(self.local_nodes_filepath) and self.destructive == False:
-            return read_csv(self.local_nodes_filepath)
+        #if os.path.isfile(self.local_nodes_filepath) and not self.destructive:
+        #    return read_csv(self.local_nodes_filepath)
 
         if not self.nodes:
             self.fetch_nodes()
@@ -98,12 +98,12 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
         df = DataFrame(self.nodes)
         del self.nodes
 
-        threshold_low = quantile(self.nodes_df["mean_opinion_score"], 0.05) #> 0
-        threshold_high = quantile(self.nodes_df["mean_opinion_score"], 0.95) #> 1
+        threshold_low = quantile(df["mean_opinion_score"], 0.05) #> 0
+        threshold_high = quantile(df["mean_opinion_score"], 0.95) #> 1
         print("LOWER 5%:", threshold_low, "UPPER 5%:", threshold_high)
 
         df["stubborn"] = 1 * logical_or(df["mean_opinion_score"] <= threshold_low, df["mean_opinion_score"] >= threshold_high) # 1 if below the low or above the high, else 0
-        print("STUBBORN:", fmt_pct(len(helper_df[helper_df["stubborn"] == 1]) / len(helper_df)))
+        print("STUBBORN:", fmt_pct(len(df[df["stubborn"] == 1]) / len(df)))
         print(df["stubborn"].value_counts())
 
         return df
