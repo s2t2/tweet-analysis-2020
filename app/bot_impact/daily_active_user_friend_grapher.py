@@ -62,7 +62,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     #    else:
     #        self.fetch_nodes() ...
 
-    @profile
+    #@profile
     def fetch_nodes(self):
         self.start()
         self.nodes = []
@@ -100,10 +100,12 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
         threshold_low = quantile(df["mean_opinion_score"], 0.05) #> 0
         threshold_high = quantile(df["mean_opinion_score"], 0.95) #> 1
-        print("LOWER 5%:", threshold_low, "UPPER 5%:", threshold_high)
+        print("LOWER 5%:", threshold_low)
+        print("UPPER 5%:", threshold_high)
 
         df["stubborn"] = 1 * logical_or(df["mean_opinion_score"] <= threshold_low, df["mean_opinion_score"] >= threshold_high) # 1 if below the low or above the high, else 0
         print("STUBBORN:", fmt_pct(len(df[df["stubborn"] == 1]) / len(df)))
+        #print(df["stubborn"].value_counts(normalize=True))
         print(df["stubborn"].value_counts())
 
         return df
@@ -135,6 +137,9 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     @profile
     def compile_subgraph(self):
         """ Returns a sugbraph of the friend graph that has only nodes that can be reached by at least one stubborn node"""
+        if not self.graph:
+            self.compile_graph()
+
         self.start()
         self.subgraph = DiGraph()
         print("COMPILING SUB-GRAPH...")
@@ -167,11 +172,11 @@ if __name__ == "__main__":
     grapher.save_nodes()
     grapher.generate_mean_opinions_histogram()
 
-    exit()
-
     grapher.compile_graph()
     grapher.graph_report()
     grapher.save_graph()
+
+    exit()
 
     grapher.compile_subgraph()
     grapher.subgraph_report()
