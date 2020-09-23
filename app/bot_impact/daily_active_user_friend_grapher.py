@@ -3,12 +3,13 @@ import os
 from memory_profiler import profile
 from functools import lru_cache
 
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from networkx import DiGraph
 import matplotlib.pyplot as plt
+from numpy import quantile, logical_or
 
 from app import seek_confirmation, APP_ENV
-from app.decorators.number_decorators import fmt_n
+from app.decorators.number_decorators import fmt_n, fmt_pct
 from app.job import Job
 from app.bq_service import BigQueryService
 from app.bot_impact.friend_graph_storage import FriendGraphStorage
@@ -19,6 +20,7 @@ TWEET_MIN = int(os.getenv("TWEET_MIN", default="4"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="1000"))
 LIMIT = os.getenv("LIMIT") # default none, but maybe use 10000
 
+
 class DailyFriendGrapher(FriendGraphStorage, Job):
     def __init__(self, bq_service=None, date=DATE, tweet_min=TWEET_MIN, batch_size=BATCH_SIZE, limit=LIMIT):
         self.bq_service = bq_service or BigQueryService()
@@ -26,6 +28,7 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
         self.tweet_min = tweet_min
         self.batch_size = batch_size
         self.limit = limit
+        self.destructive = True
 
         Job.__init__(self)
         FriendGraphStorage.__init__(self, dirpath=f"active_tweeter_friend_graphs/tweet_min/{self.tweet_min}/daily/{self.date}")
@@ -53,14 +56,21 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             "limit":self.limit
         }}
 
+    #def load_nodes(self):
+    #    if os.path.isfile(self.local_nodes_filepath):
+    #        return read_csv(self.local_nodes_filepath)
+    #    else:
+    #        self.fetch_nodes() ...
+
     @profile
     def fetch_nodes(self):
         self.start()
         self.nodes = []
         print("FETCHING DAILY ACTIVE TWEETERS AND THEIR FRIENDS...")
         for row in self.bq_service.fetch_daily_active_user_friends(date=self.date, tweet_min=self.tweet_min, limit=self.limit):
+            self.nodes.append(dict(row))
             #self.nodes.append({
-            #    "user_id": row["user_id"],
+            #    "id": row["user_id"],
             #    "screen_name": row["screen_name"],
             #    "status_count": row["status_count"],
             #    "prediction_count": row["prediction_count"],
@@ -68,9 +78,8 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
             #    "friend_count": row["friend_count"],
             #    "friend_names": row["friend_names"],
             #    "is_bot": row["is_bot"],
-            #    "tweet_rate": row["is_bot"]
+            #    "tweet_rate": row["tweet_rate"]
             #})
-            self.nodes.append(dict(row))
 
             self.counter += 1
             if self.counter % self.batch_size == 0:
@@ -80,9 +89,24 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     @property
     @lru_cache(maxsize=None)
     def nodes_df(self):
+        if os.path.isfile(self.local_nodes_filepath) and self.destructive == False:
+            return read_csv(self.local_nodes_filepath)
+
         if not self.nodes:
             self.fetch_nodes()
-        return DataFrame(self.nodes)
+
+        df = DataFrame(self.nodes)
+        del self.nodes
+
+        threshold_low = quantile(self.nodes_df["mean_opinion_score"], 0.05) #> 0
+        threshold_high = quantile(self.nodes_df["mean_opinion_score"], 0.95) #> 1
+        print("LOWER 5%:", threshold_low, "UPPER 5%:", threshold_high)
+
+        df["stubborn"] = 1 * logical_or(df["mean_opinion_score"] <= threshold_low, df["mean_opinion_score"] >= threshold_high) # 1 if below the low or above the high, else 0
+        print("STUBBORN:", fmt_pct(len(helper_df[helper_df["stubborn"] == 1]) / len(helper_df)))
+        print(df["stubborn"].value_counts())
+
+        return df
 
     def generate_mean_opinions_histogram(self):
         plt.hist(self.nodes_df["mean_opinion_score"])
@@ -110,12 +134,22 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
 
     @profile
     def compile_subgraph(self):
+        """ Returns a sugbraph of the friend graph that has only nodes that can be reached by at least one stubborn node"""
         self.start()
         self.subgraph = DiGraph()
         print("COMPILING SUB-GRAPH...")
-        breakpoint()
 
-        self.end()
+        #for i, row in self.nodes_df.iterrows():
+        #    self.subgraph.add_node(row["screen_name"],
+        #        Name=row["screen_name"],
+        #        InitialOpinion=row["mean_opinion_score"],
+        #        Stubborn=row["stubborn"],
+        #        Rate=row["tweet_rate"],
+        #        FinalOpinion=row['mean_opinion_score'],
+        #        Bot=row['is_bot']
+        #    )
+
+
 
 
 if __name__ == "__main__":
@@ -129,9 +163,11 @@ if __name__ == "__main__":
     grapher = DailyFriendGrapher()
     grapher.save_metadata()
 
-    grapher.fetch_nodes()
+    grapher.nodes_df
     grapher.save_nodes()
     grapher.generate_mean_opinions_histogram()
+
+    exit()
 
     grapher.compile_graph()
     grapher.graph_report()
