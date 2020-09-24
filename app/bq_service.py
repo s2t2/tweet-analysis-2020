@@ -1279,10 +1279,10 @@ class BigQueryService():
             FROM `{self.dataset_address}.user_friends_v2` uf
             JOIN (
                 SELECT
-                cast(t.user_id as int64) as user_id
-                ,count(distinct t.status_id) as status_count
-                ,count(distinct p.status_id) as prediction_count
-                ,avg(p.predicted_community_id) as mean_opinion_score
+                    cast(t.user_id as int64) as user_id
+                    ,count(distinct t.status_id) as status_count
+                    ,count(distinct p.status_id) as prediction_count
+                    ,avg(p.predicted_community_id) as mean_opinion_score
                 FROM `{self.dataset_address}.tweets` t
                 JOIN `{self.dataset_address}.2_community_predictions` p ON p.status_id = cast(t.status_id as int64)
                 WHERE EXTRACT(DATE FROM t.created_at) = '{date}'
@@ -1303,8 +1303,32 @@ class BigQueryService():
                 tweet_min (int) users who have tweeted at least this many times will be included in the graph
         """
         sql = f"""
-
-
+            SELECT
+                dau.user_id -- as id
+                ,dau.screen_name --as Name
+                ,dau.status_count
+                ,dau.mean_opinion_score -- as InitialOpinion
+                ,tr.tweets_per_day as tweet_rate -- as Rate
+                ,CASE WHEN bu.community_id IS NOT NULL THEN true ELSE false END is_bot
+                ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM (
+                SELECT
+                    cast(t.user_id as int64) as user_id
+                    ,upper(t.user_screen_name) as screen_name
+                    ,count(distinct t.status_id) as status_count
+                    ,avg(p.predicted_community_id) as mean_opinion_score
+                FROM {self.dataset_address}.tweets t
+                JOIN {self.dataset_address}.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+                WHERE EXTRACT(DATE FROM t.created_at) = '{date}'
+                GROUP BY 1,2
+                HAVING count(distinct t.status_id) >= {int(tweet_min)}
+            ) dau
+            JOIN {self.dataset_address}.user_tweet_rates tr ON tr.user_id = dau.user_id
+            LEFT JOIN {self.dataset_address}.2_bot_communities bu ON bu.user_id = dau.user_id
+            JOIN {self.dataset_address}.active_user_friends_flat uff ON uff.user_id = dau.user_id
+            JOIN {self.dataset_address}.active_user_friends_flat uff2 ON uff.friend_name = dau.screen_name
+            GROUP BY 1,2,3,4,5,6
         """
         if limit:
             sql += f" LIMIT {int(limit)} "

@@ -437,14 +437,105 @@ CREATE TABLE impeachment_production.active_user_friends_flat AS (
 ```
 
 
+```sql
+
+SELECT
+  uff.user_id
+  ,uff.screen_name
+  ,array_agg(uff.friend_name) as friend_names
+FROM impeachment_production.active_user_friends_flat uff
+WHERE uff.screen_name in (
+  SELECT DISTINCT upper(user_screen_name)
+  FROM impeachment_production.tweets
+  WHERE EXTRACT(DATE FROM created_at) = '2020-02-05'
+)
+AND uff.friend_name in (
+  SELECT DISTINCT user_screen_name
+  FROM impeachment_production.tweets
+  WHERE EXTRACT(DATE FROM created_at) = '2020-02-05'
+)
+GROUP BY 1,2
+LIMIT 10
+```
 
 
+```sql
+
+WITH daily_tweeters AS (
+  SELECT DISTINCT upper(user_screen_name) as screen_name
+  FROM impeachment_production.tweets
+  WHERE EXTRACT(DATE FROM created_at) = '2020-02-05'
+)
+
+-- SELECT count(distinct screen_name) FROM daily_tweeters -- 376,224
+
+SELECT
+  uff.user_id
+  ,uff.screen_name
+  ,array_agg(uff.friend_name) as friend_names
+FROM impeachment_production.active_user_friends_flat uff
+JOIN daily_tweeters t1 ON t1.screen_name = uff.screen_name
+JOIN daily_tweeters t2 ON t2.screen_name = uff.friend_name
+GROUP BY 1,2
+LIMIT 10
+```
 
 
+```sql
+SELECT
+  dau.user_id -- as id
+  ,dau.screen_name --as Name
+  ,dau.status_count
+  ,dau.mean_opinion_score -- as InitialOpinion
+  ,tr.tweets_per_day as tweet_rate -- as Rate
+  ,CASE WHEN bu.community_id IS NOT NULL THEN true ELSE false END is_bot
+FROM (
+  SELECT
+    cast(t.user_id as int64) as user_id
+    ,upper(t.user_screen_name) as screen_name
+    ,count(distinct t.status_id) as status_count
+    ,avg(p.predicted_community_id) as mean_opinion_score
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+  WHERE EXTRACT(DATE FROM t.created_at) = '2020-02-05'
+  GROUP BY 1,2
+  HAVING count(distinct t.status_id) >= 10
+) dau
+JOIN impeachment_production.user_tweet_rates tr ON tr.user_id = dau.user_id
+LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = dau.user_id
+LIMIT 10
+```
 
+```sql
+SELECT
+  dau.user_id -- as id
+  ,dau.screen_name --as Name
+  ,dau.status_count
+  ,dau.mean_opinion_score -- as InitialOpinion
+  ,tr.tweets_per_day as tweet_rate -- as Rate
+  ,CASE WHEN bu.community_id IS NOT NULL THEN true ELSE false END is_bot
+  ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+  ,count(DISTINCT uff.friend_name) as friend_count
+FROM (
+  SELECT
+    cast(t.user_id as int64) as user_id
+    ,upper(t.user_screen_name) as screen_name
+    ,count(distinct t.status_id) as status_count
+    ,avg(p.predicted_community_id) as mean_opinion_score
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.2_community_predictions p ON p.status_id = cast(t.status_id as int64)
+  WHERE EXTRACT(DATE FROM t.created_at) = '2020-02-05'
+  GROUP BY 1,2
+  HAVING count(distinct t.status_id) >= 5
+) dau
+JOIN impeachment_production.user_tweet_rates tr ON tr.user_id = dau.user_id
+LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = dau.user_id
+JOIN impeachment_production.active_user_friends_flat uff ON uff.user_id = dau.user_id
+JOIN impeachment_production.active_user_friends_flat uff2 ON uff.friend_name = dau.screen_name
+GROUP BY 1,2,3,4,5,6
+LIMIT 10
 
-
-
+```
 
 
 

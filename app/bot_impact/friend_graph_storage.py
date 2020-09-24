@@ -35,26 +35,22 @@ class FriendGraphStorage(FileStorage):
         print(logstamp(), "SAVING METADATA...")
         with open(self.local_metadata_filepath, "w") as f:
             json.dump(self.metadata, f)
-        if self.wifi:
-            self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
+        self.upload_file(self.local_metadata_filepath, self.gcs_metadata_filepath)
 
     def save_nodes(self):
         print(logstamp(), "SAVING NODES...")
         self.nodes_df.to_csv(self.local_nodes_filepath)
-        if self.wifi:
-            self.upload_file(self.local_nodes_filepath, self.gcs_nodes_filepath)
+        self.upload_file(self.local_nodes_filepath, self.gcs_nodes_filepath)
 
     def save_graph(self):
         print(logstamp(), "SAVING GRAPH...")
         write_gpickle(self.graph, self.local_graph_filepath)
-        if self.wifi:
-            self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
+        self.upload_file(self.local_graph_filepath, self.gcs_graph_filepath)
 
     def save_subgraph(self):
         print(logstamp(), "SAVING SUBGRAPH...")
         write_gpickle(self.subgraph, self.local_graph_filepath)
-        if self.wifi:
-            self.upload_file(self.local_subgraph_filepath, self.gcs_subgraph_filepath)
+        self.upload_file(self.local_subgraph_filepath, self.gcs_subgraph_filepath)
 
     def report(self, graph):
         print("-------------------")
