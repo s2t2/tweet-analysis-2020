@@ -50,11 +50,6 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     def metadata(self):
         return {**super().metadata, **{"bq_service": self.bq_service.metadata, "tweet_min": self.tweet_min, "date": self.date, "batch_size": self.batch_size,"limit":self.limit}}
 
-    @property
-    @lru_cache(maxsize=None)
-    def nodes(self):
-        return self.fetch_nodes()
-
     @profile
     def fetch_nodes(self):
         self.start()
@@ -73,6 +68,9 @@ class DailyFriendGrapher(FriendGraphStorage, Job):
     def nodes_df(self):
         if os.path.isfile(self.local_nodes_filepath):
             return read_csv(self.local_nodes_filepath)
+
+        if not self.nodes:
+            self.fetch_nodes()
 
         df = DataFrame(self.nodes)
         del self.nodes
