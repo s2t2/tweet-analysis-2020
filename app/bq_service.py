@@ -1222,7 +1222,7 @@ class BigQueryService():
     #def fetch_daily_community_friends(self, date, community_id, limit=None):
     #    """
     #    Returns a row for each community member who tweeted on that day, with a list of aggregated friend ids.
-#
+    #
     #    Params: date (str) like "2020-01-01"
     #    """
     #    table_suffix = date.replace("-","") #> 20200205
@@ -1296,8 +1296,19 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)} "
         return self.execute_query(sql)
 
+    def fetch_daily_active_user_friends_v2(self, date, tweet_min=5, limit=None):
+        """
+        Returns a row for each user who tweeted on that day, with a list of aggregated friend ids who also tweeted that day.
+        Params: date (str) like "2020-01-01"
+                tweet_min (int) users who have tweeted at least this many times will be included in the graph
+        """
+        sql = f"""
 
 
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)} "
+        return self.execute_query(sql)
 
 
 
