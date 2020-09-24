@@ -425,7 +425,16 @@ LEFT JOIN impeachment_production.2_bot_communities b ON b.user_id = u.user_id
 -- and export to CSV for the given day --> nodes.csv
 ```
 
-
+```sql
+DROP TABLE IF EXISTS impeachment_production.active_user_friends_flat;
+CREATE TABLE impeachment_production.active_user_friends_flat AS (
+  SELECT user_id, screen_name, friend_name
+  FROM impeachment_production.user_friends_flat
+  WHERE screen_name in (SELECT DISTINCT upper(user_screen_name) FROM impeachment_production.tweets)
+    AND friend_name in (SELECT DISTINCT upper(user_screen_name) FROM impeachment_production.tweets)
+  -- LIMIT 10
+); --> 642,079,860 rows (vs 1,976,670,168) so about 1/3 the size of the original uff
+```
 
 
 
