@@ -537,7 +537,19 @@ LIMIT 10
 
 ```
 
-
+```sql
+DROP TABLE IF EXISTS impeachment_production.active_user_friends;
+CREATE TABLE impeachment_production.active_user_friends as (
+  SELECT
+    uff.user_id
+    ,uff.screen_name
+    --,uff.friend_count
+    ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+    ,count(DISTINCT uff.friend_name) as friend_count
+  FROM impeachment_production.active_user_friends_flat uff
+  GROUP BY 1,2
+);
+```
 
 
 
@@ -547,31 +559,3 @@ LIMIT 10
 
 
 <hr>
-
-
-
-
-## PG Migrations
-
-```sql
-
-DROP TABLE IF EXISTS user_friends_20200205;
-CREATE TABLE user_friends_20200205 as (
-
-  SELECT
-    t.user_screen_name as screen_name
-    ,uf.friend_names
-  FROM user_friends uf
-  JOIN tweets t ON upper(t.user_screen_name) = upper(uf.screen_name)
-  WHERE t.created_at::date = '2020-02-05'
-    AND uf.friend_count > 0
-  -- LIMIT 10
-)
-```
-
-
-```sql
-SELECT count(screen_name) as row_count
-FROM user_friends_20200205
--- 998,295 tweeters
-```
