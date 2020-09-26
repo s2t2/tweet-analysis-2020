@@ -1,5 +1,5 @@
 
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 
 api_routes = Blueprint("v0_routes", __name__)
 
@@ -34,3 +34,16 @@ def user_tweets(screen_name=None):
     except IndexError as err:
         print(err)
         return jsonify({"message": f"Oh, couldn't find user with screen name '{screen_name}'. Please try again."}), 404
+
+@api_routes.route("/api/v0/users_most_retweeted")
+def users_most_retweeted(metric=None, limit=None):
+    response = list(current_app.config["BQ_SERVICE"].fetch_users_most_retweeted_api_v0())
+
+    #print("REQUEST ARGS:", request.args)
+    #metric = request.args.get("metric")
+    #limit = request.args.get("limit")
+    #query_params = {"metric": metric, "limit": limit}
+    #print("QUERY PARAMS:", query_params)
+    #response = list(current_app.config["BQ_SERVICE"].fetch_users_most_retweeted_api_v0(**query_params))
+
+    return jsonify([dict(row) for row in response])

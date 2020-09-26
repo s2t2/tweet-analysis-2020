@@ -9,6 +9,26 @@ FLASK_APP="api" flask run
 
 ## Endpoints (Version 0)
 
+### Users Most Retweeted
+
+Params:
+  + `metric`: whether to calculate top users based on "retweet_count" or "retweeter_count" (default: "retweeter_count")
+  + `limit`: the number of top users for each community (default: 25,  max: 1000)
+
+> IMPORTANT: both metrics are provided in the response, but only the requested metric was used to calculate the "top" users, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
+
+Request Examples:
+
+  + `GET /api/v0/users_most_retweeted`
+  + `GET /api/v0/users_most_retweeted?limit=10`
+  + `GET /api/v0/users_most_retweeted?limit=10&metric=retweet_count`
+
+Returns a list of top user objects:
+
+```json
+
+```
+
 ### User Details
 
   + `GET /api/v0/user_details/<screen_name>`
