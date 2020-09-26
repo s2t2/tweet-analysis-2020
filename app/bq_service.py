@@ -1161,8 +1161,10 @@ class BigQueryService():
             metric : whether to calculate top users based on "retweet_count" or "retweeter_count"
             limit : the number of top users for each community (max 1,000)
         """
-        metric = metric or "retweeter_count"
+        metric = metric or "retweet_count"
         limit = limit or 25
+
+        # TODO: if community_id param present, only query that table
 
         sql = f"""
             (
