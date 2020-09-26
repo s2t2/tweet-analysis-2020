@@ -9,43 +9,10 @@ FLASK_APP="api" flask run
 
 ## Endpoints (Version 0)
 
-### Users Most Retweeted
-
-Params:
-  + `metric`: whether to calculate top users based on "retweet_count" or "retweeter_count" (default: "retweeter_count")
-  + `limit`: the number of top users for each community (default: 25,  max: 1000)
-
-Request Examples:
-
-  + `GET /api/v0/users_most_retweeted`
-  + `GET /api/v0/users_most_retweeted?limit=5`
-  + `GET /api/v0/users_most_retweeted?limit=5&metric=retweet_count`
-
-Returns a list of top user objects:
-
-```json
-[
-  {"community_id":1, "retweet_count":9223,  "retweeted_user_screen_name":"REALDONALDTRUMP", "retweeter_count":110},
-  {"community_id":1, "retweet_count":3602,  "retweeted_user_screen_name":"CHARLIEKIRK11",   "retweeter_count":104},
-  {"community_id":1, "retweet_count":2194,  "retweeted_user_screen_name":"MARKLEVINSHOW",   "retweeter_count":105},
-  {"community_id":1, "retweet_count":2137,  "retweeted_user_screen_name":"DBONGINO",        "retweeter_count":102},
-  {"community_id":1, "retweet_count":1454,  "retweeted_user_screen_name":"RUDYGIULIANI",    "retweeter_count":107},
-
-  {"community_id":0, "retweet_count":27236, "retweeted_user_screen_name":"TRIBELAW",        "retweeter_count":567},
-  {"community_id":0, "retweet_count":19708, "retweeted_user_screen_name":"JOYCEWHITEVANCE", "retweeter_count":563},
-  {"community_id":0, "retweet_count":16831, "retweeted_user_screen_name":"KYLEGRIFFIN1",    "retweeter_count":563},
-  {"community_id":0, "retweet_count":11871, "retweeted_user_screen_name":"NEAL_KATYAL",     "retweeter_count":560},
-  {"community_id":0, "retweet_count":5824,  "retweeted_user_screen_name":"REPADAMSCHIFF",   "retweeter_count":567}
-]
-```
-
-> NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" users, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
-
-> NOTE: results may not be sorted
-
 ### User Details
 
   + `GET /api/v0/user_details/<screen_name>`
+  + `GET /api/v0/user_details/politico`
 
 Returns user object:
 
@@ -64,6 +31,7 @@ Returns user object:
 ### User Tweets
 
   + `GET /api/v0/user_tweets/<screen_name>`
+  + `GET /api/v0/user_tweets/berniesanders`
 
 Returns list of tweet objects:
 
@@ -101,3 +69,37 @@ Returns list of tweet objects:
   }
 ]
 ```
+
+### Users Most Retweeted
+
+Params:
+  + `metric`: whether to calculate top users based on "retweet_count" or "retweeter_count" (default: "retweeter_count")
+  + `limit`: the number of top users for each community (default: 25,  max: 1000)
+
+Request Examples:
+
+  + `GET /api/v0/users_most_retweeted`
+  + `GET /api/v0/users_most_retweeted?limit=5`
+  + `GET /api/v0/users_most_retweeted?limit=5&metric=retweet_count`
+
+Returns a list of top user objects:
+
+```json
+[
+  {"community_id":1, "retweet_count":9223,  "retweeted_user_screen_name":"REALDONALDTRUMP", "retweeter_count":110},
+  {"community_id":1, "retweet_count":3602,  "retweeted_user_screen_name":"CHARLIEKIRK11",   "retweeter_count":104},
+  {"community_id":1, "retweet_count":2194,  "retweeted_user_screen_name":"MARKLEVINSHOW",   "retweeter_count":105},
+  {"community_id":1, "retweet_count":2137,  "retweeted_user_screen_name":"DBONGINO",        "retweeter_count":102},
+  {"community_id":1, "retweet_count":1454,  "retweeted_user_screen_name":"RUDYGIULIANI",    "retweeter_count":107},
+
+  {"community_id":0, "retweet_count":27236, "retweeted_user_screen_name":"TRIBELAW",        "retweeter_count":567},
+  {"community_id":0, "retweet_count":19708, "retweeted_user_screen_name":"JOYCEWHITEVANCE", "retweeter_count":563},
+  {"community_id":0, "retweet_count":16831, "retweeted_user_screen_name":"KYLEGRIFFIN1",    "retweeter_count":563},
+  {"community_id":0, "retweet_count":11871, "retweeted_user_screen_name":"NEAL_KATYAL",     "retweeter_count":560},
+  {"community_id":0, "retweet_count":5824,  "retweeted_user_screen_name":"REPADAMSCHIFF",   "retweeter_count":567}
+]
+```
+
+> NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" users, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
+
+> NOTE: results may not be sorted
