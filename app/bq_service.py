@@ -1159,12 +1159,10 @@ class BigQueryService():
         """
         Params:
             metric : whether to calculate top users based on "retweet_count" or "retweeter_count"
-            limit : the number of top users for each community (max 1,000)
+            limit : the number of top users to return for each community (max 1,000)
         """
         metric = metric or "retweet_count"
         limit = limit or 25
-
-        # TODO: if community_id param present, only query that table
 
         sql = f"""
             (
@@ -1187,7 +1185,35 @@ class BigQueryService():
         ])
         return self.client.query(sql, job_config=job_config)
 
+    def fetch_statuses_most_retweeted_api_v0(self, metric=None, limit=None):
+        """
+        Params:
+            metric : whether to calculate top statuses based on "retweet_count" or "retweeter_count"
+            limit : the number of top statuses to return for each community (max 1,000)
+        """
+        metric = metric or "retweet_count"
+        limit = limit or 25
 
+        sql = f"""
+            (
+                SELECT community_id ,retweeted_user_screen_name ,status_text ,retweeter_count , retweet_count
+                FROM `{self.dataset_address}.community_0_statuses_most_retweeted`
+                ORDER BY @metric DESC
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT community_id ,retweeted_user_screen_name ,status_text ,retweeter_count , retweet_count
+                FROM `{self.dataset_address}.community_1_statuses_most_retweeted`
+                ORDER BY @metric DESC
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[
+            ScalarQueryParameter("metric", "STRING", metric),
+            ScalarQueryParameter("limit", "INT64", int(limit)),
+        ])
+        return self.client.query(sql, job_config=job_config)
 
 
 

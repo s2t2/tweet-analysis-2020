@@ -34,6 +34,8 @@ FROM (
 
 ### Users Most Retweeted
 
+Community-specific retweet tables:
+
 ```sql
 DROP TABLE IF EXISTS impeachment_production.community_0_retweets;
 CREATE TABLE impeachment_production.community_0_retweets AS (
@@ -71,6 +73,8 @@ CREATE TABLE impeachment_production.community_1_retweets AS (
 
 ```
 
+Users most retweeted:
+
 ```sql
 DROP TABLE IF EXISTS impeachment_production.community_0_users_most_retweeted;
 CREATE TABLE impeachment_production.community_0_users_most_retweeted AS (
@@ -95,6 +99,38 @@ CREATE TABLE impeachment_production.community_1_users_most_retweeted AS (
   FROM impeachment_production.community_1_retweets
   GROUP BY 1,2
   ORDER BY 3 DESC
+  LIMIT 1000
+);
+```
+
+Statuses most retweeted:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.community_0_statuses_most_retweeted;
+CREATE TABLE impeachment_production.community_0_statuses_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,status_text
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_0_retweets
+  GROUP BY 1,2,3
+  ORDER BY retweet_count DESC
+  LIMIT 1000
+);
+
+DROP TABLE IF EXISTS impeachment_production.community_1_statuses_most_retweeted;
+CREATE TABLE impeachment_production.community_1_statuses_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,status_text
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_1_retweets
+  GROUP BY 1,2,3
+  ORDER BY retweet_count DESC
   LIMIT 1000
 );
 ```

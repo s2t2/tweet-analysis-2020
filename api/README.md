@@ -73,7 +73,7 @@ Returns list of tweet objects:
 ### Users Most Retweeted
 
 Params:
-  + `metric`: whether to calculate top users based on "retweet_count" or "retweeter_count" (default: "retweeter_count")
+  + `metric`: whether to calculate top users based on "retweet_count" or "retweeter_count" (default: "retweet_count")
   + `limit`: the number of top users for each community (default: 25,  max: 1000)
 
 Request Examples:
@@ -101,5 +101,46 @@ Returns a list of top user objects:
 ```
 
 > NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" users, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
+
+> NOTE: results may not be sorted
+
+### Statuses Most Retweeted
+
+Params:
+  + `metric`: whether to calculate top statuses based on "retweet_count" or "retweeter_count" (default: "retweet_count")
+  + `limit`: the number of top users for each community (default: 25,  max: 1000)
+
+Request Examples:
+
+  + `GET /api/v0/statuses_most_retweeted`
+  + `GET /api/v0/statuses_most_retweeted?limit=3`
+  + `GET /api/v0/statuses_most_retweeted?limit=3&metric=retweet_count`
+
+Returns a list of top retweeted status objects:
+
+```json
+[
+  {"community_id": 1, "retweet_count": 134, "retweeted_user_screen_name": "RUDYGIULIANI", "retweeter_count":82,
+    "status_text": "RT @RudyGiuliani: Budapest | Kiev | Vienna  After hundreds of hours &amp; months of research, I have garnered witnesses &amp; documents which revea\u2026"},
+
+  {"community_id": 1, "retweet_count": 135, "retweeted_user_screen_name": "GREGGJARRETT", "retweeter_count":66,
+    "status_text": "RT @GreggJarrett: This entire impeachment process has been the true 'abuse of power' for political gain by the Democrats and especially Nan\u2026"},
+
+  {"community_id": 1, "retweet_count": 146, "retweeted_user_screen_name": "DONALDJTRUMPJR", "retweeter_count":33,
+    "status_text": "RT @DonaldJTrumpJr: Pelosi ripped up @realDonaldTrump's speech last night.  In that speech were stories of American Heroes &amp; American Dream\u2026"},
+
+  {"community_id": 0, "retweet_count": 422, "retweeted_user_screen_name": "TRIBELAW", "retweeter_count":412,
+    "status_text": "RT @tribelaw: When the Chief Justice administers the oath of impartiality to a Senator who has said he will not be impartial, he will need\u2026"},
+
+  {"community_id": 0, "retweet_count": 424, "retweeted_user_screen_name": "REPADAMSCHIFF", "retweeter_count":384,
+    "status_text": "RT @RepAdamSchiff: Impeachment of a president is a serious undertaking.   The Senate\u2019s role is to act as an impartial jury and provide a fa\u2026"},
+
+  {"community_id": 0, "retweet_count": 434, "retweeted_user_screen_name": "REPADAMSCHIFF", "retweeter_count":420,
+    "status_text": "RT @RepAdamSchiff: First, Trump said he wanted a trial in the Senate.  Then, he said he wanted to hear from witnesses.  Now, he wants the c\u2026"}
+
+]
+```
+
+> NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" statuses, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
 
 > NOTE: results may not be sorted
