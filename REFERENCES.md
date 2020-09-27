@@ -219,3 +219,4 @@ Grouping and aggregation, working with multi-indices:
 ## Flask
 
   + https://flask.palletsprojects.com/en/1.1.x/testing/
+  + https://flask-cors.readthedocs.io/en/latest/api.html
