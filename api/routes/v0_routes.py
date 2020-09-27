@@ -36,14 +36,14 @@ def user_tweets(screen_name=None):
         return jsonify({"message": f"Oh, couldn't find user with screen name '{screen_name}'. Please try again."}), 404
 
 @api_routes.route("/api/v0/users_most_retweeted")
-def users_most_retweeted(metric=None, limit=None):
+def users_most_retweeted():
     query_params = {"metric": request.args.get("metric"), "limit": request.args.get("limit")}
     print("QUERY PARAMS:", query_params)
     response = list(current_app.config["BQ_SERVICE"].fetch_users_most_retweeted_api_v0(**query_params))
     return jsonify([dict(row) for row in response])
 
 @api_routes.route("/api/v0/statuses_most_retweeted")
-def statuses_most_retweeted(metric=None, limit=None):
+def statuses_most_retweeted():
     query_params = {"metric": request.args.get("metric"), "limit": request.args.get("limit")}
     print("QUERY PARAMS:", query_params)
     response = list(current_app.config["BQ_SERVICE"].fetch_statuses_most_retweeted_api_v0(**query_params))
