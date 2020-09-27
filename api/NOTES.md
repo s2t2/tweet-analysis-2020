@@ -32,7 +32,7 @@ FROM (
 -- 16 tweets on average. will be ok.
 ```
 
-### Users Most Retweeted
+### Users and Statuses Most Retweeted
 
 Community-specific retweet tables:
 
@@ -132,5 +132,24 @@ CREATE TABLE impeachment_production.community_1_statuses_most_retweeted AS (
   GROUP BY 1,2,3
   ORDER BY retweet_count DESC
   LIMIT 1000
+);
+```
+
+
+### Top Community Hashtags and Topics
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.2_community_labeled_tweets_v2;
+CREATE TABLE impeachment_production.2_community_labeled_tweets_v2 as (
+  SELECT
+    ul.community_id
+    ,ul.community_score
+    ,ul.user_id
+    ,upper(t.user_screen_name) as user_screen_name
+    ,t.status_id
+    ,t.status_text
+    ,t.created_at
+  FROM impeachment_production.user_2_community_assignments ul
+  JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
 );
 ```

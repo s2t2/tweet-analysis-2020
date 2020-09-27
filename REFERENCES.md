@@ -215,3 +215,7 @@ Grouping and aggregation, working with multi-indices:
   + https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
   + https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
   + https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html
+
+## Flask
+
+  + https://flask.palletsprojects.com/en/1.1.x/testing/
