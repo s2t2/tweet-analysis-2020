@@ -31,6 +31,7 @@ squarify
 
 Flask
 gunicorn
+flask-cors
 
 # formerly known as dev dependencies:
 pytest

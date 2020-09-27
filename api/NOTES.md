@@ -31,3 +31,125 @@ FROM (
 )
 -- 16 tweets on average. will be ok.
 ```
+
+### Users and Statuses Most Retweeted
+
+Community-specific retweet tables:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.community_0_retweets;
+CREATE TABLE impeachment_production.community_0_retweets AS (
+  SELECT
+      bu.community_id
+      ,bu.user_id
+      ,rt.user_screen_name
+      ,rt.user_created_at
+      ,rt.retweeted_user_id
+      ,rt.retweeted_user_screen_name
+      ,rt.status_id
+      ,rt.status_text
+      ,rt.created_at
+  FROM impeachment_production.2_bot_communities bu
+  JOIN impeachment_production.retweets_v2 rt on bu.user_id = cast(rt.user_id as int64)
+  WHERE bu.community_id = 0
+);
+
+DROP TABLE IF EXISTS impeachment_production.community_1_retweets;
+CREATE TABLE impeachment_production.community_1_retweets AS (
+  SELECT
+      bu.community_id
+      ,bu.user_id
+      ,rt.user_screen_name
+      ,rt.user_created_at
+      ,rt.retweeted_user_id
+      ,rt.retweeted_user_screen_name
+      ,rt.status_id
+      ,rt.status_text
+      ,rt.created_at
+  FROM impeachment_production.2_bot_communities bu
+  JOIN impeachment_production.retweets_v2 rt on bu.user_id = cast(rt.user_id as int64)
+  WHERE bu.community_id = 1
+);
+
+```
+
+Users most retweeted:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.community_0_users_most_retweeted;
+CREATE TABLE impeachment_production.community_0_users_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_0_retweets
+  GROUP BY 1,2
+  ORDER BY 3 DESC
+  LIMIT 1000
+);
+
+DROP TABLE IF EXISTS impeachment_production.community_1_users_most_retweeted;
+CREATE TABLE impeachment_production.community_1_users_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_1_retweets
+  GROUP BY 1,2
+  ORDER BY 3 DESC
+  LIMIT 1000
+);
+```
+
+Statuses most retweeted:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.community_0_statuses_most_retweeted;
+CREATE TABLE impeachment_production.community_0_statuses_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,status_text
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_0_retweets
+  GROUP BY 1,2,3
+  ORDER BY retweet_count DESC
+  LIMIT 1000
+);
+
+DROP TABLE IF EXISTS impeachment_production.community_1_statuses_most_retweeted;
+CREATE TABLE impeachment_production.community_1_statuses_most_retweeted AS (
+  SELECT
+    community_id
+    ,retweeted_user_screen_name
+    ,status_text
+    ,count(distinct user_id) as retweeter_count
+    ,count(distinct status_id) as retweet_count
+  FROM impeachment_production.community_1_retweets
+  GROUP BY 1,2,3
+  ORDER BY retweet_count DESC
+  LIMIT 1000
+);
+```
+
+
+### Top Community Hashtags and Topics
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.2_community_labeled_tweets_v2;
+CREATE TABLE impeachment_production.2_community_labeled_tweets_v2 as (
+  SELECT
+    ul.community_id
+    ,ul.community_score
+    ,ul.user_id
+    ,upper(t.user_screen_name) as user_screen_name
+    ,t.status_id
+    ,t.status_text
+    ,t.created_at
+  FROM impeachment_production.user_2_community_assignments ul
+  JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
+);
+```

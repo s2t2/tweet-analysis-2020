@@ -3,6 +3,8 @@ import os
 import pytest
 from networkx import DiGraph
 
+from api import create_app
+
 CI_ENV = (os.getenv("CI") == "true")
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test", "data")
@@ -79,3 +81,15 @@ def mock_rt_graph():
     Returns a retweet graph with sufficient energy to populate bot probabilities given default hyperparams
     """
     return compile_mock_rt_graph()
+
+
+
+
+#
+# API
+#
+
+@pytest.fixture
+def api_client():
+    app = create_app()
+    return app.test_client()
