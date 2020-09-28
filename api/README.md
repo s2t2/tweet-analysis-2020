@@ -9,6 +9,8 @@ FLASK_APP="api" flask run
 
 ## Endpoints (Version 0)
 
+Production API URL: https://impeachment-tweet-analysis-api.herokuapp.com/
+
 ### User Details
 
   + `GET /api/v0/user_details/<screen_name>`
