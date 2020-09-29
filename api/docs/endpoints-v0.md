@@ -143,7 +143,7 @@ Returns a list of top retweeted status objects:
 ## Top Profile Tokens
 
 Params:
-  + `limit`: the number of top tokens for each community (default: 20)
+  + `limit`: the number of top tokens for each community (default: 20, suggested max: 25)
 
 Request Examples:
 
@@ -207,7 +207,7 @@ Returns a list of top profile token objects for each community:
 ## Top Profile Tags
 
 Params:
-  + `limit`: the number of top hashtags for each community (default: 20)
+  + `limit`: the number of top hashtags for each community (default: 20, max: 20)
 
 Request Examples:
 
