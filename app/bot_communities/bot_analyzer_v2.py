@@ -50,8 +50,8 @@ if __name__ == "__main__":
     for community_id, filtered_df in profiles_df.groupby(["community_id"]):
         print("--------------")
         print("COMMUNITY", community_id, "-", len(filtered_df), "BOT PROFILES")
-        local_community_dirpath = os.path.join(file_storage.local_dirpath, f"community-{community_id}")
-        gcs_community_dirpath = os.path.join(file_storage.gcs_dirpath, f"community-{community_id}")
+        local_community_dirpath = os.path.join(file_storage.local_dirpath, f"community_{community_id}")
+        gcs_community_dirpath = os.path.join(file_storage.gcs_dirpath, f"community_{community_id}")
         os.makedirs(local_community_dirpath)
 
         tokens_df = summarize_token_frequencies(filtered_df["profile_tokens"].tolist())
