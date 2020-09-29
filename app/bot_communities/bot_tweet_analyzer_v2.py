@@ -74,22 +74,26 @@ if __name__ == "__main__":
         if not os.path.exists(local_community_dirpath):
             os.makedirs(local_community_dirpath)
 
-        tokens_df = summarize_token_frequencies(filtered_df["status_tokens"].tolist())
-        print(tokens_df.head())
-        # SAVE AND UPLOAD TOP TOKENS
         local_tokens_filepath = os.path.join(local_community_dirpath, "status_tokens.csv")
         gcs_tokens_filepath = os.path.join(gcs_community_dirpath, "status_tokens.csv")
-        tokens_df.to_csv(local_tokens_filepath)
-        file_storage.upload_file(local_tokens_filepath, gcs_tokens_filepath)
-        token_records = tokens_df[tokens_df["count"] > 1].to_dict("records")[0:1000]
-        bq_service.upload_bot_community_status_tokens(community_id=community_id, records=token_records)
+        if not os.path.exists(local_community_dirpath) or DESTRUCTIVE:
+            print("CALCULATING STATUS TOKEN FREQUENCIES...")
+            tokens_df = summarize_token_frequencies(filtered_df["status_tokens"].tolist())
+            print(tokens_df.head())
+            # SAVE AND UPLOAD TOP TOKENS
+            tokens_df.to_csv(local_tokens_filepath)
+            file_storage.upload_file(local_tokens_filepath, gcs_tokens_filepath)
+            token_records = tokens_df[tokens_df["count"] > 1].to_dict("records")[0:1000]
+            bq_service.upload_bot_community_status_tokens(community_id=community_id, records=token_records)
 
-        tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
-        print(tags_df.head())
-        # SAVE AND UPLOAD TOP TAGS
         local_tags_filepath = os.path.join(local_community_dirpath, "status_tags.csv")
         gcs_tags_filepath = os.path.join(gcs_community_dirpath, "status_tags.csv")
-        tags_df.to_csv(local_tags_filepath)
-        file_storage.upload_file(local_tags_filepath, gcs_tags_filepath)
-        tag_records = tags_df[tags_df["count"] > 1].to_dict("records")[0:1000]
-        bq_service.upload_bot_community_status_tags(community_id=community_id, records=tag_records)
+        if not os.path.exists(local_tags_filepath) or DESTRUCTIVE:
+            print("CALCULATING STATUS TAG FREQUENCIES...")
+            tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
+            print(tags_df.head())
+            # SAVE AND UPLOAD TOP TAGS
+            tags_df.to_csv(local_tags_filepath)
+            file_storage.upload_file(local_tags_filepath, gcs_tags_filepath)
+            tag_records = tags_df[tags_df["count"] > 1].to_dict("records")[0:1000]
+            bq_service.upload_bot_community_status_tags(community_id=community_id, records=tag_records)
