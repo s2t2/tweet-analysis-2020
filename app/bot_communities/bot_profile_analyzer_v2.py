@@ -27,9 +27,7 @@ if __name__ == "__main__":
             #print("COMMUNITY", row["community_id"], i, row["bot_id"], row["screen_names"])
             #print(row["user_descriptions"])
 
-            #breakpoint()
-
-            # we want unique tokens here because otherwise someone changing their sn will have a greater influence over the counts
+            # we want unique tokens here because otherwise someone changing their description (multiple descriptions) will have a greater influence over the counts
             # but then it makes TF/IDF not possible because the doc counts are the same as the token counts
             # really we are just counting number of users who have these tokens...
             tokens = list(set(tokenizer.custom_stems(row["user_descriptions"])))
