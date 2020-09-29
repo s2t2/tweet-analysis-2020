@@ -4,6 +4,10 @@
 
 Production API URL: https://impeachment-tweet-analysis-api.herokuapp.com/
 
+> GENERAL NOTES FOR ALL ENDPOINTS:
+>
+>   + results are returned in no particular order (to reduce query times), so it is the client's responsibility to sort them as desired
+
 ## User Details
 
   + `GET /api/v0/user_details/<screen_name>`
@@ -97,8 +101,6 @@ Returns a list of top user objects:
 
 > NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" users, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
 
-> NOTE: results may not be sorted
-
 ## Statuses Most Retweeted
 
 Params:
@@ -137,8 +139,6 @@ Returns a list of top retweeted status objects:
 ```
 
 > NOTE: both metrics are provided in the response, but only the requested metric was used to calculate the "top" statuses, so only create a chart based on the requested metric (OK to provide the other one as context, for example in a tooltip or hover)
-
-> NOTE: results may not be sorted
 
 ## Top Profile Tokens
 
