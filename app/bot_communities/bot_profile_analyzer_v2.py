@@ -13,11 +13,11 @@ if __name__ == "__main__":
 
     file_storage = FileStorage(dirpath="bot_retweet_graphs/bot_min/0.8/n_communities/2/analysis_v2")
     bq_service = BigQueryService()
+    tokenizer = Tokenizer()
 
     results = [dict(row) for row in list(bq_service.fetch_bot_community_profiles(n_communities=2))]
-    print("PROCESSING", len(results), "RECORDS...")
+    print("FETCHED", len(results), "RECORDS")
 
-    tokenizer = Tokenizer()
     for i, row in enumerate(results):
         row["profile_tokens"] = []
         row["profile_tags"] = []
@@ -40,6 +40,8 @@ if __name__ == "__main__":
             row["profile_tags"] = tags
             #print("TAGS:", tags)
 
+    print("--------------")
+    print("BOT PROFILES:")
     profiles_df = DataFrame(results)
     print(profiles_df.head())
     local_profiles_filepath = os.path.join(file_storage.local_dirpath, "community_profiles.csv")
@@ -49,7 +51,7 @@ if __name__ == "__main__":
 
     for community_id, filtered_df in profiles_df.groupby(["community_id"]):
         print("--------------")
-        print("COMMUNITY", community_id, "-", len(filtered_df), "BOT PROFILES")
+        print(f"COMMUNITY {community_id}:", len(filtered_df))
         local_community_dirpath = os.path.join(file_storage.local_dirpath, f"community_{community_id}")
         gcs_community_dirpath = os.path.join(file_storage.gcs_dirpath, f"community_{community_id}")
         if not os.path.exists(local_community_dirpath):
