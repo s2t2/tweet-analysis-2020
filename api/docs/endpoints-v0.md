@@ -140,4 +140,22 @@ Returns a list of top retweeted status objects:
 
 > NOTE: results may not be sorted
 
-## Top Community Hashtags
+## Top Topics
+
+Params:
+  + `limit`: the number of top users for each community (default: 25,  max: 1000)
+
+Request Examples:
+
+  + `GET /api/v0/top_topics`
+  + `GET /api/v0/top_topics?limit=3`
+
+Returns a list of top topic objects for each community:
+
+```json
+[
+  {"community_id": 0, "token": "", }
+
+
+
+```

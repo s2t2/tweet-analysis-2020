@@ -949,6 +949,15 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def fetch_bot_community_profiles(self, n_communities=2):
+        sql = f"""
+            SELECT community_id, bot_id as user_id, user_descriptions
+            FROM `{self.dataset_address}.{int(n_communities)}_community_profiles`
+        """
+        return self.execute_query(sql)
+
+
+
     #
     # BOT FOLLOWER GRAPHS
     #

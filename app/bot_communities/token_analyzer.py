@@ -34,7 +34,11 @@ def summarize_token_frequencies(token_sets):
     #df = df.sort_values(by="rank")
     #df["running_pct"] = df["pct"].cumsum()
 
-    return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
+    # TODO: TF IDF
+    #breakpoint()
+
+    metric = "rank" # TODO: customize via params
+    return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by=metric)
 
 
 #
