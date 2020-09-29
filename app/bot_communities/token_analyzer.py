@@ -27,7 +27,7 @@ def summarize_token_frequencies(token_sets):
 
     df = doc_df.merge(token_df, on="token")
 
-    df["rank"] = df["count"].rank(method="first", ascending=False) # TODO: consider sorting on another metric
+    df["rank"] = df["count"].rank(method="first", ascending=False)
     df["pct"] = df["count"] / df["count"].sum()
     df["doc_pct"] = df["doc_count"] / len(token_sets)
 
@@ -35,6 +35,7 @@ def summarize_token_frequencies(token_sets):
     #df["running_pct"] = df["pct"].cumsum()
 
     return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
+
 
 #
 # TOPIC MODELING
