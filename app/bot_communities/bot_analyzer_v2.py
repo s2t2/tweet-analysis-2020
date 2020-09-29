@@ -27,7 +27,11 @@ if __name__ == "__main__":
             #print("COMMUNITY", row["community_id"], i, row["bot_id"], row["screen_names"])
             #print(row["user_descriptions"])
 
+            #breakpoint()
+
             # we want unique tokens here because otherwise someone changing their sn will have a greater influence over the counts
+            # but then it makes TF/IDF not possible because the doc counts are the same as the token counts
+            # really we are just counting number of users who have these tokens...
             tokens = list(set(tokenizer.custom_stems(row["user_descriptions"])))
             row["profile_tokens"] = tokens
             #print("TOKENS:", tokens)
@@ -43,27 +47,30 @@ if __name__ == "__main__":
     profiles_df.to_csv(local_profiles_filepath)
     file_storage.upload_file(local_profiles_filepath, gcs_profiles_filepath)
 
-    #
-    # SUMMARIZE BY COMMUNITY...
-    #
-
     for community_id, filtered_df in profiles_df.groupby(["community_id"]):
         print("--------------")
         print("COMMUNITY", community_id, "-", len(filtered_df), "BOT PROFILES")
         local_community_dirpath = os.path.join(file_storage.local_dirpath, f"community_{community_id}")
         gcs_community_dirpath = os.path.join(file_storage.gcs_dirpath, f"community_{community_id}")
-        os.makedirs(local_community_dirpath)
+        if not os.path.exists(local_community_dirpath):
+            os.makedirs(local_community_dirpath)
 
         tokens_df = summarize_token_frequencies(filtered_df["profile_tokens"].tolist())
         print(tokens_df.head())
+        # SAVE AND UPLOAD PROFILE TOKENS
         local_tokens_filepath = os.path.join(local_community_dirpath, "profile_tokens.csv")
         gcs_tokens_filepath = os.path.join(gcs_community_dirpath, "profile_tokens.csv")
         tokens_df.to_csv(local_tokens_filepath)
         file_storage.upload_file(local_tokens_filepath, gcs_tokens_filepath)
+        token_records = tokens_df[tokens_df["count"] > 1].to_dict("records")
+        bq_service.upload_bot_community_profile_tokens(community_id=community_id, records=token_records)
 
         tags_df = summarize_token_frequencies(filtered_df["profile_tags"].tolist())
         print(tags_df.head())
+        # SAVE AND UPLOAD PROFILE TAGS
         local_tags_filepath = os.path.join(local_community_dirpath, "profile_tags.csv")
         gcs_tags_filepath = os.path.join(gcs_community_dirpath, "profile_tags.csv")
         tags_df.to_csv(local_tags_filepath)
         file_storage.upload_file(local_tags_filepath, gcs_tags_filepath)
+        tag_records = tags_df[tags_df["count"] > 1].to_dict("records")
+        bq_service.upload_bot_community_profile_tags(community_id=community_id, records=tag_records)

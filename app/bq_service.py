@@ -956,7 +956,43 @@ class BigQueryService():
         """
         return self.execute_query(sql)
 
+    def upload_bot_community_profile_tokens(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tokens"
+        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        sql = f"""
+            DROP TABLE IF EXISTS `{table_address}`;
+            CREATE TABLE IF NOT EXISTS `{table_address}` (
+                token STRING,
+                rank INT64,
+                count INT64,
+                pct FLOAT64,
+                doc_count INT64,
+                doc_pct FLOAT64
+            );
+        """
+        self.execute_query(sql)
+        table = self.client.get_table(table_address) # API call
+        print("INSERTING", len(records), "RECORDS...")
+        return self.insert_records_in_batches(table, records)
 
+    def upload_bot_community_profile_tags(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tags"
+        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        sql = f"""
+            DROP TABLE IF EXISTS `{table_address}`;
+            CREATE TABLE IF NOT EXISTS `{table_address}` (
+                token STRING,
+                rank INT64,
+                count INT64,
+                pct FLOAT64,
+                doc_count INT64,
+                doc_pct FLOAT64
+            );
+        """
+        self.execute_query(sql)
+        table = self.client.get_table(table_address) # API call
+        print("INSERTING", len(records), "RECORDS...")
+        return self.insert_records_in_batches(table, records)
 
     #
     # BOT FOLLOWER GRAPHS
