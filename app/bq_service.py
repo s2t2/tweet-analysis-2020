@@ -1314,9 +1314,53 @@ class BigQueryService():
         job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
         return self.client.query(sql, job_config=job_config)
 
+    def fetch_top_status_tokens_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 50
 
-    # TODO
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_0_status_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_1_status_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
 
+    def fetch_top_status_tags_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 50
+
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_0_status_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_1_status_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
 
 
 

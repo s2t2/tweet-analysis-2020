@@ -35,9 +35,11 @@ if __name__ == "__main__":
     # LOAD STATUSES
 
     if os.path.isfile(local_tweets_filepath) and not DESTRUCTIVE:
+        print("LOADING STATUSES...")
         statuses_df = read_csv(local_tweets_filepath)
         print(statuses_df.head())
     else:
+        print("FETCHING STATUSES...")
         results = []
         counter = 0
         # TODO: consider doing a query per community, to reduce memory costs
