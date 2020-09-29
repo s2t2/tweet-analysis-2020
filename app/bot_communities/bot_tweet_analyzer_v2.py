@@ -63,6 +63,7 @@ if __name__ == "__main__":
         # SAVE AND UPLOAD TWEETS
         statuses_df.to_csv(local_tweets_filepath)
         #file_storage.upload_file(local_tweets_filepath, gcs_tweets_filepath)
+        del results
 
     # PERFORM
 
