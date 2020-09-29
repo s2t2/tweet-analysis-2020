@@ -949,6 +949,51 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def fetch_bot_community_profiles(self, n_communities=2):
+        sql = f"""
+            SELECT community_id, bot_id as user_id, user_descriptions
+            FROM `{self.dataset_address}.{int(n_communities)}_community_profiles`
+        """
+        return self.execute_query(sql)
+
+    def upload_bot_community_profile_tokens(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tokens"
+        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        sql = f"""
+            DROP TABLE IF EXISTS `{table_address}`;
+            CREATE TABLE IF NOT EXISTS `{table_address}` (
+                token STRING,
+                rank INT64,
+                count INT64,
+                pct FLOAT64,
+                doc_count INT64,
+                doc_pct FLOAT64
+            );
+        """
+        self.execute_query(sql)
+        table = self.client.get_table(table_address) # API call
+        print("INSERTING", len(records), "RECORDS...")
+        return self.insert_records_in_batches(table, records)
+
+    def upload_bot_community_profile_tags(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tags"
+        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        sql = f"""
+            DROP TABLE IF EXISTS `{table_address}`;
+            CREATE TABLE IF NOT EXISTS `{table_address}` (
+                token STRING,
+                rank INT64,
+                count INT64,
+                pct FLOAT64,
+                doc_count INT64,
+                doc_pct FLOAT64
+            );
+        """
+        self.execute_query(sql)
+        table = self.client.get_table(table_address) # API call
+        print("INSERTING", len(records), "RECORDS...")
+        return self.insert_records_in_batches(table, records)
+
     #
     # BOT FOLLOWER GRAPHS
     #
@@ -1119,7 +1164,6 @@ class BigQueryService():
     #
     # API - V0
     # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
-    #
 
     def fetch_user_details_api_v0(self, screen_name="politico"):
         # TODO: super-charge this with cool stuff, like mention counts, average opinion score, etc.
@@ -1214,6 +1258,55 @@ class BigQueryService():
             ScalarQueryParameter("limit", "INT64", int(limit)),
         ])
         return self.client.query(sql, job_config=job_config)
+
+    def fetch_top_profile_tokens_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 20
+
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_0_profile_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_1_profile_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
+    def fetch_top_profile_tags_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tags to return for each community
+        """
+        limit = limit or 20
+
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_0_profile_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_1_profile_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
 
 
 

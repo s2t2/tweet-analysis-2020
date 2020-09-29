@@ -3,12 +3,6 @@ from flask import Blueprint, current_app, jsonify, request
 
 api_routes = Blueprint("v0_routes", __name__)
 
-# TODO: error handler
-#def parse_screen_name(screen_name):
-#    if "@" in screen_name or ";" in screen_name: # just be super safe about preventing sql injection. there are no screen names with semicolons
-#        return jsonify({"message": f"Oh, expecting a screen name like 'politico'. Please try again."}), 400
-
-
 @api_routes.route("/api/v0/user_details/<screen_name>")
 def user_details(screen_name=None):
     #print(f"USER DETAILS: '{screen_name}'")
@@ -47,4 +41,18 @@ def statuses_most_retweeted():
     query_params = {"metric": request.args.get("metric"), "limit": request.args.get("limit")}
     print("QUERY PARAMS:", query_params)
     response = list(current_app.config["BQ_SERVICE"].fetch_statuses_most_retweeted_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_profile_tokens")
+def top_profile_tokens():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_profile_tokens_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_profile_tags")
+def top_profile_tags():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_profile_tags_api_v0(**query_params))
     return jsonify([dict(row) for row in response])

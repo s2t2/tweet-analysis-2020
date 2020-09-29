@@ -136,20 +136,12 @@ CREATE TABLE impeachment_production.community_1_statuses_most_retweeted AS (
 ```
 
 
-### Top Community Hashtags and Topics
+### Top Community Profile Hashtags and Topics
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.2_community_labeled_tweets_v2;
-CREATE TABLE impeachment_production.2_community_labeled_tweets_v2 as (
-  SELECT
-    ul.community_id
-    ,ul.community_score
-    ,ul.user_id
-    ,upper(t.user_screen_name) as user_screen_name
-    ,t.status_id
-    ,t.status_text
-    ,t.created_at
-  FROM impeachment_production.user_2_community_assignments ul
-  JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = ul.user_id
-);
+SELECT token, rank, count, pct, doc_count, doc_pct
+FROM impeachment_production.2_community_0_profile_tags -- 71
+-- FROM impeachment_production.2_community_0_profile_tokens -- 677
+-- FROM impeachment_production.2_community_1_profile_tags -- 21
+-- FROM impeachment_production.2_community_1_profile_tokens -- 138
 ```
