@@ -85,6 +85,7 @@ if __name__ == "__main__":
             file_storage.upload_file(local_tokens_filepath, gcs_tokens_filepath)
             token_records = tokens_df[tokens_df["count"] > 1].to_dict("records")[0:1000]
             bq_service.upload_bot_community_status_tokens(community_id=community_id, records=token_records)
+            del tokens_df # clear memory!
 
         local_tags_filepath = os.path.join(local_community_dirpath, "status_tags.csv")
         gcs_tags_filepath = os.path.join(gcs_community_dirpath, "status_tags.csv")
@@ -97,3 +98,4 @@ if __name__ == "__main__":
             file_storage.upload_file(local_tags_filepath, gcs_tags_filepath)
             tag_records = tags_df[tags_df["count"] > 1].to_dict("records")[0:1000]
             bq_service.upload_bot_community_status_tags(community_id=community_id, records=tag_records)
+            del tags_df # clear memory!
