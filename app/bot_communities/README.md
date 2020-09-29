@@ -48,9 +48,8 @@ BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clusterma
 Bot profile topic analysis (top hashtags and topics for each bot community):
 
 ```sh
-python -m app.bot_communities.bot_analyzer_v2
+python -m app.bot_communities.bot_profile_analyzer_v2
 ```
-
 
 Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):
 
