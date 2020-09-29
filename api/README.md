@@ -7,4 +7,6 @@
 FLASK_APP="api" flask run
 ```
 
-## [Version 0 Endpoints](/api/docs/endpoints-v0.md)
+## [Documentation (Version 0)](/api/docs/endpoints-v0.md)
+
+FYI: Documentation for all endpoints has moved to the page linked above.

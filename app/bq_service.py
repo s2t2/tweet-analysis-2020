@@ -1164,7 +1164,6 @@ class BigQueryService():
     #
     # API - V0
     # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
-    #
 
     def fetch_user_details_api_v0(self, screen_name="politico"):
         # TODO: super-charge this with cool stuff, like mention counts, average opinion score, etc.
@@ -1259,6 +1258,55 @@ class BigQueryService():
             ScalarQueryParameter("limit", "INT64", int(limit)),
         ])
         return self.client.query(sql, job_config=job_config)
+
+    def fetch_top_profile_tokens_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 20
+
+        sql = f"""
+            (
+                SELECT token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_0_profile_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_1_profile_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
+    def fetch_top_profile_tags_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tags to return for each community
+        """
+        limit = limit or 20
+
+        sql = f"""
+            (
+                SELECT token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_0_profile_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT token, rank, count, pct
+                FROM `{self.dataset_address}.2_community_1_profile_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
 
 
 

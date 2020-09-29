@@ -140,22 +140,131 @@ Returns a list of top retweeted status objects:
 
 > NOTE: results may not be sorted
 
-## Top Topics
+## Top Profile Tokens
 
 Params:
-  + `limit`: the number of top users for each community (default: 25,  max: 1000)
+  + `limit`: the number of top tokens for each community (default: 20)
 
 Request Examples:
 
-  + `GET /api/v0/top_topics`
-  + `GET /api/v0/top_topics?limit=3`
+  + `GET /api/v0/top_profile_tokens`
+  + `GET /api/v0/top_profile_tokens?limit=3`
 
-Returns a list of top topic objects for each community:
+Returns a list of top profile token objects for each community:
 
 ```json
 [
-  {"community_id": 0, "token": "", }
+    {"count":48,"pct":0.037296037296037296,"rank":1,"token":"maga"},
+    {"count":27,"pct":0.02097902097902098,"rank":2,"token":"trump"},
+    {"count":21,"pct":0.016317016317016316,"rank":3,"token":"kag"},
+    {"count":18,"pct":0.013986013986013986,"rank":4,"token":"conservative"},
+    {"count":14,"pct":0.010878010878010878,"rank":5,"token":"god"},
+    {"count":12,"pct":0.009324009324009324,"rank":6,"token":"proud"},
+    {"count":12,"pct":0.009324009324009324,"rank":7,"token":"trump2020"},
+    {"count":12,"pct":0.009324009324009324,"rank":8,"token":"married"},
+    {"count":11,"pct":0.008547008547008548,"rank":9,"token":"love"},
+    {"count":10,"pct":0.00777000777000777,"rank":10,"token":"patriot"},
+    {"count":10,"pct":0.00777000777000777,"rank":11,"token":"2020"},
+    {"count":9,"pct":0.006993006993006993,"rank":12,"token":"country"},
+    {"count":9,"pct":0.006993006993006993,"rank":13,"token":"nra"},
+    {"count":9,"pct":0.006993006993006993,"rank":14,"token":"2a"},
+    {"count":8,"pct":0.006216006216006216,"rank":15,"token":"family"},
+    {"count":8,"pct":0.006216006216006216,"rank":16,"token":"wwg1wga"},
+    {"count":7,"pct":0.005439005439005439,"rank":17,"token":"q"},
+    {"count":6,"pct":0.004662004662004662,"rank":18,"token":"christian"},
+    {"count":6,"pct":0.004662004662004662,"rank":19,"token":"genflynn"},
+    {"count":6,"pct":0.004662004662004662,"rank":20,"token":"draintheswamp"},
 
-
-
+    {"count":66,"pct":0.012050392550666424,"rank":1,"token":"resist"},
+    {"count":47,"pct":0.008581340149716999,"rank":2,"token":"trump"},
+    {"count":42,"pct":0.00766843162315136,"rank":3,"token":"retired"},
+    {"count":37,"pct":0.006755523096585722,"rank":4,"token":"resistance"},
+    {"count":36,"pct":0.006572941391272595,"rank":5,"token":"love"},
+    {"count":33,"pct":0.006025196275333212,"rank":6,"token":"theresistance"},
+    {"count":31,"pct":0.005660032864706956,"rank":7,"token":"blue"},
+    {"count":28,"pct":0.005112287748767573,"rank":8,"token":"proud"},
+    {"count":28,"pct":0.005112287748767573,"rank":9,"token":"dms"},
+    {"count":27,"pct":0.004929706043454446,"rank":10,"token":"vote"},
+    {"count":27,"pct":0.004929706043454446,"rank":11,"token":"mom"},
+    {"count":25,"pct":0.0045645426328281904,"rank":12,"token":"lover"},
+    {"count":23,"pct":0.004199379222201935,"rank":13,"token":"people"},
+    {"count":22,"pct":0.004016797516888808,"rank":14,"token":"democrat"},
+    {"count":21,"pct":0.00383421581157568,"rank":15,"token":"mother"},
+    {"count":20,"pct":0.0036516341062625525,"rank":16,"token":"fbr"},
+    {"count":19,"pct":0.003469052400949425,"rank":17,"token":"liberal"},
+    {"count":19,"pct":0.003469052400949425,"rank":18,"token":"impeach"},
+    {"count":18,"pct":0.0032864706956362974,"rank":19,"token":"progressive"},
+    {"count":18,"pct":0.0032864706956362974,"rank":20,"token":"gop"}
+]
 ```
+
+> NOTES:
+>
+>   + "count" is the number of bots in that community who included the token in their profile
+>   + "pct" is the percentage of users who included the token in their profile
+>   + prefer to use the relative "pct" instead of raw "count" when graphing
+
+## Top Profile Tags
+
+Params:
+  + `limit`: the number of top hashtags for each community (default: 20)
+
+Request Examples:
+
+  + `GET /api/v0/top_profile_tags`
+  + `GET /api/v0/top_profile_tags?limit=3`
+
+Returns a list of top profile hashtag objects for each community:
+
+```json
+[
+    {"count":58,"pct":0.0777479892761394,"rank":1,"token":"#RESIST"},
+    {"count":33,"pct":0.04423592493297587,"rank":2,"token":"#THERESISTANCE"},
+    {"count":27,"pct":0.036193029490616625,"rank":3,"token":"#RESISTANCE"},
+    {"count":19,"pct":0.02546916890080429,"rank":4,"token":"#FBR"},
+    {"count":16,"pct":0.021447721179624665,"rank":5,"token":"#VOTEBLUENOMATTERWHO"},
+    {"count":10,"pct":0.013404825737265416,"rank":6,"token":"#VOTEBLUE"},
+    {"count":9,"pct":0.012064343163538873,"rank":7,"token":"#BLUEWAVE2020"},
+    {"count":8,"pct":0.010723860589812333,"rank":8,"token":"#IMPEACHTRUMP"},
+    {"count":8,"pct":0.010723860589812333,"rank":9,"token":"#BIDEN2020"},
+    {"count":7,"pct":0.00938337801608579,"rank":10,"token":"#IMPEACHTRUMPNOW"},
+    {"count":6,"pct":0.00804289544235925,"rank":11,"token":"#METOO"},
+    {"count":6,"pct":0.00804289544235925,"rank":12,"token":"#IMPEACH"},
+    {"count":6,"pct":0.00804289544235925,"rank":13,"token":"#BLUEWAVE"},
+    {"count":6,"pct":0.00804289544235925,"rank":14,"token":"#VOTEBLUE2020"},
+    {"count":5,"pct":0.006702412868632708,"rank":15,"token":"#WTP2020"},
+    {"count":5,"pct":0.006702412868632708,"rank":16,"token":"#BLM"},
+    {"count":5,"pct":0.006702412868632708,"rank":17,"token":"#IMPEACHANDREMOVE"},
+    {"count":5,"pct":0.006702412868632708,"rank":18,"token":"#RESISTER"},
+    {"count":5,"pct":0.006702412868632708,"rank":19,"token":"#IMPOTUS"},
+    {"count":5,"pct":0.006702412868632708,"rank":20,"token":"#NOTMYPRESIDENT"},
+
+    {"count":32,"pct":0.14953271028037382,"rank":1,"token":"#MAGA"},
+    {"count":14,"pct":0.06542056074766354,"rank":2,"token":"#KAG"},
+    {"count":12,"pct":0.056074766355140186,"rank":3,"token":"#TRUMP2020"},
+    {"count":7,"pct":0.03271028037383177,"rank":4,"token":"#2A"},
+    {"count":6,"pct":0.028037383177570093,"rank":5,"token":"#DRAINTHESWAMP"},
+    {"count":5,"pct":0.02336448598130841,"rank":6,"token":"#PATRIOT"},
+    {"count":5,"pct":0.02336448598130841,"rank":7,"token":"#DEPLORABLE"},
+    {"count":5,"pct":0.02336448598130841,"rank":8,"token":"#NRA"},
+    {"count":5,"pct":0.02336448598130841,"rank":9,"token":"#WWG1WGA"},
+    {"count":4,"pct":0.018691588785046728,"rank":10,"token":"#AMERICAFIRST"},
+    {"count":4,"pct":0.018691588785046728,"rank":11,"token":"#TRUMPTRAIN"},
+    {"count":4,"pct":0.018691588785046728,"rank":12,"token":"#CONSERVATIVE"},
+    {"count":3,"pct":0.014018691588785047,"rank":13,"token":"#VETERAN"},
+    {"count":3,"pct":0.014018691588785047,"rank":14,"token":"#TRUMP"},
+    {"count":3,"pct":0.014018691588785047,"rank":15,"token":"#1A"},
+    {"count":2,"pct":0.009345794392523364,"rank":16,"token":"#BUILDTHEWALL"},
+    {"count":2,"pct":0.009345794392523364,"rank":17,"token":"#WALKAWAY"},
+    {"count":2,"pct":0.009345794392523364,"rank":18,"token":"#THEGREATAWAKENING"},
+    {"count":2,"pct":0.009345794392523364,"rank":19,"token":"#BUILDKATESWALL"},
+    {"count":2,"pct":0.009345794392523364,"rank":20,"token":"#QANON"}
+]
+```
+
+> NOTES:
+>
+>   + "token" is the hashtag
+>   + "count" is the number of bots in that community who included the hashtag in their profile
+>   + "pct" is the percentage of users who included the hashtag in their profile
+>   + prefer to use the relative "pct" instead of raw "count" when graphing

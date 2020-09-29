@@ -48,3 +48,17 @@ def statuses_most_retweeted():
     print("QUERY PARAMS:", query_params)
     response = list(current_app.config["BQ_SERVICE"].fetch_statuses_most_retweeted_api_v0(**query_params))
     return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_profile_tokens")
+def top_profile_tokens():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_profile_tokens_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_profile_tags")
+def top_profile_tags():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_profile_tags_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])

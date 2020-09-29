@@ -36,6 +36,39 @@ def summarize_token_frequencies(token_sets):
 
     return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
 
+def summarize_token_frequencies_v2(token_sets):
+    """
+    Param token_sets : a list of tokens for each document in a collection
+
+    Returns a DataFrame with a row per topic and columns for various TF/IDF-related scores.
+    """
+    print("COMPUTING TOKEN AND DOCUMENT FREQUENCIES...")
+    token_counter = Counter()
+    doc_counter = Counter()
+
+    for tokens in token_sets:
+        token_counter.update(tokens)
+        doc_counter.update(set(tokens)) # removes duplicate tokens so they only get counted once per doc!
+
+    token_counts = zip(token_counter.keys(), token_counter.values())
+    doc_counts = zip(doc_counter.keys(), doc_counter.values())
+
+    token_df = DataFrame(token_counts, columns=["token", "count"])
+    doc_df = DataFrame(doc_counts, columns=["token", "doc_count"])
+
+    df = doc_df.merge(token_df, on="token")
+
+    df["rank"] = df["count"].rank(method="first", ascending=False) # TODO: consider sorting on another metric
+    df["pct"] = df["count"] / df["count"].sum()
+    df["doc_pct"] = df["doc_count"] / len(token_sets)
+
+    #breakpoint()
+    #df["tfidf"] = df["count"] / (1 - df["doc_count"])
+
+    #df = df.sort_values(by="rank")
+
+    return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
+
 
 #
 # TOPIC MODELING
