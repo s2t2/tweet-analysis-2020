@@ -3,12 +3,6 @@ from flask import Blueprint, current_app, jsonify, request
 
 api_routes = Blueprint("v0_routes", __name__)
 
-# TODO: error handler
-#def parse_screen_name(screen_name):
-#    if "@" in screen_name or ";" in screen_name: # just be super safe about preventing sql injection. there are no screen names with semicolons
-#        return jsonify({"message": f"Oh, expecting a screen name like 'politico'. Please try again."}), 400
-
-
 @api_routes.route("/api/v0/user_details/<screen_name>")
 def user_details(screen_name=None):
     #print(f"USER DETAILS: '{screen_name}'")

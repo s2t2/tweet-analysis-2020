@@ -1267,14 +1267,14 @@ class BigQueryService():
 
         sql = f"""
             (
-                SELECT token, rank, count, pct
+                SELECT 0 as community_id, token, rank, count, pct
                 FROM `{self.dataset_address}.2_community_0_profile_tokens`
                 ORDER BY rank
                 LIMIT @limit
             )
             UNION ALL
             (
-                SELECT token, rank, count, pct
+                SELECT 1 as community_id, token, rank, count, pct
                 FROM `{self.dataset_address}.2_community_1_profile_tokens`
                 ORDER BY rank
                 LIMIT @limit
@@ -1291,14 +1291,14 @@ class BigQueryService():
 
         sql = f"""
             (
-                SELECT token, rank, count, pct
+                SELECT 0 as community_id, token, rank, count, pct
                 FROM `{self.dataset_address}.2_community_0_profile_tags`
                 ORDER BY rank
                 LIMIT @limit
             )
             UNION ALL
             (
-                SELECT token, rank, count, pct
+                SELECT 1 as community_id, token, rank, count, pct
                 FROM `{self.dataset_address}.2_community_1_profile_tags`
                 ORDER BY rank
                 LIMIT @limit
