@@ -71,6 +71,8 @@ Bot status topic analysis (top hashtags and topics for each bot community):
 
 ```sh
 python -m app.bot_communities.bot_tweet_analyzer_v2
+
+APP_ENV="prodlike" BATCH_SIZE=100000 DESTRUCTIVE=true python -m app.bot_communities.bot_tweet_analyzer_v2
 ```
 
 ### Daily Analysis
