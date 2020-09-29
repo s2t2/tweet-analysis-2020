@@ -42,6 +42,7 @@ if __name__ == "__main__":
     print("BOT PROFILES:")
     profiles_df = DataFrame(results)
     print(profiles_df.head())
+    # SAVE AND UPLOAD PROFILES
     local_profiles_filepath = os.path.join(file_storage.local_dirpath, "community_profiles.csv")
     gcs_profiles_filepath = os.path.join(file_storage.gcs_dirpath, "community_profiles.csv")
     profiles_df.to_csv(local_profiles_filepath)
