@@ -110,7 +110,7 @@ def test_top_status_tokens(api_client):
     statuses = json.loads(response.data)
     assert response.status_code == 200
     assert isinstance(statuses, list)
-    assert len(statuses) == 40
+    assert len(statuses) == 100
     assert isinstance(statuses[0], dict)
     assert sorted(list(statuses[0].keys())) == expected_keys
     assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
@@ -129,7 +129,7 @@ def test_top_status_tags(api_client):
     statuses = json.loads(response.data)
     assert response.status_code == 200
     assert isinstance(statuses, list)
-    assert len(statuses) == 40
+    assert len(statuses) == 100
     assert isinstance(statuses[0], dict)
     assert sorted(list(statuses[0].keys())) == expected_keys
     assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
