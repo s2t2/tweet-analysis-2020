@@ -4,7 +4,7 @@ from app import DATA_DIR
 from app.bq_service import BigQueryService
 from app.file_storage import FileStorage
 from app.bot_communities.tokenizers import Tokenizer #, SpacyTokenizer
-from app.bot_communities.token_analyzer import summarize_token_frequencies_v2 as summarize_token_frequencies
+from app.bot_communities.token_analyzer import summarize_token_frequencies
 
 from pandas import DataFrame
 
