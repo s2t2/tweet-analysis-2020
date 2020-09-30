@@ -272,7 +272,7 @@ Returns a list of top profile hashtag objects for each community:
 ## Top Status Tokens
 
 Params:
-  + `limit`: the number of top tokens for each community (default: ____, suggested max: _______)
+  + `limit`: the number of top tokens for each community (default: 50, suggested max if you want to remove stopwords: 250)
 
 Request Examples:
 
@@ -306,7 +306,7 @@ Returns a list of top status token objects for each community:
 ## Top Status Tags
 
 Params:
-  + `limit`: the number of top hashtags for each community (default: ____, suggested max: _______)
+  + `limit`: the number of top hashtags for each community (default: 50, suggested max if you want to remove stopwords: 250)
 
 Request Examples:
 
