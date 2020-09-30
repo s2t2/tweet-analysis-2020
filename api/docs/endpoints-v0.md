@@ -272,7 +272,7 @@ Returns a list of top profile hashtag objects for each community:
 ## Top Status Tokens
 
 Params:
-  + `limit`: the number of top tokens for each community (default: 50, suggested max if you want to remove stopwords: 250)
+  + `limit`: the number of top tokens for each community (default: 50, suggested max: 100)
 
 Request Examples:
 
@@ -301,12 +301,14 @@ Returns a list of top status token objects for each community:
 >
 >   + "count" and "pct" refer to token counts
 >   + "doc_count" and "doc_pct" refer to tweet counts
+>   + "rank" is based on "count"
 >   + ok to use relative percentages and/or raw counts when graphing
+
 
 ## Top Status Tags
 
 Params:
-  + `limit`: the number of top hashtags for each community (default: 50, suggested max if you want to remove stopwords: 250)
+  + `limit`: the number of top hashtags for each community (default: 50, suggested max: 100)
 
 Request Examples:
 
@@ -335,4 +337,5 @@ Returns a list of top status hashtag objects for each community:
 >
 >   + "count" and "pct" refer to token counts
 >   + "doc_count" and "doc_pct" refer to tweet counts
+>   + "rank" is based on "count"
 >   + ok to use relative percentages and/or raw counts when graphing
