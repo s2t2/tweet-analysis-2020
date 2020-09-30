@@ -268,3 +268,74 @@ Returns a list of top profile hashtag objects for each community:
 >   + "count" is the number of bots in that community who included the hashtag in their profile
 >   + "pct" is the percentage of users who included the hashtag in their profile
 >   + prefer to use the relative "pct" instead of raw "count" when graphing
+
+## Top Status Tokens
+
+Params:
+  + `limit`: the number of top tokens for each community (default: 50, suggested max: 100)
+
+Request Examples:
+
+  + `GET /api/v0/top_status_tokens`
+  + `GET /api/v0/top_status_tokens?limit=3`
+
+Returns a list of top status token objects for each community:
+
+```json
+[
+  {"community_id":0,"count":2695236,"doc_count":2556291,"doc_pct":0.4566554510611654,"pct":0.04457294809118552,"rank":1,"token":"impeach"},
+  {"community_id":0,"count":1921904,"doc_count":1757316,"doc_pct":0.31392667369912225,"pct":0.031783831630418195,"rank":2,"token":"trump"},
+  {"community_id":0,"count":667867,"doc_count":642424,"doc_pct":0.11476252957606083,"pct":0.011044970133530348,"rank":3,"token":"trial"},
+  {"community_id":0,"count":509971,"doc_count":490615,"doc_pct":0.08764339197782008,"pct":0.008433736752926264,"rank":4,"token":"senate"},
+  {"community_id":0,"count":428081,"doc_count":405354,"doc_pct":0.07241237938460357,"pct":0.007079466210685368,"rank":5,"token":"house"},
+
+  {"community_id":1,"count":4713355,"doc_count":4485176,"doc_pct":0.5307376135020977,"pct":0.05210428814735738,"rank":1,"token":"impeach"},
+  {"community_id":1,"count":1662904,"doc_count":1570930,"doc_pct":0.18589050667774248,"pct":0.01838275054125844,"rank":2,"token":"trump"},
+  {"community_id":1,"count":1610886,"doc_count":1536584,"doc_pct":0.18182629290478397,"pct":0.017807711983617604,"rank":3,"token":"democrat"},
+  {"community_id":1,"count":1317077,"doc_count":1310882,"doc_pct":0.15511863620577138,"pct":0.014559768895034858,"rank":4,"token":"realdonaldtrump"},
+  {"community_id":1,"count":1118666,"doc_count":1076259,"doc_pct":0.12735534417604888,"pct":0.012366413224688507,"rank":5,"token":"pelosi"}
+]
+```
+
+> NOTES:
+>
+>   + "count" and "pct" refer to token counts
+>   + "doc_count" and "doc_pct" refer to tweet counts
+>   + "rank" is based on "count"
+>   + ok to use relative percentages and/or raw counts when graphing
+
+
+## Top Status Tags
+
+Params:
+  + `limit`: the number of top hashtags for each community (default: 50, suggested max: 100)
+
+Request Examples:
+
+  + `GET /api/v0/top_status_tags`
+  + `GET /api/v0/top_status_tags?limit=5`
+
+Returns a list of top status hashtag objects for each community:
+
+```json
+[
+  {"community_id":1,"count":127560,"doc_count":127437,"doc_pct":0.015079811639914873,"pct":0.07399149179051753,"rank":1,"token":"#IMPEACHMENT"},
+  {"community_id":1,"count":62241,"doc_count":62184,"doc_pct":0.0073583261299031396,"pct":0.03610304515940422,"rank":2,"token":"#FACTSMATTER"},
+  {"community_id":1,"count":51834,"doc_count":51320,"doc_pct":0.006072772690509281,"pct":0.03006643920876204,"rank":3,"token":"#QANON"},
+  {"community_id":1,"count":39978,"doc_count":39893,"doc_pct":0.004720598615403093,"pct":0.023189337243660315,"rank":4,"token":"#WWG1WGA"},
+  {"community_id":1,"count":31590,"doc_count":31447,"doc_pct":0.0037211707482160046,"pct":0.01832385720964604,"rank":5,"token":"#TRUMP2020"},
+
+  {"community_id":0,"count":97178,"doc_count":95719,"doc_pct":0.017099228186510725,"pct":0.062029724837167025,"rank":1,"token":"#MOSCOWMITCH"},
+  {"community_id":0,"count":57989,"doc_count":57657,"doc_pct":0.010299838062972334,"pct":0.03701497986769103,"rank":2,"token":"#IMPEACHMENT"},
+  {"community_id":0,"count":44227,"doc_count":42679,"doc_pct":0.007624170329528007,"pct":0.028230552598050854,"rank":3,"token":"#GOPCOVERUP"},
+  {"community_id":0,"count":38227,"doc_count":37018,"doc_pct":0.006612890115946197,"pct":0.02440069039649287,"rank":4,"token":"#25THAMENDMENTNOW"},
+  {"community_id":0,"count":31643,"doc_count":31254,"doc_pct":0.00558320999740079,"pct":0.0201980549406499,"rank":5,"token":"#IMPOTUS"}
+]
+```
+
+> NOTES:
+>
+>   + "count" and "pct" refer to token counts
+>   + "doc_count" and "doc_pct" refer to tweet counts
+>   + "rank" is based on "count"
+>   + ok to use relative percentages and/or raw counts when graphing

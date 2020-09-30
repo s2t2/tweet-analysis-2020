@@ -45,11 +45,7 @@ BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.spectral_clusterma
 
 ## Analysis
 
-Bot profile topic analysis (top hashtags and topics for each bot community):
-
-```sh
-python -m app.bot_communities.bot_profile_analyzer_v2
-```
+### V1
 
 Downloading retweets for each bot community for local analysis (using the same `N_COMMUNITIES` and `BOT_MIN` from the previous step):
 
@@ -61,6 +57,22 @@ Downloading tweets for each bot community:
 
 ```sh
 BOT_MIN="0.8" N_COMMUNITIES="2" python -m app.bot_communities.tweet_analyzer
+```
+
+### V2
+
+Bot profile topic analysis (top hashtags and topics for each bot community):
+
+```sh
+python -m app.bot_communities.bot_profile_analyzer_v2
+```
+
+Bot status topic analysis (top hashtags and topics for each bot community):
+
+```sh
+python -m app.bot_communities.bot_tweet_analyzer_v2
+
+APP_ENV="prodlike" BATCH_SIZE=100000 DESTRUCTIVE=true python -m app.bot_communities.bot_tweet_analyzer_v2
 ```
 
 ### Daily Analysis

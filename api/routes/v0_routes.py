@@ -56,3 +56,17 @@ def top_profile_tags():
     print("QUERY PARAMS:", query_params)
     response = list(current_app.config["BQ_SERVICE"].fetch_top_profile_tags_api_v0(**query_params))
     return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_status_tokens")
+def top_status_tokens():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_status_tokens_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])
+
+@api_routes.route("/api/v0/top_status_tags")
+def top_status_tags():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_top_status_tags_api_v0(**query_params))
+    return jsonify([dict(row) for row in response])

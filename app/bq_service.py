@@ -949,6 +949,24 @@ class BigQueryService():
         """
         return self.execute_query_in_batches(sql)
 
+    def destructively_migrate_token_frequencies_table(self, table_address, records):
+        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        sql = f"""
+            DROP TABLE IF EXISTS `{table_address}`;
+            CREATE TABLE IF NOT EXISTS `{table_address}` (
+                token STRING,
+                rank INT64,
+                count INT64,
+                pct FLOAT64,
+                doc_count INT64,
+                doc_pct FLOAT64
+            );
+        """
+        self.execute_query(sql)
+        table = self.client.get_table(table_address) # API call
+        print("INSERTING", len(records), "RECORDS...")
+        return self.insert_records_in_batches(table, records)
+
     def fetch_bot_community_profiles(self, n_communities=2):
         sql = f"""
             SELECT community_id, bot_id as user_id, user_descriptions
@@ -958,41 +976,30 @@ class BigQueryService():
 
     def upload_bot_community_profile_tokens(self, records, community_id, n_communities=2):
         table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tokens"
-        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
-        sql = f"""
-            DROP TABLE IF EXISTS `{table_address}`;
-            CREATE TABLE IF NOT EXISTS `{table_address}` (
-                token STRING,
-                rank INT64,
-                count INT64,
-                pct FLOAT64,
-                doc_count INT64,
-                doc_pct FLOAT64
-            );
-        """
-        self.execute_query(sql)
-        table = self.client.get_table(table_address) # API call
-        print("INSERTING", len(records), "RECORDS...")
-        return self.insert_records_in_batches(table, records)
+        self.destructively_migrate_token_frequencies_table(table_address=table_address, records=records)
 
     def upload_bot_community_profile_tags(self, records, community_id, n_communities=2):
         table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_profile_tags"
-        print("DESTRUCTIVELY MIGRATING TABLE:", table_address)
+        self.destructively_migrate_token_frequencies_table(table_address=table_address, records=records)
+
+    def fetch_bot_community_statuses(self, n_communities, community_id=None, limit=None):
         sql = f"""
-            DROP TABLE IF EXISTS `{table_address}`;
-            CREATE TABLE IF NOT EXISTS `{table_address}` (
-                token STRING,
-                rank INT64,
-                count INT64,
-                pct FLOAT64,
-                doc_count INT64,
-                doc_pct FLOAT64
-            );
+            SELECT community_id, user_id, status_id, status_text
+            FROM `{self.dataset_address}.{int(n_communities)}_community_labeled_tweets`
         """
-        self.execute_query(sql)
-        table = self.client.get_table(table_address) # API call
-        print("INSERTING", len(records), "RECORDS...")
-        return self.insert_records_in_batches(table, records)
+        if community_id:
+            sql += f" WHERE community_id = {int(community_id)}"
+        if limit:
+            sql += f" LIMIT {int(limit)}"
+        return self.execute_query(sql)
+
+    def upload_bot_community_status_tokens(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_status_tokens"
+        self.destructively_migrate_token_frequencies_table(table_address, records=records)
+
+    def upload_bot_community_status_tags(self, records, community_id, n_communities=2):
+        table_address = f"{self.dataset_address}.{n_communities}_community_{community_id}_status_tags"
+        self.destructively_migrate_token_frequencies_table(table_address, records=records)
 
     #
     # BOT FOLLOWER GRAPHS
@@ -1307,6 +1314,53 @@ class BigQueryService():
         job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
         return self.client.query(sql, job_config=job_config)
 
+    def fetch_top_status_tokens_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 50
+
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_0_status_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_1_status_tokens`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
+    def fetch_top_status_tags_api_v0(self, limit=None):
+        """
+        Params: limit : the number of top tokens to return for each community
+        """
+        limit = limit or 50
+
+        sql = f"""
+            (
+                SELECT 0 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_0_status_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+            UNION ALL
+            (
+                SELECT 1 as community_id, token, rank, count, pct, doc_count, doc_pct
+                FROM `{self.dataset_address}.2_community_1_status_tags`
+                ORDER BY rank
+                LIMIT @limit
+            )
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
 
 
 

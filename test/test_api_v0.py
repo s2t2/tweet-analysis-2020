@@ -101,3 +101,41 @@ def test_top_profile_tags(api_client):
     assert len(statuses) == 6
     assert sorted(list(statuses[0].keys())) == expected_keys
     assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
+
+@pytest.mark.skipif(CI_ENV, reason="avoid issuing HTTP requests on CI")
+def test_top_status_tokens(api_client):
+    expected_keys = ['community_id', 'count', 'doc_count', 'doc_pct', 'pct', 'rank', 'token']
+
+    response = api_client.get('/api/v0/top_status_tokens')
+    statuses = json.loads(response.data)
+    assert response.status_code == 200
+    assert isinstance(statuses, list)
+    assert len(statuses) == 100
+    assert isinstance(statuses[0], dict)
+    assert sorted(list(statuses[0].keys())) == expected_keys
+    assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
+
+    response = api_client.get('/api/v0/top_status_tokens?limit=3')
+    statuses = json.loads(response.data)
+    assert len(statuses) == 6
+    assert sorted(list(statuses[0].keys())) == expected_keys
+    assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
+
+@pytest.mark.skipif(CI_ENV, reason="avoid issuing HTTP requests on CI")
+def test_top_status_tags(api_client):
+    expected_keys = ['community_id', 'count', 'doc_count', 'doc_pct', 'pct', 'rank', 'token']
+
+    response = api_client.get('/api/v0/top_status_tags')
+    statuses = json.loads(response.data)
+    assert response.status_code == 200
+    assert isinstance(statuses, list)
+    assert len(statuses) == 100
+    assert isinstance(statuses[0], dict)
+    assert sorted(list(statuses[0].keys())) == expected_keys
+    assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
+
+    response = api_client.get('/api/v0/top_status_tags?limit=3')
+    statuses = json.loads(response.data)
+    assert len(statuses) == 6
+    assert sorted(list(statuses[0].keys())) == expected_keys
+    assert len([s for s in statuses if s["community_id"] == 0]) == len([s for s in statuses if s["community_id"] == 1])
