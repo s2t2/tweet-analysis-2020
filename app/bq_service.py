@@ -1174,7 +1174,7 @@ class BigQueryService():
 
     def fetch_daily_statuses(self, date, limit=None):
         sql = f"""
-            SELECT
+            SELECT DISTINCT
                 t.status_id
                 , t.status_text
                 , t.created_at
@@ -1188,6 +1188,35 @@ class BigQueryService():
             WHERE EXTRACT(DATE from created_at) = '{date}'
             --LIMIT 10
         """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_tweeter_statuses(self, date, tweet_min=None, limit=None):
+        sql = f"""
+            SELECT DISTINCT
+                t.status_id
+                ,t.status_text
+                ,t.created_at
+                ,t.user_id
+                ,t.user_screen_name as screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,bu.community_id
+                ,r.tweet_count as rate
+            FROM {self.dataset_address}.tweets t
+            LEFT JOIN {self.dataset_address}.2_bot_communities bu ON bu.user_id = cast(t.user_id as int64)
+            JOIN (
+                SELECT
+                cast(user_id as INT64) as user_id, count(distinct status_id) as tweet_count
+                FROM {self.dataset_address}.tweets t
+                WHERE EXTRACT(DATE from created_at) = '{date}'
+                GROUP BY 1
+                -- LIMIT 10
+            ) r ON r.user_id = cast(t.user_id as int64)
+            WHERE EXTRACT(DATE from created_at) = '{date}'
+        """
+        if tweet_min:
+            sql += f" AND tweet_count >= {int(tweet_min)};"
         if limit:
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
