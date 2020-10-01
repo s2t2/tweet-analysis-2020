@@ -1221,7 +1221,7 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
-    def fetch_daily_active_tweeter_friends(self, date, tweet_min=None, limit=None):
+    def fetch_daily_active_user_friends(self, date, tweet_min=None, limit=None):
         sql = f"""
             SELECT dau.user_id, dau.rate, uf.screen_name ,uf.friend_count, uf.friend_names
             FROM (
@@ -1234,6 +1234,34 @@ class BigQueryService():
         """
         if tweet_min:
             sql += f" WHERE dau.rate >= {int(tweet_min)};"
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_edge_friends(self, date, tweet_min=2, limit=None):
+        sql = f"""
+            WITH dau AS (
+                SELECT
+                    cast(user_id as INT64) as user_id
+                    ,upper(user_screen_name) as screen_name
+                    ,count(distinct status_id) as rate
+                FROM `{self.dataset_address}.tweets`
+                WHERE EXTRACT(DATE FROM created_at) = '{date}'
+                GROUP BY 1,2
+                HAVING count(distinct status_id) >= {int(tweet_min)}
+            )
+
+            SELECT
+                dau.user_id
+                ,dau.screen_name
+                ,dau.rate
+                ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM dau
+            JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = dau.user_id
+            WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+            GROUP BY 1,2,3
+        """
         if limit:
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)

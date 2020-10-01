@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
         job.start()
         print("EDGES...")
-        for row in bq_service.fetch_daily_active_tweeter_friends(date=DATE, tweet_min=TWEET_MIN, limit=LIMIT):
+        for row in bq_service.fetch_daily_active_user_friends(date=DATE, tweet_min=TWEET_MIN, limit=LIMIT):
             graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
 
             job.counter += 1

@@ -10,7 +10,7 @@ from app.bq_service import BigQueryService
 from app.file_storage import FileStorage
 
 DATE = os.getenv("DATE", default="2020-01-23")
-TWEET_MIN = os.getenv("TWEET_MIN")
+TWEET_MIN = int(os.getenv("TWEET_MIN", default="1")) # CHANGED
 
 LIMIT = os.getenv("LIMIT")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
@@ -69,8 +69,8 @@ if __name__ == "__main__":
     #
     # MAKE GRAPH
 
-    local_graph_filepath = os.path.join(storage.local_dirpath, "graph.gpickle")
-    gcs_graph_filepath = os.path.join(storage.gcs_dirpath, "graph.gpickle")
+    local_graph_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.gpickle") #CHANGED
+    gcs_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle") #CHANGED
 
     if os.path.exists(local_graph_filepath) and not GRAPH_DESTRUCTIVE:
         print("LOADING GRAPH...")
@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
         job.start()
         print("EDGES...")
-        for row in bq_service.fetch_daily_active_tweeter_friends(date=DATE, tweet_min=TWEET_MIN, limit=LIMIT):
+        for row in bq_service.fetch_daily_active_edge_friends(date=DATE, tweet_min=TWEET_MIN, limit=LIMIT): # CHANGED
             graph.add_edges_from([(row["screen_name"], friend) for friend in row["friend_names"]])
 
             job.counter += 1
@@ -111,25 +111,3 @@ if __name__ == "__main__":
         write_gpickle(graph, local_graph_filepath)
         del graph
         storage.upload_file(local_graph_filepath, gcs_graph_filepath)
-
-    #breakpoint()
-
-    #metadata = {
-    #    "bq_service":bq_service.metadata,
-    #    "date": DATE,
-    #    "tweet_min": TWEET_MIN,
-    #    "job_params":{
-    #        "limit": LIMIT,
-    #        "batch_size": BATCH_SIZE,
-    #        "graph_batch_size": GRAPH_BATCH_SIZE,
-    #    },
-    #    "results":{
-    #        "tweets": len(statuses_df),
-    #        "nodes": graph.number_of_nodes(),
-    #        "edges": graph.number_of_edges(),
-    #    }
-    #}
-    ## save metadata to JSON
-    #local_metadata_filepath =
-    #gcs_metadata_filepath =
-    #storage.upload_file(local_metadata_filepath, gcs_metadata_filepath)

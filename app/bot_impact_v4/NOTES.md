@@ -2,6 +2,8 @@
 
 ## Queries
 
+### Active User Friend Graphs
+
 ```sql
 SELECT
   count(distinct status_id) as status_count
@@ -93,4 +95,56 @@ FROM (
 ) dau
 JOIN impeachment_production.active_user_friends uf ON uf.user_id = dau.user_id
 LIMIT 10
+```
+
+### Active Edge Friend Graphs
+
+
+```sql
+WITH dau AS (
+  SELECT
+    cast(user_id as INT64) as user_id
+    , upper(user_screen_name) as screen_name
+    , count(distinct status_id) as rate
+  FROM impeachment_production.tweets
+  WHERE EXTRACT(DATE FROM created_at) = '2020-02-05'
+  GROUP BY 1,2
+  HAVING count(distinct status_id) >= 3
+)
+
+SELECT
+  dau.user_id
+  ,dau.screen_name
+  ,dau.rate
+  ,uff.friend_name
+FROM dau
+JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = dau.user_id
+WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+-- LIMIT 10
+```
+
+```sql
+WITH dau AS (
+  SELECT
+    cast(user_id as INT64) as user_id
+    , upper(user_screen_name) as screen_name
+    , count(distinct status_id) as rate
+  FROM impeachment_production.tweets
+  WHERE EXTRACT(DATE FROM created_at) = '2020-02-05'
+  GROUP BY 1,2
+  HAVING count(distinct status_id) >= 2 -- 3: 96849
+)
+
+SELECT
+  dau.user_id
+  ,dau.screen_name
+  ,dau.rate
+  ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+   ,count(DISTINCT uff.friend_name) as friend_count
+FROM dau
+JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = dau.user_id
+WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+GROUP BY 1,2,3
+
+-- LIMIT 10
 ```
