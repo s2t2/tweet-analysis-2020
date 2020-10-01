@@ -109,5 +109,5 @@ if __name__ == "__main__":
 
         print(type(graph), fmt_n(graph.number_of_nodes()), fmt_n(graph.number_of_edges()))
         write_gpickle(graph, local_graph_filepath)
-        del graph
-        storage.upload_file(local_graph_filepath, gcs_graph_filepath)
+        #del graph
+        #storage.upload_file(local_graph_filepath, gcs_graph_filepath)
