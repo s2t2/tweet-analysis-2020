@@ -56,3 +56,41 @@ FROM (
   --LIMIT 10
 
 ```
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.active_user_friends_flat;
+CREATE TABLE impeachment_production.active_user_friends_flat AS (
+  SELECT user_id, screen_name, friend_name
+  FROM impeachment_production.user_friends_flat
+  WHERE screen_name in (SELECT DISTINCT upper(user_screen_name) FROM impeachment_production.tweets)
+    AND friend_name in (SELECT DISTINCT upper(user_screen_name) FROM impeachment_production.tweets)
+  -- LIMIT 10
+); --> 642,079,860 rows (vs 1,976,670,168) so about 1/3 the size of the original uff
+```
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.active_user_friends;
+CREATE TABLE impeachment_production.active_user_friends as (
+  SELECT
+    cast(uff.user_id as int64) as user_id
+    ,uff.screen_name
+    ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+    ,count(DISTINCT uff.friend_name) as friend_count
+  FROM impeachment_production.active_user_friends_flat uff
+  GROUP BY 1,2
+);
+```
+
+```sql
+SELECT dau.user_id, dau.tweet_count as rate, uf.screen_name ,uf.friend_count, uf.friend_names
+FROM (
+    SELECT
+       cast(user_id as INT64) as user_id, count(distinct status_id) as tweet_count
+    FROM impeachment_production.tweets t
+    WHERE EXTRACT(DATE from created_at) = '2020-01-23'
+    GROUP BY 1
+    LIMIT 10
+) dau
+JOIN impeachment_production.active_user_friends uf ON uf.user_id = dau.user_id
+LIMIT 10
+```
