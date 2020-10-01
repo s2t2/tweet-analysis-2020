@@ -82,6 +82,7 @@ if __name__ == "__main__":
         nodes_df.drop_duplicates(inplace=True)
         print(len(nodes_df))
         print(nodes_df.head())
+        del statuses_df
 
         print("CREATING GRAPH...")
         graph = DiGraph()
@@ -96,6 +97,7 @@ if __name__ == "__main__":
             if job.counter % GRAPH_BATCH_SIZE == 0:
                 job.progress_report()
         job.end()
+        del nodes_df
 
         job.start()
         print("EDGES...")
