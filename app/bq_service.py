@@ -1229,10 +1229,8 @@ class BigQueryService():
                 FROM `{self.dataset_address}.tweets` t
                 WHERE EXTRACT(DATE from t.created_at) = '{date}'
                 GROUP BY 1
-                -- LIMIT 10
             ) dau
             JOIN `{self.dataset_address}.active_user_friends` uf ON uf.user_id = dau.user_id
-            -- LIMIT 10
         """
         if tweet_min:
             sql += f" WHERE dau.rate >= {int(tweet_min)};"
