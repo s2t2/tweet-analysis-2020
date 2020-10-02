@@ -3,6 +3,7 @@ import os
 
 from pandas import DataFrame, read_csv
 from networkx import DiGraph, write_gpickle, read_gpickle
+from memory_profiler import profile
 
 from app.decorators.number_decorators import fmt_n
 from app.job import Job
@@ -20,6 +21,12 @@ DESTRUCTIVE = (os.getenv("DESTRUCTIVE", default="false") == "true")
 GRAPH_BATCH_SIZE = int(os.getenv("GRAPH_BATCH_SIZE", default="10000"))
 GRAPH_DESTRUCTIVE = (os.getenv("GRAPH_DESTRUCTIVE", default="false") == "true")
 
+@profile
+def load_graph(local_graph_filepath):
+    print("LOADING GRAPH...")
+    graph = read_gpickle(local_graph_filepath)
+    print(type(graph), fmt_n(graph.number_of_nodes()), fmt_n(graph.number_of_edges()))
+    return graph
 
 if __name__ == "__main__":
 
@@ -73,9 +80,7 @@ if __name__ == "__main__":
     gcs_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle") #CHANGED
 
     if os.path.exists(local_graph_filepath) and not GRAPH_DESTRUCTIVE:
-        print("LOADING GRAPH...")
-        graph = read_gpickle(local_graph_filepath)
-        print(type(graph), graph.number_of_nodes(), graph.number_of_edges())
+        load_graph()
     else:
         nodes_df = statuses_df.copy()
         nodes_df = nodes_df[["user_id", "screen_name","rate","bot"]]
@@ -110,6 +115,7 @@ if __name__ == "__main__":
         job.end()
 
         print(type(graph), fmt_n(graph.number_of_nodes()), fmt_n(graph.number_of_edges()))
+        print("SAVING GRAPH...")
         write_gpickle(graph, local_graph_filepath)
         #del graph
         #storage.upload_file(local_graph_filepath, gcs_graph_filepath)
