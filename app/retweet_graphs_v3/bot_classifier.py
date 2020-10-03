@@ -13,8 +13,8 @@ if __name__ == "__main__":
     grapher = RetweetGrapher()
     storage = grapher.storage
 
-    grapher.load_graph()
-    clf = BotClassifier(grapher.graph, weight_attr="rt_count")
+    graph = grapher.load_graph()
+    clf = BotClassifier(graph, weight_attr="weight")
 
     local_probabilities_filepath = os.path.join(storage.local_dirpath, "probabilities.csv")
     gcs_probabilities_filepath = os.path.join(storage.local_dirpath, "probabilities.csv")

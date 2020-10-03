@@ -46,11 +46,11 @@ Create a new bucket called "election-analysis-2020" and set the `GCS_BUCKET_NAME
 ### Constructing Retweet Graphs
 
 ```sh
-START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.grapher
+START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.retweet_grapher
 ```
 
 ### Classifying Bots
 
 ```sh
-START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.classifier
+START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.bot_classifier
 ```
