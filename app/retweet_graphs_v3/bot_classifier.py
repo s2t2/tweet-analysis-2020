@@ -5,7 +5,7 @@ import os
 from app import APP_ENV
 from app.file_storage import FileStorage
 from app.bq_service import BigQueryService
-from app.retweet_graphs_v3.grapher import RetweetGrapher
+from app.retweet_graphs_v3.retweet_grapher import RetweetGrapher
 from app.botcode_v2.classifier import NetworkClassifier as BotClassifier
 
 if __name__ == "__main__":
