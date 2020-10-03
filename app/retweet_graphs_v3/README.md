@@ -41,9 +41,16 @@ CREATE TABLE election_2020_analysis.tweets as (
 
 Create a new bucket called "election-analysis-2020" and set the `GCS_BUCKET_NAME` env var accordingly.
 
-## Constructing Retweet Graphs
+## Usage
+
+### Constructing Retweet Graphs
 
 ```sh
-python -m app.retweet_graphs_v3.grapher
-#START_DATE="2020-01-01" END_DATE="2020-02-01" python -m app.retweet_graphs_v3.grapher
+START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.grapher
+```
+
+### Classifying Bots
+
+```sh
+START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.classifier
 ```
