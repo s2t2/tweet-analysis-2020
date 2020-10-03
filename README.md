@@ -26,6 +26,8 @@ Version 1 (works in progress, investigations, archive):
 Version 2 (current, stable, mature):
 
   + [Tweet Collection v2](/app/tweet_collection_v2/README.md)
+  + [Retweet Graphs v3](/app/retweet_graphs_v3/README.md)
+    + [Bot Classification v4](/app/retweet_graphs_v3/README.md#Bot-Classification)
 
 
 ## Installation
