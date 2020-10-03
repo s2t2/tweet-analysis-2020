@@ -17,17 +17,17 @@ if __name__ == "__main__":
     clf = BotClassifier(graph, weight_attr="weight")
 
     local_probabilities_filepath = os.path.join(storage.local_dirpath, "probabilities.csv")
-    gcs_probabilities_filepath = os.path.join(storage.local_dirpath, "probabilities.csv")
-    clf.bot_probabilities_df.to_csv(local_bot_probabilities_filepath)
-    storage.upload_file(local_bot_probabilities_filepath, gcs_probabilities_filepath)
+    gcs_probabilities_filepath = os.path.join(storage.gcs_dirpath, "probabilities.csv")
+    clf.bot_probabilities_df.to_csv(local_probabilities_filepath)
+    storage.upload_file(local_probabilities_filepath, gcs_probabilities_filepath)
 
     local_histogram_filepath = os.path.join(storage.local_dirpath, "histogram.png")
-    gcs_probabilities_filepath = os.path.join(storage.gcs_dirpath, "histogram.png")
+    gcs_histogram_filepath = os.path.join(storage.gcs_dirpath, "histogram.png")
     clf.generate_bot_probabilities_histogram(
         img_filepath=local_histogram_filepath, # saves to local file
         title=f"Bot Probability Scores (excluding 0.5) for Period {grapher.start_date} - {grapher.end_date}"
     )
-    storage.upload_file(local_histogram_filepath, gcs_probabilities_filepath)
+    storage.upload_file(local_histogram_filepath, gcs_histogram_filepath)
 
     ## UPLOAD SELECTED ROWS TO BIG QUERY (IF POSSIBLE, OTHERWISE CAN ADD FROM GCS LATER)
     #try:
