@@ -17,8 +17,8 @@ class BotSimilarityGrapher(Job):
 
             bot_retweet_graph (networkx.DiGraph) a retweet graph between all the bots and all the users they retweeted, with edge weight as the retweet count
         """
-       self.bot_ids = bot_ids
-       self.bot_retweet_graph = bot_retweet_graph
+        self.bot_ids = bot_ids
+        self.bot_retweet_graph = bot_retweet_graph
 
     @property
     @lru_cache(maxsize=None)
