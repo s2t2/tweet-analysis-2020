@@ -68,23 +68,6 @@ START_DATE="2020-09-26" N_DAYS=7 N_PERIODS=1 python -m app.retweet_graphs_v3.wor
 
 
 
-
-### Retweet Graphs
-
-Construct a weekly graph starting on a given day (inclusive of that day):
-
-```sh
-START_DATE="2020-09-26" N_DAYS=7 N_PERIODS=1 python -m app.retweet_graphs_v3.retweet_grapher
-```
-
-### Bot Classification
-
-Identify bots based on their retweet behavior:
-
-```sh
-START_DATE="2020-09-26" N_DAYS=7 python -m app.retweet_graphs_v3.bot_classifier
-```
-
 Then import the CSV file from GCS or CSV into BQ, into a table called "import_bot_probabilities". And choose a threshold where there are about 1% bots (usually around 70% or 80%):
 
 ```sql

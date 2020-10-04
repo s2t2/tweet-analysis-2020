@@ -3,7 +3,8 @@ import os
 from pprint import pprint
 
 from dotenv import load_dotenv
-from networkx import write_gpickle
+from networkx import write_gpickle, read_gpickle
+from pandas import read_csv
 
 from app import DATA_DIR, seek_confirmation
 from app.decorators.datetime_decorators import logstamp
@@ -53,29 +54,47 @@ class FileStorage:
         return os.path.join("storage", "data", dirpath)
 
     #
-    # INSTANCE METHODS
+    # LOCAL
     #
 
-    def file_exists(self, filename):
-        return os.path.exists(os.path.join(self.local_dirpath, filename))
+    def local_filepath(self, filename):
+        return os.path.join(self.local_dirpath, filename)
 
-    def save_gpickle_as(self, obj, filename):
-        """ Params: the object to save, and the name of the file to save it as"""
-        local_filepath = os.path.join(self.local_dirpath, filename)
-        write_gpickle(obj, local_filepath)
-        if self.wifi:
-            gcs_filepath = os.path.join(self.gcs_dirpath, filename)
-            self.upload_file(local_filepath, gcs_filepath)
+    def local_file_exists(self, filename):
+        return os.path.exists(self.local_filepath(filename))
 
-    #
-    # REMOTE STORAGE
-    #
+    # REMOTE
 
-    def upload_file(self, local_filepath, remote_filepath):
-        print(logstamp(), "UPLOADING FILE...", os.path.abspath(local_filepath))
+    def gcs_filepath(self, filename):
+        return os.path.join(self.gcs_dirpath, filename)
+
+    def upload_file(self, filename):
+        print(logstamp(), "UPLOADING FILE...", filename)
         blob = self.gcs_service.upload(local_filepath, remote_filepath)
         print(logstamp(), blob)  # > <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
-    def download_file(self, remote_filepath, local_filepath):
-        print(logstamp(), "DOWNLOADING FILE...", remote_filepath)
+    def download_file(self, filename):
+        print(logstamp(), "DOWNLOADING FILE...", filename)
         self.gcs_service.download(remote_filepath, local_filepath)
+
+    # COMBO
+
+    def save_gpickle(self, obj, filename):
+        """ Params: the object to save, and the name of the file to save it as"""
+        write_gpickle(obj, self.local_filepath(filename))
+        self.upload_file(filename)
+
+    def save_df(self, obj, filename):
+        """ Params: the object to save, and the name of the file to save it as"""
+        df.to_csv(self.local_filepath(filename))
+        self.upload_file(filename)
+
+    def load_gpickle(self, filename):
+        if not self.local_file_exists(filename):
+            self.download_file(filename)
+        return read_gpickle(self.local_filepath(filename))
+
+    def load_df(self, filename):
+        if not self.local_file_exists(filename):
+            self.download_file(filename)
+        return read_csv(self.local_filepath(filename))
