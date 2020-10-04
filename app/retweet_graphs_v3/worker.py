@@ -6,10 +6,15 @@ from app.retweet_graphs_v3.date_range_generator import DateRangeGenerator
 from app.retweet_graphs_v3.file_storage import FileStorage
 from app.retweet_graphs_v3.retweet_grapher import RetweetGrapher
 from app.botcode_v2.classifier import NetworkClassifier as BotClassifier
+from app.retweet_graphs_v3.bot_similarity_grapher import BotSimilarityGrapher
 
 RETWEET_GRAPH_FILENAME = "retweet_graph.gpickle"
 BOTS_FILENAME = "bot_probabilities.csv"
 BOTS_HISTOGRAM_FILENAME = "bot_probabilities_histogram.png"
+
+BOT_MIN = float(os.getenv("BOT_MIN", default="0.7"))
+BOT_RETWEET_GRAPH_FILENAME = "bot_retweet_graph.gpickle"
+BOT_SIMILARITY_GRAPH_FILENAME = "bot_similarity_graph.gpickle"
 
 if __name__ == "__main__":
 
@@ -26,17 +31,15 @@ if __name__ == "__main__":
         storage = FileStorage(dirpath=storage_dirpath)
 
         #
-        # RETWEET GRAPH
+        # BOT CLASSIFICATION
         #
+
         if storage.local_file_exists(RETWEET_GRAPH_FILENAME):
             retweet_graph = storage.load_gpickle(RETWEET_GRAPH_FILENAME)
         else:
-            retweet_graph = RetweetGrapher(start_date=start_date, end_date=end_date).construct_graph()
+            retweet_graph = RetweetGrapher(start_date=start_date, end_date=end_date).perform()
             storage.save_gpickle(retweet_graph, filename=RETWEET_GRAPH_FILENAME)
 
-        #
-        # BOT CLASSIFICATION
-        #
         if storage.local_file_exists(BOTS_FILENAME):
             bots_df = read_csv(BOTS_FILENAME)
         else:
@@ -64,20 +67,24 @@ if __name__ == "__main__":
             #except Exception as err:
             #    print("OOPS", err)
 
-        #seek_confirmation() # might want to review the histogram and choose a different bot min
-
-
         #
         # BOT COMMUNITIES
         #
-        #breakpoint()
 
-        #bot_subgraph = graph.subgraph(bot_ids) # keeps all bot nodes but only the edges between them, not edges outward
-        #bot_subgraph = graph.edge_subgraph(bot_ids) # needs to know full edges
+        seek_confirmation() # might want to review the histogram and choose a different bot min and start over #TODO: automatically choose the bot min
+        bot_ids = bots_df[bots_df["bot_probability"] > BOT_MIN]["user_id"].tolist()
 
-        #bot_graph = DiGraph()
-        #for user_id, retweeted_user_id, attrs in graph.edges(data=True):
-        #    if user_id in bot_ids:
-        #        bot_graph.add_edge(user_id, retweeted_user_id, weight=attrs["weight"])
-#
-        #    breakpoint()
+        if storage.local_file_exists(BOT_RETWEET_GRAPH_FILENAME):
+            bot_retweet_graph = storage.load_gpickle(BOT_RETWEET_GRAPH_FILENAME)
+        else:
+            bot_retweet_graph = DiGraph()
+            for user_id, retweeted_user_id, data in retweet_graph.edges(data=True):
+                if user_id in bot_ids:
+                    bot_retweet_graph.add_edge(user_id, retweeted_user_id, weight=data["weight"])
+            storage.save_gpickle(bot_retweet_graph, filename=BOT_RETWEET_GRAPH_FILENAME)
+
+        if storage.local_file_exists(BOT_SIMILARITY_GRAPH_FILENAME):
+            similarity_graph = storage.load_gpickle(BOT_SIMILARITY_GRAPH_FILENAME)
+        else:
+            similarity_graph = BotSimilarityGrapher(bot_ids=bot_ids, bot_retweet_graph=bot_retweet_graph).perform()
+            storage.save_gpickle(similarity_graph, filename=BOT_SIMILARITY_GRAPH_FILENAME)

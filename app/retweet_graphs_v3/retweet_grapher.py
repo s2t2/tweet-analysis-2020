@@ -47,7 +47,7 @@ class RetweetGrapher(Job):
             "batch_size": self.batch_size
         }
 
-    def construct_graph(self):
+    def perform(self):
         self.start()
         print("CONSTRUCTING GRAPH...")
         self.graph = DiGraph()
