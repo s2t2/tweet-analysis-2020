@@ -54,3 +54,5 @@ START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.re
 ```sh
 START_DATE="2020-09-26" END_DATE="2020-10-03" python -m app.retweet_graphs_v3.bot_classifier
 ```
+
+Then import the CSV file from GCS or CSV into BQ, into a table called "bot_probabilities".
