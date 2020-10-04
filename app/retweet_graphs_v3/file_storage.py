@@ -84,7 +84,7 @@ class FileStorage:
         write_gpickle(obj, self.local_filepath(filename))
         self.upload_file(filename)
 
-    def save_df(self, obj, filename):
+    def save_df(self, df, filename):
         """ Params: the object to save, and the name of the file to save it as"""
         df.to_csv(self.local_filepath(filename))
         self.upload_file(filename)
