@@ -1,4 +1,5 @@
 
+
 import os
 
 from pandas import DataFrame, read_csv
@@ -20,6 +21,37 @@ DESTRUCTIVE = (os.getenv("DESTRUCTIVE", default="false") == "true")
 #GRAPH_LIMIT = os.getenv("GRAPH_LIMIT")
 GRAPH_BATCH_SIZE = int(os.getenv("GRAPH_BATCH_SIZE", default="10000"))
 GRAPH_DESTRUCTIVE = (os.getenv("GRAPH_DESTRUCTIVE", default="false") == "true")
+
+
+
+
+
+import json
+from networkx.readwrite import json_graph
+import numpy as np
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
+@profile
+def save_graph_as_json(graph, local_json_graph_filepath):
+    print("CONVERTING GRAPH TO JSON...")
+    data = json_graph.node_link_data(graph)
+    print("SAVING JSON GRAPH...")
+    with open(local_json_graph_filepath, "w") as json_file:
+        json.dump(data, json_file, indent=4, cls=NpEncoder)
+
+
+
+
 
 @profile
 def load_graph(local_graph_filepath):
@@ -80,7 +112,7 @@ if __name__ == "__main__":
     gcs_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle") #CHANGED
 
     if os.path.exists(local_graph_filepath) and not GRAPH_DESTRUCTIVE:
-        load_graph()
+        graph = load_graph(local_graph_filepath)
     else:
         nodes_df = statuses_df.copy()
         nodes_df = nodes_df[["user_id", "screen_name","rate","bot"]]
@@ -119,3 +151,8 @@ if __name__ == "__main__":
         write_gpickle(graph, local_graph_filepath)
         #del graph
         #storage.upload_file(local_graph_filepath, gcs_graph_filepath)
+
+    local_json_graph_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.gpickle") #CHANGED
+    gcs_json_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle")
+    save_graph_as_json(graph, local_json_graph_filepath)
+    #storage.upload_file(local_json_graph_filepath, gcs_json_graph_filepath)
