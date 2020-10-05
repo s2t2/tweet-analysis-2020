@@ -2,6 +2,7 @@ import os
 
 from pandas import read_csv
 
+from app.decorators.datetime_decorators import dt_to_s
 from app.retweet_graphs_v3.date_range_generator import DateRangeGenerator
 from app.retweet_graphs_v3.file_storage import FileStorage
 from app.retweet_graphs_v3.retweet_grapher import RetweetGrapher
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         if storage.local_file_exists(RETWEET_GRAPH_FILENAME):
             retweet_graph = storage.load_gpickle(RETWEET_GRAPH_FILENAME)
         else:
-            retweet_graph = RetweetGrapher(start_date=start_date, end_date=end_date).perform()
+            retweet_graph = RetweetGrapher(start_date=dt_to_s(date_range.start_at), end_date=dt_to_s(date_range.end_at)).perform()
             storage.save_gpickle(retweet_graph, filename=RETWEET_GRAPH_FILENAME)
 
         if storage.local_file_exists(BOTS_FILENAME):
@@ -71,7 +72,7 @@ if __name__ == "__main__":
         # BOT COMMUNITIES
         #
 
-        seek_confirmation() # might want to review the histogram and choose a different bot min and start over #TODO: automatically choose the bot min
+        seek_confirmation() # might want to review the histogram and choose a different bot min and start over #TODO: automatically choose the bot min. a reasonable percentage is 1% of all users
         bot_ids = bots_df[bots_df["bot_probability"] > BOT_MIN]["user_id"].tolist()
 
         if storage.local_file_exists(BOT_RETWEET_GRAPH_FILENAME):
