@@ -148,3 +148,29 @@ GROUP BY 1,2,3
 
 -- LIMIT 10
 ```
+
+Getting TZ a CSV file in desired format:
+
+```sql
+WITH dau AS (
+    SELECT
+        cast(user_id as INT64) as user_id
+        ,upper(user_screen_name) as screen_name
+        ,count(distinct status_id) as rate
+    FROM impeachment_production.tweets
+    WHERE EXTRACT(DATE FROM created_at) = '2020-01-23'
+    GROUP BY 1,2
+    HAVING count(distinct status_id) >= 2
+)
+
+SELECT
+    dau.user_id
+    ,dau.screen_name
+    ,dau.rate
+    ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- string agg so we can export to CSV
+    ,count(DISTINCT uff.friend_name) as friend_count
+FROM dau
+JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = dau.user_id
+WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+GROUP BY 1,2,3
+```

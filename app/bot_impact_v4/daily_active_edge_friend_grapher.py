@@ -86,6 +86,8 @@ if __name__ == "__main__":
     #
     # LOAD TWEETS
     # tweet_id, text, screen_name, bot, created_at
+
+    # TODO: de-dup RTs so the model will only train/test on a single RT status text (PREVENT OVERFITTING)
     if os.path.exists(tweets_csv_filepath) and not DESTRUCTIVE:
         print("LOADING TWEETS...")
         statuses_df = read_csv(tweets_csv_filepath)
@@ -108,6 +110,70 @@ if __name__ == "__main__":
 
     #
     # MAKE GRAPH
+
+    # TODO: export graph as CSV format for TZ
+    # and optionally also construct the gpickle and json graph objects
+
+    local_nodes_csv_filepath = os.path.join(storage.local_dirpath, "active_nodes.csv")
+    local_graph_csv_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.csv") #CHANGED
+    if os.path.exists(local_nodes_csv_filepath) and os.path.exists(local_graph_csv_filepath) and not GRAPH_DESTRUCTIVE:
+        nodes_df = read_csv(local_nodes_csv_filepath)
+        graph_df = read_csv(local_graph_csv_filepath)
+    else:
+        nodes_df = statuses_df.copy()
+        nodes_df = nodes_df[["user_id", "screen_name","rate","bot"]]
+        nodes_df.drop_duplicates(inplace=True)
+        print("NODES:", fmt_n(len(nodes_df)))
+        print(nodes_df.head())
+        nodes_df.to_csv(local_nodes_csv_filepath)
+
+        del statuses_df
+
+        job.start()
+        print("ACTIVE EDGES...")
+        active_edges = []
+        for row in bq_service.fetch_daily_active_edge_friends_for_csv(date=DATE, tweet_min=TWEET_MIN, limit=LIMIT): # CHANGED
+            active_edges.append(dict(row))
+
+            job.counter += 1
+            if job.counter % GRAPH_BATCH_SIZE == 0:
+                job.progress_report()
+        job.end()
+
+        graph_df = DataFrame(active_edges)
+        print(fmt_n(len(graph_df)))
+        print(graph_df.head())
+        print("SAVING GRAPH TO CSV...")
+        graph_df.to_csv(local_graph_csv_filepath)
+
+        # todo: upload straight to google drive
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    exit()
 
     local_graph_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.gpickle") #CHANGED
     gcs_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle") #CHANGED
