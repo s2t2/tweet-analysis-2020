@@ -6,9 +6,12 @@ from networkx import jaccard_coefficient, Graph
 
 from app import seek_confirmation
 from app.job import Job
+from app.decorators.number_decorators import fmt_n
+
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="25000"))
 
 class BotSimilarityGrapher(Job):
-    def __init__(self, bot_ids, bot_retweet_graph):
+    def __init__(self, bot_ids, bot_retweet_graph, batch_size=BATCH_SIZE):
         """Params:
 
             bot_ids (list) a unique list of bot ids, which should all be included as nodes in the bot retweet graph.
@@ -20,13 +23,18 @@ class BotSimilarityGrapher(Job):
         self.bot_ids = bot_ids
         self.bot_retweet_graph = bot_retweet_graph
 
+        self.batch_size = batch_size
+
+        print("BOT SIMILARITY GRAPHER...")
+        print("  BATCH SIZE:", self.batch_size)
+
     @property
     @lru_cache(maxsize=None)
     def jaccard_results(self):
         self.start()
         node_pairs = []
         for i, bot_id in enumerate(self.bot_ids):
-            for other_bot_id in bot_ids[i+1:]:
+            for other_bot_id in self.bot_ids[i+1:]:
                 if self.bot_retweet_graph.has_node(other_bot_id) and self.bot_retweet_graph.has_node(bot_id):
                     node_pairs.append((bot_id, other_bot_id))
         # could maybe just take the combinations between all nodes in the bot graph

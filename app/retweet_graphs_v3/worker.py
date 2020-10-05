@@ -1,7 +1,8 @@
 import os
 
-from pandas import read_csv
+from networkx import DiGraph
 
+from app import seek_confirmation
 from app.decorators.datetime_decorators import dt_to_s
 from app.retweet_graphs_v3.date_range_generator import DateRangeGenerator
 from app.retweet_graphs_v3.file_storage import FileStorage
@@ -42,7 +43,7 @@ if __name__ == "__main__":
             storage.save_gpickle(retweet_graph, filename=RETWEET_GRAPH_FILENAME)
 
         if storage.local_file_exists(BOTS_FILENAME):
-            bots_df = read_csv(BOTS_FILENAME)
+            bots_df = storage.load_df(BOTS_FILENAME)
         else:
             bot_classifier = BotClassifier(retweet_graph, weight_attr="weight")
 
@@ -50,12 +51,10 @@ if __name__ == "__main__":
             bots_df = bots_df[bots_df["bot_probability"] > 0.5]
             storage.save_df(bots_df, BOTS_FILENAME)
 
-            local_histogram_filepath = storage.local_filepath(BOTS_HISTOGRAM_FILENAME)
             bot_classifier.generate_bot_probabilities_histogram(
-                title=f"Bot Probability Scores (excluding 0.5) for Period {start_date} - {end_date}",
-                img_filepath=local_histogram_filepath
-            )
-            storage.upload_file(local_histogram_filepath, storage.gcs_filepath(BOTS_HISTOGRAM_FILENAME))
+                title=f"Bot Probability Scores for Period {start_date} - {end_date}",
+                img_filepath=storage.local_filepath(BOTS_HISTOGRAM_FILENAME))
+            storage.upload_file(BOTS_HISTOGRAM_FILENAME)
 
             ## UPLOAD SELECTED ROWS TO BIG QUERY (IF POSSIBLE, OTHERWISE CAN ADD FROM GCS LATER)
             #try:
@@ -85,7 +84,7 @@ if __name__ == "__main__":
             storage.save_gpickle(bot_retweet_graph, filename=BOT_RETWEET_GRAPH_FILENAME)
 
         if storage.local_file_exists(BOT_SIMILARITY_GRAPH_FILENAME):
-            similarity_graph = storage.load_gpickle(BOT_SIMILARITY_GRAPH_FILENAME)
+            bot_similarity_graph = storage.load_gpickle(BOT_SIMILARITY_GRAPH_FILENAME)
         else:
-            similarity_graph = BotSimilarityGrapher(bot_ids=bot_ids, bot_retweet_graph=bot_retweet_graph).perform()
-            storage.save_gpickle(similarity_graph, filename=BOT_SIMILARITY_GRAPH_FILENAME)
+            bot_similarity_graph = BotSimilarityGrapher(bot_ids=bot_ids, bot_retweet_graph=bot_retweet_graph).perform()
+            storage.save_gpickle(bot_similarity_graph, filename=BOT_SIMILARITY_GRAPH_FILENAME)

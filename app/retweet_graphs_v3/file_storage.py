@@ -70,12 +70,12 @@ class FileStorage:
 
     def upload_file(self, filename):
         print(logstamp(), "UPLOADING FILE...", filename)
-        blob = self.gcs_service.upload(local_filepath, remote_filepath)
-        print(logstamp(), blob)  # > <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
+        blob = self.gcs_service.upload(self.local_filepath(filename), self.gcs_filepath(filename))
+        print(logstamp(), blob) # > <Blob: impeachment-analysis-2020, storage/data/2020-05-26-0002/metadata.json, 1590465770194318>
 
     def download_file(self, filename):
         print(logstamp(), "DOWNLOADING FILE...", filename)
-        self.gcs_service.download(remote_filepath, local_filepath)
+        self.gcs_service.download(self.gcs_filepath(filename), self.local_filepath(filename))
 
     # COMBO
 
