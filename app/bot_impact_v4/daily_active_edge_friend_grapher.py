@@ -41,11 +41,12 @@ class NpEncoder(json.JSONEncoder):
         else:
             return super(NpEncoder, self).default(obj)
 
-@profile
+#@profile
 def save_graph_as_json(graph, local_json_graph_filepath):
     print("CONVERTING GRAPH TO JSON...")
     data = json_graph.node_link_data(graph)
-    print("SAVING JSON GRAPH...")
+    print(type(data))
+    print("SAVING JSON GRAPH...", local_json_graph_filepath)
     with open(local_json_graph_filepath, "w") as json_file:
         json.dump(data, json_file, indent=4, cls=NpEncoder)
 
@@ -53,7 +54,7 @@ def save_graph_as_json(graph, local_json_graph_filepath):
 
 
 
-@profile
+#@profile
 def load_graph(local_graph_filepath):
     print("LOADING GRAPH...")
     graph = read_gpickle(local_graph_filepath)
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         statuses_df = DataFrame(statuses)
         del statuses
         statuses_df.to_csv(tweets_csv_filepath)
-    print(fmt_n(len(statuses_df)))
+    print("STATUSES:", fmt_n(len(statuses_df)))
 
     #
     # MAKE GRAPH
@@ -117,7 +118,7 @@ if __name__ == "__main__":
         nodes_df = statuses_df.copy()
         nodes_df = nodes_df[["user_id", "screen_name","rate","bot"]]
         nodes_df.drop_duplicates(inplace=True)
-        print(len(nodes_df))
+        print("NODES:", fmt_n(len(nodes_df)))
         print(nodes_df.head())
         del statuses_df
 
@@ -152,7 +153,7 @@ if __name__ == "__main__":
         #del graph
         #storage.upload_file(local_graph_filepath, gcs_graph_filepath)
 
-    local_json_graph_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.gpickle") #CHANGED
-    gcs_json_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.gpickle")
+    local_json_graph_filepath = os.path.join(storage.local_dirpath, "active_edge_graph.json") #CHANGED
+    gcs_json_graph_filepath = os.path.join(storage.gcs_dirpath, "active_edge_graph.json")
     save_graph_as_json(graph, local_json_graph_filepath)
     #storage.upload_file(local_json_graph_filepath, gcs_json_graph_filepath)
