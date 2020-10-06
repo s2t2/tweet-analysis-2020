@@ -69,12 +69,14 @@ if __name__ == "__main__":
     generate_histogram(df, "avg_community_score")
 
     print("--------------------------")
-    print("BINNING MIDDLE VALUES...")
+    print("PRE-PROCESSING...")
     # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
     # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
     df[label_column] = df["avg_community_score"].apply(bin_the_middle)
     df.drop(["avg_community_score", "status_occurrences"], axis="columns", inplace=True)
     generate_histogram(df, label_column)
+    # Need to convert floats to integers or else Logistic Regression will raise ValueError: Unknown label type: 'continuous'
+    df[label_column] = df[label_column].astype(str) # convert to categorical
 
     print("--------------------------")
     print("SPLITTING...")
@@ -97,7 +99,10 @@ if __name__ == "__main__":
     print("VECTORIZING...")
 
     tv = TfidfVectorizer()
+    job = Job()
+    job.start()
     tv.fit(training_text)
+    job.end()
     print("FEATURES / TOKENS:", fmt_n(len(tv.get_feature_names())))
 
     training_matrix = tv.transform(training_text)
@@ -121,10 +126,7 @@ if __name__ == "__main__":
         print(f"{model_name.upper()}...")
         print(model)
         print("TRAINING...")
-        job = Job()
-        job.start()
         model.fit(training_matrix, training_labels)
-        job.end()
 
         print("TRAINING SCORES...")
         training_predictions = model.predict(training_matrix)
