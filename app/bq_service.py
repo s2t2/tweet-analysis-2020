@@ -1221,6 +1221,49 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    def fetch_daily_active_tweeter_statuses_for_model_training(self, date, tweet_min=None, limit=None):
+        sql = f"""
+            WITH daily_tweets AS (
+                SELECT
+                    cast(t.user_id as int64) as user_id
+                    ,UPPER(t.user_screen_name) as screen_name
+                    ,cast(t.status_id as int64) as status_id
+                    ,t.status_text
+                    ,t.created_at
+                FROM `{self.dataset_address}.tweets` t
+                WHERE extract(date from t.created_at) = '{date}'
+            )
+
+            SELECT DISTINCT
+                t.status_id ,t.status_text ,t.created_at
+                ,t.user_id ,t.screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,r.tweet_count as rate
+                ,st.status_count as status_text_occurrence
+            FROM daily_tweets t
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = t.user_id
+            JOIN (
+                SELECT
+                    CAST(user_id as INT64) as user_id
+                    ,count(distinct status_id) as tweet_count
+                FROM daily_tweets t
+                GROUP BY 1
+            ) r ON r.user_id = cast(t.user_id as int64)
+            LEFT JOIN (
+                SELECT
+                    t.status_text
+                    ,count(distinct t.status_id) as status_count
+                FROM daily_tweets t
+                GROUP BY 1
+            ) st ON st.status_text = t.status_text
+        """
+        if tweet_min:
+            sql += f" AND tweet_count >= {int(tweet_min)};"
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
     def fetch_daily_active_user_friends(self, date, tweet_min=None, limit=None):
         sql = f"""
             SELECT dau.user_id, dau.rate, uf.screen_name ,uf.friend_count, uf.friend_names
