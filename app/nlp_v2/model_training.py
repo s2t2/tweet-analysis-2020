@@ -51,32 +51,28 @@ def bin_the_middle(val):
         val = 0.5
     return val
 
-if __name__ == "__main__":
+def generate_histogram(df, column_name):
+    #print("ROWS:", fmt_n(len(df)))
+    #print(df.head())
+    #print("VALUE COUNTS:")
+    print(df[column_name].value_counts())
 
-    # INIT
+
+if __name__ == "__main__":
 
     text_column = "status_text"
     label_column = "community_label"
 
-    # LOAD
-
     print("--------------------------")
-    print("LOADING STATUSES:")
-
+    print("LOADING LABELED DATA...")
     df = load_labeled_status_texts()
-    print(fmt_n(len(df)))
-    print(df.head())
-    print(df["avg_community_score"].value_counts())
-    # generate_histogram(df)
+    generate_histogram(df, "avg_community_score")
 
     print("--------------------------")
-    print("PREPROCESSING...")
-
+    print("BINNING MIDDLE VALUES...")
     df[label_column] = df["avg_community_score"].apply(bin_the_middle)
-    df.drop(["avg_community_score", "status_occurrences"], inplace=True)
-    print(df.head())
-    print(df[label_column].value_counts())
-    # generate_histogram(df)
+    df.drop(["avg_community_score", "status_occurrences"], axis="columns", inplace=True)
+    generate_histogram(df, label_column)
 
     # SPLIT
     #
@@ -85,26 +81,18 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("SPLITTING...")
-
-    train_df, test_df = train_test_split(df, stratify=df[label_column], test_size=0.2, random_state=99)
-
-    print("--------------------------")
-    print("TRAINING DATA...")
-    print(fmt_n(len(train_df)))
-    print(train_df.head())
-    print(train_df[label_column].value_counts())
-    # TODO: generate_histograms(train_df, title="Training Data Labels")
-    # should ideally be around equal for each class!
-
-    training_text = train_df[text_column]
-    training_labels = train_df[label_column]
+    training_df, test_df = train_test_split(df, stratify=df[label_column], test_size=0.2, random_state=99)
 
     print("--------------------------")
-    print("TEST DATA...")
-    print(fmt_n(len(test_df)))
-    print(test_df[label_column].value_counts())
-    # TODO: generate_histograms(test_df, title="Test Labels")
+    print("TRAINING DATA SUMMARY:")
+    print(training_df.head())
+    generate_histogram(training_df, label_column) # should ideally be around equal for each class!
+    training_text = training_df[text_column]
+    training_labels = training_df[label_column]
 
+    print("--------------------------")
+    print("TEST DATA SUMMARY:")
+    generate_histogram(test_df, label_column)
     test_text = test_df[text_column]
     test_labels = test_df[label_column]
 
