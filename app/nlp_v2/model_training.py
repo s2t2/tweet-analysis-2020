@@ -46,30 +46,47 @@ def fetch_labeled_status_texts():
     #print("FETCHED STATUSES:", fmt_n(len(records)))
     #return DataFrame(records)
 
+def bin_the_middle(val):
+    if 0 < val and val < 1:
+        val = 0.5
+    return val
+
 if __name__ == "__main__":
 
     # INIT
 
     text_column = "status_text"
-    label_column = "avg_community_score"
+    label_column = "community_label"
 
     # LOAD
 
+    print("--------------------------")
+    print("LOADING STATUSES:")
+
     df = load_labeled_status_texts()
-    print("LOADED LABELED STATUSES:", fmt_n(len(df)))
+    print(fmt_n(len(df)))
+    print(df.head())
+    print(df["avg_community_score"].value_counts())
+    # generate_histogram(df)
+
+    print("--------------------------")
+    print("PREPROCESSING...")
+
+    df[label_column] = df["avg_community_score"].apply(bin_the_middle)
+    df.drop(["avg_community_score", "status_occurrences"], inplace=True)
     print(df.head())
     print(df[label_column].value_counts())
-    # TODO: generate_histograms(df, title="Data Labels")
+    # generate_histogram(df)
 
     # SPLIT
+    #
+    # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+    # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
+
+    print("--------------------------")
+    print("SPLITTING...")
 
     train_df, test_df = train_test_split(df, stratify=df[label_column], test_size=0.2, random_state=99)
-    print("TEST/TRAIN SPLIT:", fmt_n(len(train_df)), fmt_n(len(test_df))) # consider: THREE-WAY SPLIT (test/train/eval)
-
-
-    # ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
-
-
 
     print("--------------------------")
     print("TRAINING DATA...")
@@ -79,13 +96,14 @@ if __name__ == "__main__":
     # TODO: generate_histograms(train_df, title="Training Data Labels")
     # should ideally be around equal for each class!
 
+    training_text = train_df[text_column]
+    training_labels = train_df[label_column]
+
     print("--------------------------")
     print("TEST DATA...")
     print(fmt_n(len(test_df)))
     print(test_df[label_column].value_counts())
-
-    training_text = train_df[text_column]
-    training_labels = train_df[label_column]
+    # TODO: generate_histograms(test_df, title="Test Labels")
 
     test_text = test_df[text_column]
     test_labels = test_df[label_column]
