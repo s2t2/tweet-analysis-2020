@@ -2,7 +2,15 @@
 
 ## Data Labeling
 
-Use the [existing labeled data](/app/nlp/README.md).
+Follow all the same steps as before, operating on the same tables as before, but also add a step to de-dup the status texts to prevent over-fitting:
+
+```sql
+-- TODO SEE NOTES.md
+```
+
+Then download a copy of that table into this directory as "data/nlp_v2/2_community_labeled_status_texts.csv".
+
+Now you are ready for training.
 
 ## Model Training and Evaluation
 
