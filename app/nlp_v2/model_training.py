@@ -70,14 +70,11 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("BINNING MIDDLE VALUES...")
+    # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+    # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
     df[label_column] = df["avg_community_score"].apply(bin_the_middle)
     df.drop(["avg_community_score", "status_occurrences"], axis="columns", inplace=True)
     generate_histogram(df, label_column)
-
-    # SPLIT
-    #
-    # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
-    # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
 
     print("--------------------------")
     print("SPLITTING...")
@@ -85,18 +82,16 @@ if __name__ == "__main__":
 
     print("--------------------------")
     print("TRAINING DATA SUMMARY:")
-    print(training_df.head())
     generate_histogram(training_df, label_column) # should ideally be around equal for each class!
     training_text = training_df[text_column]
     training_labels = training_df[label_column]
+    print(training_df.head())
 
     print("--------------------------")
     print("TEST DATA SUMMARY:")
     generate_histogram(test_df, label_column)
     test_text = test_df[text_column]
     test_labels = test_df[label_column]
-
-    exit()
 
     print("--------------------------")
     print("VECTORIZING...")
@@ -120,15 +115,16 @@ if __name__ == "__main__":
         "multinomial_nb": MultinomialNB()
     }
 
-    #for model_name, model in models.values(): # TypeError: cannot unpack non-iterable LogisticRegression object
     for model_name in models.keys():
         model = models[model_name]
         print("--------------------------")
         print(f"{model_name.upper()}...")
         print(model)
-
         print("TRAINING...")
+        job = Job()
+        job.start()
         model.fit(training_matrix, training_labels)
+        job.end()
 
         print("TRAINING SCORES...")
         training_predictions = model.predict(training_matrix)
@@ -142,17 +138,18 @@ if __name__ == "__main__":
         print("ACCY:", test_scores["accuracy"])
         pprint(test_scores)
 
-        print("SAVING MODEL FILES...")
-        model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
-        storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")
-        storage.save_vectorizer(tv)
-        storage.save_model(model)
-        storage.save_scores({
-            "model_name": model_name,
-            "model_id": model_id,
-            "features": len(tv.get_feature_names()),
-            "training_matrix": training_matrix.shape,
-            "test_matrix": test_matrix.shape,
-            "training_scores": training_scores,
-            "test_scores": test_scores
-        })
+
+        #print("SAVING MODEL FILES...")
+        #model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
+        #storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")
+        #storage.save_vectorizer(tv)
+        #storage.save_model(model)
+        #storage.save_scores({
+        #    "model_name": model_name,
+        #    "model_id": model_id,
+        #    "features": len(tv.get_feature_names()),
+        #    "training_matrix": training_matrix.shape,
+        #    "test_matrix": test_matrix.shape,
+        #    "training_scores": training_scores,
+        #    "test_scores": test_scores
+        #})
