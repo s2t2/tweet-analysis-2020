@@ -48,31 +48,47 @@ def fetch_labeled_status_texts():
 
 if __name__ == "__main__":
 
+    # INIT
+
+    text_column = "status_text"
+    label_column = "avg_community_score"
+
+    # LOAD
+
     df = load_labeled_status_texts()
     print("LOADED LABELED STATUSES:", fmt_n(len(df)))
     print(df.head())
-    print(df.avg_community_score.value_counts())
+    print(df[label_column].value_counts())
+    # TODO: generate_histograms(df, title="Data Labels")
 
-    breakpoint()
+    # SPLIT
 
-
-    train_df, test_df = train_test_split(df, stratify=df["community_id"], test_size=0.2, random_state=99)
+    train_df, test_df = train_test_split(df, stratify=df[label_column], test_size=0.2, random_state=99)
     print("TEST/TRAIN SPLIT:", fmt_n(len(train_df)), fmt_n(len(test_df))) # consider: THREE-WAY SPLIT (test/train/eval)
+
+
+    # ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+
+
 
     print("--------------------------")
     print("TRAINING DATA...")
     print(fmt_n(len(train_df)))
     print(train_df.head())
-    print(train_df["community_id"].value_counts()) # should ideally be around equal for each class!
-    training_text = train_df["status_text"]
-    training_labels = train_df["community_id"]
+    print(train_df[label_column].value_counts())
+    # TODO: generate_histograms(train_df, title="Training Data Labels")
+    # should ideally be around equal for each class!
 
     print("--------------------------")
-    print("TESTING DATA...")
+    print("TEST DATA...")
     print(fmt_n(len(test_df)))
-    print(test_df["community_id"].value_counts())
-    test_text = test_df["status_text"]
-    test_labels = test_df["community_id"]
+    print(test_df[label_column].value_counts())
+
+    training_text = train_df[text_column]
+    training_labels = train_df[label_column]
+
+    test_text = test_df[text_column]
+    test_labels = test_df[label_column]
 
     exit()
 
