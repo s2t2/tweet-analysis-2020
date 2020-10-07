@@ -13,7 +13,7 @@ Production API URL: https://impeachment-tweet-analysis-api.herokuapp.com/
   + `GET /api/v1/user_tweets/<screen_name>`
   + `GET /api/v1/user_tweets/berniesanders`
 
-Returns list of tweet objects:
+Returns list of tweet objects, with opinion scores for each:
 
 ```json
 [
@@ -63,3 +63,10 @@ Returns list of tweet objects:
   }
 ]
 ```
+
+
+> NOTES:
+>
+>   + "prediction_" attributes will be either "D" or "R"
+>   + "score_" attributes will be either 0 or 1. average these on the client side to get the mean opinion score for that user!
+>   + bert-related info not yet available but will show up when it is available
