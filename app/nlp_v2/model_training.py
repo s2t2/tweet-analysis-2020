@@ -147,6 +147,7 @@ class Trainer:
         print("FEATURE MATRIX (TEST):", type(self.matrix_test), self.matrix_test.shape)
 
     def train_and_score_models(self, models=None):
+        job_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
         models = models or {
             "logistic_regression": LogisticRegression(random_state=99),
             "multinomial_nb": MultinomialNB()
@@ -173,13 +174,12 @@ class Trainer:
             pprint(scores_test)
 
             print("SAVING ...")
-            model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
-            storage = ModelStorage(dirpath=f"nlp_v2/models/{model_id}/{model_name}")
+            storage = ModelStorage(dirpath=f"nlp_v2/models/{job_id}/{model_name}")
             storage.save_vectorizer(self.tv)
             storage.save_model(model)
             storage.save_scores({
                 "model_name": model_name,
-                "model_id": model_id,
+                "job_id": job_id,
                 "features": len(self.tv.get_feature_names()),
                 "label_maker": self.label_maker.__name__,
                 "matrix_train": self.matrix_train.shape,
