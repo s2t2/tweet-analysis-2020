@@ -1,5 +1,7 @@
 import os
 
+from pandas import DataFrame, read_csv
+
 from app import seek_confirmation, DATA_DIR
 from app.job import Job
 from app.bq_service import BigQueryService
@@ -9,6 +11,7 @@ LIMIT = os.getenv("LIMIT")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
 
 CSV_FILEPATH = os.path.join(DATA_DIR, "nlp_v2", "all_statuses.csv")
+DESTRUCTIVE = (os.getenv("DESTRUCTIVE", default="false") == "true") # whether or not to re-download if a local file already exists
 
 def save_batch(batch, csv_filepath=CSV_FILEPATH):
     batch_df = DataFrame(batch, columns=["status_id", "status_text"])
@@ -23,11 +26,11 @@ if __name__ == "__main__":
     bq_service = BigQueryService()
     job = Job()
 
-    if not os.path.isfile(CSV_FILEPATH):
+    if DESTRUCTIVE or not os.path.isfile(CSV_FILEPATH):
         job.start()
         batch = []
         for row in bq_service.nlp_v2_fetch_statuses(limit=LIMIT):
-            batch.append({"status_id": row["status_id"], "status_text": row["status_text"]]})
+            batch.append({"status_id": row["status_id"], "status_text": row["status_text"]})
 
             job.counter += 1
             if job.counter % BATCH_SIZE == 0:
@@ -41,6 +44,7 @@ if __name__ == "__main__":
         job.end()
 
     seek_confirmation()
+    #exit()
 
     for model_name in ["logistic_regression", "multinomial_nb"]:
 
@@ -55,7 +59,7 @@ if __name__ == "__main__":
 
         job.start()
 
-        for chunk_df in read_csv(CSV_FILEPATH, chunksize=BATCH_SIZE):
+        for chunk_df in read_csv(CSV_FILEPATH, chunksize=BATCH_SIZE): # FYI: this will include the last chunk even if it is not a full batch
             status_ids = chunk_df["status_id"].tolist()
             status_texts = chunk_df["status_text"].tolist()
 
@@ -67,8 +71,5 @@ if __name__ == "__main__":
             job.counter += len(chunk_df)
             job.progress_report()
             batch = []
-
-        if len(chunk_df) > 0:
-            breakpoint()
 
         job.end()
