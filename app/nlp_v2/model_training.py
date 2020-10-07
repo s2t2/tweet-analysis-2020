@@ -14,144 +14,190 @@ from sklearn.naive_bayes import MultinomialNB
 #from sklearn.pipeline import Pipeline
 #from sklearn.model_selection import GridSearchCV
 
+import matplotlib.pyplot as plt
+
 from app import APP_ENV, DATA_DIR, seek_confirmation
-from app.job import Job
+#from app.job import Job
 from app.decorators.number_decorators import fmt_n
-from app.bq_service import BigQueryService
-from app.nlp.model_storage import ModelStorage, MODELS_DIRPATH
+#from app.bq_service import BigQueryService
+from app.nlp.model_storage import ModelStorage
 
-LIMIT = os.getenv("LIMIT") # just used to get smaller datasets for development purposes
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100000"))
+NLP_DIR = os.path.join(DATA_DIR, "nlp_v2")
+MODELS_DIRPATH = os.path.join(NLP_DIR, "models")
 
-def load_labeled_status_texts():
-    filepath = os.path.join(DATA_DIR, "nlp_v2", "2_community_labeled_status_texts.csv")
-    if os.path.isfile(filepath):
-        return read_csv(filepath)
+def squish_the_middle(score):
+    if 0 < score and score < 1:
+        score = 0.5
+    return score
+
+def vanity_labels(score):
+    if score < 0.3:
+        label = "D"
+    elif score > 0.7:
+        label = "R"
     else:
-        return fetch_tweets()
+        label = "U"
+    return label
 
-def fetch_labeled_status_texts():
-    print("FETCHING LABELED STATUSES FOR TRAINING")
-    #bq_service = BigQueryService()
-    #print("LIMIT:", LIMIT)
-    #job = Job()
-    #records = []
-    #job.start()
-    #for row in bq_service.fetch_labeled_status_texts(limit=LIMIT):
-    #    records.append(dict(row))
-    #    job.counter+=1
-    #    if job.counter % BATCH_SIZE == 0:
-    #        job.progress_report()
-    #job.end()
-    #print("FETCHED STATUSES:", fmt_n(len(records)))
-    #return DataFrame(records)
-
-def bin_the_middle(val):
-    if 0 < val and val < 1:
-        val = 0.5
-    return val
-
-def generate_histogram(df, column_name):
+def generate_histogram(df, label_column, img_filepath=None, show_img=None, title="Data Labels"):
     #print("ROWS:", fmt_n(len(df)))
     #print(df.head())
     #print("VALUE COUNTS:")
-    print(df[column_name].value_counts())
+    print(df[label_column].value_counts())
+
+    labels = df[label_column]
+
+    plt.grid()
+    plt.title(title)
+    plt.hist(labels, color="grey")
+    plt.xlabel("Label")
+    plt.ylabel("Frequency")
+
+    if img_filepath:
+        plt.savefig(img_filepath)
+
+    show_img = show_img or (APP_ENV == "development")
+    if show_img:
+        plt.show()
+
+    plt.clf()  # clear the figure, to prevent topic text overlapping from previous plots
+
+class Trainer:
+    def __init__(self):
+        self.text_column = "status_text"
+
+        self.raw_label_column = "avg_community_score"
+        self.label_maker = vanity_labels # squish_the_middle
+        self.label_column = "community_label"
+
+        self.df = None
+
+        self.df_train = None
+        self.df_test = None
+
+        self.x_train = None
+        self.y_train = None
+        self.x_test = None
+        self.y_test = None
+
+        self.tv = None
+        self.matrix_train = None
+        self.matrix_test = None
+
+    def load_data(self):
+        print("--------------------------")
+        print("LOADING LABELED DATA...")
+        self.df = read_csv(os.path.join(NLP_DIR, "2_community_labeled_status_texts.csv"))
+        generate_histogram(self.df, self.raw_label_column, title="Raw Data Labels", img_filepath=os.path.join(NLP_DIR, "raw_histogram.png"))
+
+        df_middle = self.df[(self.df[self.raw_label_column] > 0) & (self.df[self.raw_label_column] < 1)]
+        generate_histogram(df_middle, self.raw_label_column, title="Raw Data Labels (Excluding 0 and 1)", img_filepath=os.path.join(NLP_DIR, "raw_histogram_middle.png"))
+
+        #def process_data(self):
+        print("--------------------------")
+        print("PRE-PROCESSING...")
+
+        # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
+        # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
+        self.df[self.label_column] = self.df[self.raw_label_column].apply(self.label_maker)
+
+        # Need to convert floats to integers or else Logistic Regression will raise ValueError: Unknown label type: 'continuous'
+        self.df[self.label_column] = self.df[self.label_column].astype(str) # convert to categorical
+
+        generate_histogram(self.df, self.label_column, title="Training Data", img_filepath=os.path.join(NLP_DIR, "training_data_histogram.png"))
+
+    def split_data(self):
+        print("--------------------------")
+        print("SPLITTING...")
+        self.df_train, self.df_test = train_test_split(self.df, stratify=self.df[self.label_column], test_size=0.2, random_state=99)
+
+        print("--------------------------")
+        print("TRAIN:")
+        print(self.df_train.head())
+        generate_histogram(self.df_train, self.label_column) # should ideally be around equal for each class!
+
+        self.x_train = self.df_train[self.text_column]
+        self.y_train = self.df_train[self.label_column]
+
+        #print("--------------------------")
+        #print("TEST:")
+        #generate_histogram(self.df_test, self.label_column) # should have same dist
+
+        self.x_test = self.df_test[self.text_column]
+        self.y_test = self.df_test[self.label_column]
+
+    def vectorize(self):
+        print("--------------------------")
+        print("VECTORIZING...")
+
+        self.tv = TfidfVectorizer()
+        self.tv.fit(self.x_train)
+        print("FEATURES / TOKENS:", fmt_n(len(self.tv.get_feature_names())))
+
+        self.matrix_train = self.tv.transform(self.x_train)
+        print("FEATURE MATRIX (TRAIN):", type(self.matrix_train), self.matrix_train.shape)
+
+        self.matrix_test = self.tv.transform(self.x_test)
+        print("FEATURE MATRIX (TEST):", type(self.matrix_test), self.matrix_test.shape)
+
+
+    def train_and_score_models(self, models=None):
+        models = models or {
+            "logistic_regression": LogisticRegression(random_state=99),
+            "multinomial_nb": MultinomialNB()
+        }
+        for model_name in models.keys():
+            print("--------------------------")
+            print("MODEL:")
+            model = models[model_name]
+            print(model)
+
+            print("TRAINING...")
+            model.fit(self.matrix_train, self.y_train)
+
+            print("TRAINING SCORES:")
+            y_pred_train = model.predict(self.matrix_train)
+            scores_train = classification_report(self.y_train, y_pred_train, output_dict=True)
+            print("ACCY:", scores_train["accuracy"])
+            pprint(scores_train)
+
+            print("TEST SCORES:")
+            y_pred_test = model.predict(self.matrix_test)
+            scores_test = classification_report(self.y_test, y_pred_test, output_dict=True)
+            print("ACCY:", scores_test["accuracy"])
+            pprint(scores_test)
+
+            print("SAVING ...")
+            model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
+            storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_id}/{model_name}")
+            storage.save_vectorizer(self.tv)
+            storage.save_model(model)
+            storage.save_scores({
+                "model_name": model_name,
+                "model_id": model_id,
+                "features": len(self.tv.get_feature_names()),
+                "label_maker": self.label_maker.__name__,
+                "matrix_train": self.matrix_train.shape,
+                "matrix_test": self.matrix_test.shape,
+                "scores_train": self.scores_train,
+                "scores_test": self.scores_test
+            })
+
+
+
 
 
 if __name__ == "__main__":
 
-    text_column = "status_text"
-    label_column = "community_label"
-
-    print("--------------------------")
-    print("LOADING LABELED DATA...")
-    df = load_labeled_status_texts()
-    generate_histogram(df, "avg_community_score")
-
-    print("--------------------------")
-    print("PRE-PROCESSING...")
-    # If you leave some of the 1 count labels in, when you try to stratify, you'll get ValueError: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.
-    # So let's take all the statuses with a score in-between 0 and 1, and give them a label of 0.5 (not sure)
-    df[label_column] = df["avg_community_score"].apply(bin_the_middle)
-    df.drop(["avg_community_score", "status_occurrences"], axis="columns", inplace=True)
-    generate_histogram(df, label_column)
-    # Need to convert floats to integers or else Logistic Regression will raise ValueError: Unknown label type: 'continuous'
-    df[label_column] = df[label_column].astype(str) # convert to categorical
-
-    print("--------------------------")
-    print("SPLITTING...")
-    training_df, test_df = train_test_split(df, stratify=df[label_column], test_size=0.2, random_state=99)
-
-    print("--------------------------")
-    print("TRAINING DATA SUMMARY:")
-    generate_histogram(training_df, label_column) # should ideally be around equal for each class!
-    training_text = training_df[text_column]
-    training_labels = training_df[label_column]
-    print(training_df.head())
-
-    print("--------------------------")
-    print("TEST DATA SUMMARY:")
-    generate_histogram(test_df, label_column)
-    test_text = test_df[text_column]
-    test_labels = test_df[label_column]
-
-    print("--------------------------")
-    print("VECTORIZING...")
-
-    tv = TfidfVectorizer()
-    job = Job()
-    job.start()
-    tv.fit(training_text)
-    job.end()
-    print("FEATURES / TOKENS:", fmt_n(len(tv.get_feature_names())))
-
-    training_matrix = tv.transform(training_text)
-    print("FEATURE MATRIX (TRAIN):", type(training_matrix), training_matrix.shape)
-
-    test_matrix = tv.transform(test_text)
-    print("FEATURE MATRIX (TEST):", type(test_matrix), test_matrix.shape)
-
-    #
-    # MODELS (CUSTOM PIPELINE)
-    #
-
-    models = {
-        "logistic_regression": LogisticRegression(random_state=99),
-        "multinomial_nb": MultinomialNB()
-    }
-
-    for model_name in models.keys():
-        model = models[model_name]
-        print("--------------------------")
-        print(f"{model_name.upper()}...")
-        print(model)
-        print("TRAINING...")
-        model.fit(training_matrix, training_labels)
-
-        print("TRAINING SCORES...")
-        training_predictions = model.predict(training_matrix)
-        training_scores = classification_report(training_labels, training_predictions, output_dict=True)
-        print("ACCY:", training_scores["accuracy"])
-        pprint(training_scores)
-
-        print("TEST SCORES...")
-        test_predictions = model.predict(test_matrix)
-        test_scores = classification_report(test_labels, test_predictions, output_dict=True)
-        print("ACCY:", test_scores["accuracy"])
-        pprint(test_scores)
 
 
-        #print("SAVING MODEL FILES...")
-        #model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
-        #storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_name}/{model_id}")
-        #storage.save_vectorizer(tv)
-        #storage.save_model(model)
-        #storage.save_scores({
-        #    "model_name": model_name,
-        #    "model_id": model_id,
-        #    "features": len(tv.get_feature_names()),
-        #    "training_matrix": training_matrix.shape,
-        #    "test_matrix": test_matrix.shape,
-        #    "training_scores": training_scores,
-        #    "test_scores": test_scores
-        #})
+    trainer = Trainer()
+
+    trainer.load_data()
+    trainer.df.drop(["avg_community_score", "status_occurrences"], axis="columns", inplace=True) # just make the df smaller
+
+    trainer.split_data()
+
+    trainer.vectorize()
+
+    trainer.train_and_score_models()
