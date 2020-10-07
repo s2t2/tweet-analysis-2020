@@ -27,18 +27,20 @@ Now you are ready for training.
 
 ## Model Training and Evaluation
 
-Train some models on the labeled training data:
+Train some models on the labeled training data, and save them:
 
 ```py
-python -m app.nlp_v2.model_training
+APP_ENV="prodlike" python -m app.nlp_v2.model_training
 ```
 
 ## Model Predictions
 
-Promote a given model to use for classifications:
+Promote a given model to use for classification:
 
 ```sh
-MODEL_DIRPATH="tweet_classifier/models/logistic_regression/2020-09-09-1719" python -m app.nlp.model_promotion python -m app.nlp_v2.model_promotion
+SOURCE="nlp_v2/models/2020-10-07-0220/logistic_regression" DESTINATION="nlp_v2/models/best/logistic_regression" python -m app.nlp_v2.model_promotion
+
+SOURCE="nlp_v2/models/2020-10-07-0222/multinomial_nb" DESTINATION="nlp_v2/models/best/multinomial_nb" python -m app.nlp_v2.model_promotion
 ```
 
 And use the trained model to make ad-hoc predictions:
