@@ -77,7 +77,7 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_combined as (
 ```
 
 
-Also a user aggregated table:
+Also user aggregated table(s):
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.nlp_v2_predictions_by_user;
@@ -97,6 +97,28 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_by_user as (
   GROUP BY 1,2,3
   ORDER BY 5 DESC
   -- LIMIT 200
+)
+```
+
+Top 100,000 users most followed:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.nlp_v2_predictions_by_user_most_followed;
+CREATE TABLE impeachment_production.nlp_v2_predictions_by_user_most_followed as (
+  SELECT
+    user_id
+    ,screen_name
+    ,user_created_at
+    ,status_count
+    ,follower_count
+
+    ,avg_score_lr
+    ,avg_score_nb
+
+  FROM nlp_v2_predictions_by_user
+  WHERE status_count >= 3
+  ORDER BY follower_count DESC
+  LIMIT 1000
 )
 ```
 
