@@ -40,6 +40,17 @@ Returns list of tweet objects, with opinion scores for each:
     "status_text":"What did Trump learn from the impeachment trial? He learned he can get away with corruption, with continuing to lie, with considering himself above the law. https://t.co/nbGh45lneg"
   },
   {
+    "created_at":"Sat, 25 Jan 2020 21:37:57 GMT",
+    "prediction_bert":null,
+    "prediction_lr":"R",
+    "prediction_nb":"D",
+    "score_bert":null,
+    "score_lr":1,
+    "score_nb":0,
+    "status_id":"1221185462993330183",
+    "status_text":"RT @BNeidhardt: UPDATE: @BernieSanders is joining @AOC &amp; @MMFlint at tonight's rallly in Marshalltown https://t.co/NQIBxlcVeJ"
+  },
+  {
     "created_at":"Fri, 24 Jan 2020 22:38:19 GMT",
     "prediction_bert":null,
     "prediction_lr":"D",
@@ -69,4 +80,6 @@ Returns list of tweet objects, with opinion scores for each:
 >
 >   + "prediction_" attributes will be either "D" or "R"
 >   + "score_" attributes will be either 0 or 1. average these on the client side to get the mean opinion score for that user!
->   + bert-related info not yet available but will show up when it is available
+>   + "_lr" attributes refer to the best Logistic Regression Model (id: `2020-10-07-0220`)
+>   + "_lr" attributes refer to the best Multinomial Naive Bayes Model (id: `2020-10-07-0222`)
+>   + "_bert" attributes refer to the best BERT Transformer Model (not yet available but will show up when it is available)
