@@ -123,3 +123,57 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_by_user_most_followed as 
 ```
 
 Then connect to this table from Tableau and check out the distributions and the average scores for each user.
+
+What about distribution of mean score for all users?
+
+```sql
+CREATE TABLE impeachment_production.nlp_v2_user_scores_binned_lr as (
+  SELECT
+    avg_lr_bin
+    ,count(distinct user_id) as user_count
+  FROM (
+    SELECT
+      t.user_id
+      ,upper(t.user_screen_name) as screen_name
+      ,count(distinct t.status_id) as status_count
+
+      ,avg(score_lr) as avg_lr
+      ,avg(score_nb) as avg_nb
+      ,round(avg(score_lr) * 100) / 100 as avg_lr_bin
+      ,round(avg(score_nb) * 100) / 100 as avg_nb_bin
+
+    FROM impeachment_production.nlp_v2_predictions_combined p
+    JOIN impeachment_production.tweets t ON cast(t.status_id as int64) = cast(p.status_id as int64)
+    -- WHERE screen_name = 'POLITICO'
+    GROUP BY 1,2
+    -- LIMIT 100
+  )
+  GROUP BY 1
+)
+
+
+CREATE TABLE impeachment_production.nlp_v2_user_scores_binned_nb as (
+  SELECT
+    avg_nb_bin
+    ,count(distinct user_id) as user_count
+  FROM (
+    SELECT
+      t.user_id
+      ,upper(t.user_screen_name) as screen_name
+      ,count(distinct t.status_id) as status_count
+
+      ,avg(score_lr) as avg_lr
+      ,avg(score_nb) as avg_nb
+      ,round(avg(score_lr) * 100) / 100 as avg_lr_bin
+      ,round(avg(score_nb) * 100) / 100 as avg_nb_bin
+
+    FROM impeachment_production.nlp_v2_predictions_combined p
+    JOIN impeachment_production.tweets t ON cast(t.status_id as int64) = cast(p.status_id as int64)
+    -- WHERE screen_name = 'POLITICO'
+    GROUP BY 1,2
+    -- LIMIT 100
+  )
+  GROUP BY 1
+)
+
+```
