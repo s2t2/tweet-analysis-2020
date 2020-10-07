@@ -20,3 +20,31 @@ CREATE TABLE impeachment_production.2_community_labeled_status_texts as (
   -- ORDER BY 2 DESC
 ) -- 2,771,905 tweets
 ```
+
+## Predictions
+
+Check the uploaded predictions and make a backup in case we accidentally overwrite them in the future:
+
+```sql
+/*
+SELECT status_id, prediction
+FROM impeachment_production.nlp_v2_predictions_logistic_regression lr
+LIMIT 10
+*/
+
+/*
+SELECT count(distinct status_id) as status_count
+--FROM impeachment_production.nlp_v2_predictions_logistic_regression lr -- 67,636,557
+-- FROM impeachment_production.nlp_v2_predictions_multinomial_nb nb -- 67,666,557
+*/
+
+CREATE TABLE impeachment_production.nlp_v2_predictions_logistic_regression_backup as (
+  SELECT status_id, prediction
+  FROM impeachment_production.nlp_v2_predictions_logistic_regression
+)
+
+CREATE TABLE impeachment_production.nlp_v2_predictions_multinomial_nb_backup as (
+  SELECT status_id, prediction
+  FROM impeachment_production.nlp_v2_predictions_multinomial_nb
+)
+```
