@@ -23,14 +23,13 @@ from app.decorators.number_decorators import fmt_n
 from app.nlp.model_storage import ModelStorage
 
 NLP_DIR = os.path.join(DATA_DIR, "nlp_v2")
-MODELS_DIRPATH = os.path.join(NLP_DIR, "models")
 
-def squish_the_middle(score):
+def three_community_labels(score):
     if 0 < score and score < 1:
         score = 0.5
     return score
 
-def vanity_labels(score):
+def three_community_labels_v2(score):
     if score < 0.3:
         label = "D"
     elif score > 0.7:
@@ -39,7 +38,14 @@ def vanity_labels(score):
         label = "U"
     return label
 
-def generate_histogram(df, label_column, img_filepath=None, show_img=None, title="Data Labels"):
+def two_community_party_labels(score):
+    if score <= 0.5:
+        label = "D"
+    else:
+        label = "R"
+    return label
+
+def generate_histogram(df, label_column, img_filepath=None, show_img=False, title="Data Labels"):
     #print("ROWS:", fmt_n(len(df)))
     #print(df.head())
     #print("VALUE COUNTS:")
@@ -56,7 +62,7 @@ def generate_histogram(df, label_column, img_filepath=None, show_img=None, title
     if img_filepath:
         plt.savefig(img_filepath)
 
-    show_img = show_img or (APP_ENV == "development")
+    #show_img = show_img or (APP_ENV == "development")
     if show_img:
         plt.show()
 
@@ -67,7 +73,7 @@ class Trainer:
         self.text_column = "status_text"
 
         self.raw_label_column = "avg_community_score"
-        self.label_maker = vanity_labels # squish_the_middle
+        self.label_maker = two_community_party_labels #vanity_labels # squish_the_middle
         self.label_column = "community_label"
 
         self.df = None
@@ -102,7 +108,7 @@ class Trainer:
         self.df[self.label_column] = self.df[self.raw_label_column].apply(self.label_maker)
 
         # Need to convert floats to integers or else Logistic Regression will raise ValueError: Unknown label type: 'continuous'
-        self.df[self.label_column] = self.df[self.label_column].astype(str) # convert to categorical
+        #self.df[self.label_column] = self.df[self.label_column].astype(str) # convert to categorical
 
         generate_histogram(self.df, self.label_column, title="Training Data", img_filepath=os.path.join(NLP_DIR, "training_data_histogram.png"))
 
@@ -140,7 +146,6 @@ class Trainer:
         self.matrix_test = self.tv.transform(self.x_test)
         print("FEATURE MATRIX (TEST):", type(self.matrix_test), self.matrix_test.shape)
 
-
     def train_and_score_models(self, models=None):
         models = models or {
             "logistic_regression": LogisticRegression(random_state=99),
@@ -169,7 +174,7 @@ class Trainer:
 
             print("SAVING ...")
             model_id = ("dev" if APP_ENV == "development" else datetime.now().strftime("%Y-%m-%d-%H%M")) # overwrite same model in development
-            storage = ModelStorage(dirpath=f"{MODELS_DIRPATH}/{model_id}/{model_name}")
+            storage = ModelStorage(dirpath=f"nlp_v2/models/{model_id}/{model_name}")
             storage.save_vectorizer(self.tv)
             storage.save_model(model)
             storage.save_scores({
@@ -179,8 +184,8 @@ class Trainer:
                 "label_maker": self.label_maker.__name__,
                 "matrix_train": self.matrix_train.shape,
                 "matrix_test": self.matrix_test.shape,
-                "scores_train": self.scores_train,
-                "scores_test": self.scores_test
+                "scores_train": scores_train,
+                "scores_test": scores_test
             })
 
 
