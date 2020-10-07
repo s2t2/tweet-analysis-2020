@@ -1396,6 +1396,27 @@ class BigQueryService():
         job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
         return self.client.query(sql, job_config=job_config)
 
+    #
+    # API - V1
+    # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
+
+    def fetch_user_tweets_api_v1(self, screen_name="politico"):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,created_at
+                ,prediction_lr
+                ,prediction_nb
+                ,prediction_bert
+                ,score_lr
+                ,score_nb
+                ,score_bert
+            FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
+            WHERE upper(screen_name) = upper(@screen_name)
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("screen_name", "STRING", screen_name)])
+        return self.client.query(sql, job_config=job_config)
 
 
 if __name__ == "__main__":
