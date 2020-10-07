@@ -52,5 +52,5 @@ python -m app.nlp_v2.client
 Or to score all the unseen tweets:
 
 ```sh
-APP_ENV="prodlike" python -m app.nlp_v2.bulk_predict
+APP_ENV="prodlike" LIMIT=10000 BATCH_SIZE=900 python -m app.nlp_v2.bulk_predict
 ```
