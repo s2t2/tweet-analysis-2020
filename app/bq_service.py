@@ -123,6 +123,9 @@ class BigQueryService():
             print("  ", old_temp_table.table_id)
             self.client.delete_table(old_temp_table)
 
+    #def get_table(self, table_name):
+    #    return self.client.get_table(f"{self.dataset_address}.{table_name}") # API call. cache it here once.
+
     #
     # COLLECTING TWEETS V2
     #
@@ -1169,6 +1172,37 @@ class BigQueryService():
             return self.execute_query_in_batches(sql)
 
     #
+    # NLP V2
+    #
+
+    def nlp_v2_fetch_statuses(self, limit=None):
+        sql = f"""
+            SELECT s.status_id, s.status_text
+            FROM `{self.dataset_address}.statuses` s
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def nlp_v2_destructively_migrate_predictions_table(self, model_name):
+        sql = f"""
+            DROP TABLE IF EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}`;
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}` (
+                status_id INT64,
+                prediction STRING
+            );
+        """
+        return self.execute_query(sql)
+
+    def nlp_v2_get_predictions_table(self, model_name):
+        return self.client.get_table(f"{self.dataset_address}.nlp_v2_predictions_{model_name}") # API call.
+
+
+
+
+
+
+    #
     # API - V0
     # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
 
@@ -1362,6 +1396,27 @@ class BigQueryService():
         job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
         return self.client.query(sql, job_config=job_config)
 
+    #
+    # API - V1
+    # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
+
+    def fetch_user_tweets_api_v1(self, screen_name="politico"):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_text
+                ,created_at
+                ,prediction_lr
+                ,prediction_nb
+                ,prediction_bert
+                ,score_lr
+                ,score_nb
+                ,score_bert
+            FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
+            WHERE upper(screen_name) = upper(@screen_name)
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("screen_name", "STRING", screen_name)])
+        return self.client.query(sql, job_config=job_config)
 
 
 if __name__ == "__main__":

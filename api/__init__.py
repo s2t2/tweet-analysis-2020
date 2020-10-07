@@ -5,6 +5,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from api.routes.v0_routes import api_routes as api_v0_routes
+from api.routes.v1_routes import api_routes as api_v1_routes
 
 from app.bq_service import BigQueryService
 
@@ -21,6 +22,7 @@ def create_app():
     #app.config.from_mapping(SECRET_KEY=SECRET_KEY, BQ_SERVICE=BigQueryService())
 
     app.register_blueprint(api_v0_routes)
+    app.register_blueprint(api_v1_routes)
 
     return app
 
