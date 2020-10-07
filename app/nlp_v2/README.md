@@ -2,7 +2,7 @@
 
 ## Data Labeling
 
-Follow all the same steps as before, operating on the same tables as before, but also add a step to de-dup the status texts to prevent over-fitting:
+Follow all the [same data labeling and migration steps as before](/app/nlp/README.md), operating on the same tables as before, but also add a step to de-dup the status texts to prevent over-fitting:
 
 Since the same status text can be retweeted by many users and the resulting retweet text will be the same,
  we need to remove duplicate statuses from the training data, to prevent model over-fitting.
@@ -52,5 +52,5 @@ python -m app.nlp_v2.client
 Or to score all the unseen tweets:
 
 ```sh
-APP_ENV="prodlike" LIMIT=10000 BATCH_SIZE=900 python -m app.nlp_v2.bulk_predict
+APP_ENV="prodlike" LIMIT=10000 BATCH_SIZE=900 python -m app.nlp_v2.bulk_predict_better
 ```
