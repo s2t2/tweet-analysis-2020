@@ -48,3 +48,56 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_multinomial_nb_backup as 
   FROM impeachment_production.nlp_v2_predictions_multinomial_nb
 )
 ```
+
+## Analysis
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.nlp_v2_predictions_combined;
+CREATE TABLE impeachment_production.nlp_v2_predictions_combined as (
+  SELECT DISTINCT
+    cast(t.user_id as int64) as user_id
+    ,upper(t.user_screen_name) as screen_name
+    ,t.user_created_at
+
+    ,t.status_id
+    ,t.created_at
+    ,t.status_text
+    ,lr.prediction as prediction_lr
+    ,nb.prediction as prediction_nb
+    ,NULL as prediction_bert
+
+    ,case when lr.prediction = "D" then 0 when lr.prediction = "R" then 1 end score_lr
+    ,case when nb.prediction = "D" then 0 when nb.prediction = "R" then 1 end score_nb
+    ,NULL as score_bert
+
+  FROM impeachment_production.tweets t
+  LEFT JOIN impeachment_production.nlp_v2_predictions_logistic_regression lr ON lr.status_id = cast(t.status_id as int64)
+  LEFT JOIN impeachment_production.nlp_v2_predictions_multinomial_nb nb ON nb.status_id = cast(t.status_id as int64)
+)
+```
+
+
+Also a user aggregated table:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.nlp_v2_predictions_by_user;
+CREATE TABLE impeachment_production.nlp_v2_predictions_by_user as (
+  SELECT
+    p.user_id
+    ,p.screen_name
+    ,p.user_created_at
+    ,count(distinct p.status_id) as status_count
+    ,max(sn.follower_id_count) as follower_count
+
+    ,avg(p.score_lr) avg_score_lr
+    ,avg(p.score_nb) avg_score_nb
+
+  FROM impeachment_production.nlp_v2_predictions_combined p
+  LEFT JOIN impeachment_production.user_screen_names_most_followed sn ON upper(p.screen_name) = upper(sn.user_screen_name)
+  GROUP BY 1,2,3
+  ORDER BY 5 DESC
+  -- LIMIT 200
+)
+```
+
+Then connect to this table from Tableau and check out the distributions and the average scores for each user.
