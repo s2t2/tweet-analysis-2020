@@ -1374,7 +1374,7 @@ class BigQueryService():
         sql = f"""
             WITH daily_tweets as (
                 SELECT user_id ,screen_name ,status_id ,status_text ,created_at ,score_lr ,score_nb
-                FROM {self.dataset_address}.nlp_v2_predictions_combined p
+                FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
                 WHERE extract(date from created_at) = '{date}'
                     AND score_lr is not null and score_nb is not null -- there are 30,000 total null lr scores. drop for now
             )
@@ -1402,15 +1402,42 @@ class BigQueryService():
                 FROM daily_tweets
                 GROUP BY 1
             ) st ON st.status_text = t.status_text
-            LEFT JOIN {self.dataset_address}.2_bot_communities bu ON bu.user_id = t.user_id
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = t.user_id
         """
         if limit:
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    def fetch_daily_nodes_with_active_edges(self, date, limit=None):
+        sql = f"""
+            WITH dau AS (
+                SELECT
+                    user_id
+                    ,screen_name
+                    ,count(distinct status_id) as rate
+                FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
+                WHERE extract(date from created_at) = '{date}'
+                    AND score_lr is not null and score_nb is not null -- there are 30,000 total null lr scores. drop for now
+                GROUP BY 1,2
+            )
 
-
-
+            SELECT
+                dau.user_id
+                ,dau.screen_name
+                ,dau.rate
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM dau
+            JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = dau.user_id
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = dau.user_id
+            WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+            GROUP BY 1,2,3,4,5
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
 
 
 

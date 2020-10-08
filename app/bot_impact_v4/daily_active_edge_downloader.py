@@ -22,9 +22,9 @@ if __name__ == "__main__":
 
     for dr in gen.date_ranges:
         print(dr.start_date)
-        storage = FileStorage(dirpath=f"daily_active_edge_friend_graphs_v4/{dr.start_date}")
+        storage = FileStorage(dirpath=f"daily_active_edge_friend_graphs_v5/{dr.start_date}")
         tweets_csv_filepath = os.path.join(storage.local_dirpath, "tweets.csv")
-        nodes_csv_filepath = os.path.join(storage.local_dirpath, "active_nodes.csv")
+        nodes_csv_filepath = os.path.join(storage.local_dirpath, "nodes.csv")
 
         if os.path.exists(tweets_csv_filepath) and not DESTRUCTIVE:
             print("LOADING TWEETS...")
@@ -44,7 +44,20 @@ if __name__ == "__main__":
             del records
         print("TWEETS:", fmt_n(len(tweets_df)))
 
-
-
-        #if not os.path.isfile(nodes_csv_filepath) and not DESTRUCTIVE:
-        #    print("DOWNLOADING NODES")
+        if os.path.exists(nodes_csv_filepath) and not DESTRUCTIVE:
+            print("LOADING NODES...")
+            nodes_df = read_csv(nodes_csv_filepath)
+        else:
+            job.start()
+            print("DOWNLOADING NODES...")
+            records = []
+            for row in bq_service.fetch_daily_nodes_with_active_edges(date=dr.start_date, limit=LIMIT):
+                records.append(dict(row))
+                job.counter += 1
+                if job.counter % BATCH_SIZE == 0:
+                    job.progress_report()
+            job.end()
+            nodes_df = DataFrame(records)
+            nodes_df.to_csv(nodes_csv_filepath)
+            del records
+        print("NODES:", fmt_n(len(nodes_df)))
