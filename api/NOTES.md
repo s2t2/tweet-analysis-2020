@@ -39,7 +39,7 @@ Community-specific retweet tables:
 ```sql
 DROP TABLE IF EXISTS impeachment_production.community_0_retweets;
 CREATE TABLE impeachment_production.community_0_retweets AS (
-  SELECT
+  SELECT DISTINCT
       bu.community_id
       ,bu.user_id
       ,rt.user_screen_name
@@ -56,7 +56,7 @@ CREATE TABLE impeachment_production.community_0_retweets AS (
 
 DROP TABLE IF EXISTS impeachment_production.community_1_retweets;
 CREATE TABLE impeachment_production.community_1_retweets AS (
-  SELECT
+  SELECT DISTINCT
       bu.community_id
       ,bu.user_id
       ,rt.user_screen_name
