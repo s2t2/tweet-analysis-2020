@@ -23,6 +23,7 @@ Version 1.0 (works in progress, investigations, archive):
     + [Bot Community Analysis](/app/bot_communities/README.md#Analysis)
     + [Bot Community Language Analysis (NLP)](/app/nlp/README.md)
     + [Bot Follower Graphs](/app/bot_follower_graphs/README.md)
+    + [NLP v2](/app/nlp_v2/README.md)
     + [Bot Impact Assessment v4](/app/bot_impact_v4/README.md)
   + [API v0](/api/README.md)
 
@@ -77,13 +78,9 @@ FYI: in the bucket, there will also exist some temporary tables used by BigQuery
 
 The app will run scripts that take a long time. To have those scripts send emails when they are done, first obtain a [SendGrid API Key](https://app.sendgrid.com/settings/api_keys), then set it as an environment variable (see environment variable setup below).
 
-### Basilica Credentials
-
-If using the Basilica API, obtain a [Basilica API Key](https://www.basilica.ai/api-keys/) and set the `BASILICA_API_KEY` environment variable accordingly (see environment variable setup below).
-
 ### Local Database
 
-To download some of the data from BigQuery into a local database, first create a local PostgreSQL database called something like "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
+To optionally download some of the data from BigQuery into a local database, first create a local PostgreSQL database called something like "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
 
 ### Environment Variables
 

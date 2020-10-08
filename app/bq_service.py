@@ -1370,6 +1370,54 @@ class BigQueryService():
 
 
 
+    def fetch_daily_statuses_with_opinion_scores(self, date, limit=None):
+        sql = f"""
+            WITH daily_tweets as (
+                SELECT user_id ,screen_name ,status_id ,status_text ,created_at ,score_lr ,score_nb
+                FROM {self.dataset_address}.nlp_v2_predictions_combined p
+                WHERE extract(date from created_at) = '{date}'
+                    AND score_lr is not null and score_nb is not null -- there are 30,000 total null lr scores. drop for now
+            )
+
+            SELECT
+                t.user_id
+                ,t.screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,r.status_count as rate
+                ,t.status_id
+                ,t.status_text
+                ,st.status_count as status_text_occurrences
+                ,t.created_at
+                ,t.score_lr
+                ,t.score_nb
+            FROM daily_tweets t
+            JOIN (
+                SELECT user_id, count(distinct status_id) as status_count
+                FROM daily_tweets
+                GROUP BY 1
+            ) r ON r.user_id = t.user_id
+            LEFT JOIN (
+                SELECT status_text ,count(distinct status_id) as status_count
+                FROM daily_tweets
+                GROUP BY 1
+            ) st ON st.status_text = t.status_text
+            LEFT JOIN {self.dataset_address}.2_bot_communities bu ON bu.user_id = t.user_id
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+
+
+
+
+
+
+
+
 
 
 

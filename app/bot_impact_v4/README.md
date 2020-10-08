@@ -11,3 +11,13 @@ DATE="2020-01-23" TWEET_MIN=5 python -m app.bot_impact_v4.daily_active_user_frie
 ```sh
 DATE="2020-01-23" TWEET_MIN=5 python -m app.bot_impact_v4.daily_active_edge_friend_grapher
 ```
+
+
+
+
+
+JK JK, we're going to dynamically find the tweet min, and we also want to include tweet opinion scores:
+
+```sh
+START_DATE="2019-12-20" N_PERIODS=60 python -m app.bot_impact_v4.daily_active_edge_downloader
+```

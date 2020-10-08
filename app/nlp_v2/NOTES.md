@@ -177,3 +177,14 @@ CREATE TABLE impeachment_production.nlp_v2_user_scores_binned_nb as (
 )
 
 ```
+
+
+FYI: some LR scores are null:
+
+```sql
+SELECT
+   count(distinct status_id) as status_count -- 67666557
+   ,count(distinct CASE WHEN score_lr is not null then status_id end) as lr_count -- 67636557 why?
+   ,count(distinct CASE WHEN score_nb is not null then status_id end) as nb_count -- 67666557
+FROM impeachment_production.nlp_v2_predictions_combined p
+```
