@@ -1419,6 +1419,22 @@ class BigQueryService():
         return self.client.query(sql, job_config=job_config)
 
 
+    def fetch_users_most_followed_api_v1(self, limit=None):
+        limit = limit or 500 # max 1000 based on the size of the precomputed table
+        sql = f"""
+            SELECT
+                screen_name --, user_id, user_created_at
+                ,status_count
+                ,follower_count
+                ,round(avg_score_lr * 10000) / 10000 as avg_score_lr -- round to four decimal places
+                ,round(avg_score_lr * 10000) / 10000 as avg_score_nb -- round to four decimal places
+            FROM `{self.dataset_address}.nlp_v2_predictions_by_user_most_followed`
+            ORDER BY follower_count DESC
+            LIMIT @limit
+        """
+        job_config = QueryJobConfig(query_parameters=[ScalarQueryParameter("limit", "INT64", int(limit))])
+        return self.client.query(sql, job_config=job_config)
+
 if __name__ == "__main__":
 
     service = BigQueryService()

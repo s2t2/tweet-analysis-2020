@@ -15,3 +15,10 @@ def user_tweets(screen_name=None):
     except IndexError as err:
         print(err)
         return jsonify({"message": f"Oh, couldn't find user with screen name '{screen_name}'. Please try again."}), 404
+
+@api_routes.route("/api/v1/users_most_followed")
+def users_most_followed():
+    query_params = {"limit": request.args.get("limit")}
+    print("QUERY PARAMS:", query_params)
+    response = list(current_app.config["BQ_SERVICE"].fetch_users_most_followed_api_v1(**query_params))
+    return jsonify([dict(row) for row in response])
