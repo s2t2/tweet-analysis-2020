@@ -90,6 +90,9 @@ Returns list of tweet objects, with opinion scores for each:
   + `GET /api/v1/users_most_followed`
   + `GET /api/v1/users_most_followed?limit=10`
 
+Params:
+  + `limit`: specifies the number of top users to return (default: 500, max: 1000)
+
 Returns list of user objects, with mean opinion scores and other aggregated metrics:
 
 ```json
@@ -109,5 +112,5 @@ Returns list of user objects, with mean opinion scores and other aggregated metr
 
 > NOTES:
 >
->   + `limit` specifies the number of top users to return (default: 500, max: 1000)
+>  + `follower_count` is: "the number of followers also talking about impeachment". the real follower counts are likely (much) higher than the numbers represented here.
 >   + the query is guaranteed to return the top x users, but they may not be sorted when you get them. responsibility of client to sort
