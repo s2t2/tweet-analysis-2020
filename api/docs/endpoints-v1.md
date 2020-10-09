@@ -83,3 +83,34 @@ Returns list of tweet objects, with opinion scores for each:
 >   + "_lr" attributes refer to the best Logistic Regression Model (id: `2020-10-07-0220`)
 >   + "_lr" attributes refer to the best Multinomial Naive Bayes Model (id: `2020-10-07-0222`)
 >   + "_bert" attributes refer to the best BERT Transformer Model (not yet available but will show up when it is available)
+
+## Users Most Followed
+
+
+  + `GET /api/v1/users_most_followed`
+  + `GET /api/v1/users_most_followed?limit=10`
+
+Params:
+  + `limit`: specifies the number of top users to return (default: 500, max: 1000)
+
+Returns list of user objects, with mean opinion scores and other aggregated metrics:
+
+```json
+[
+  {"avg_score_lr":0.877,"avg_score_nb":0.877,"follower_count":1161079,"screen_name":"REALDONALDTRUMP","status_count":374},
+  {"avg_score_lr":0.25,"avg_score_nb":0.25,"follower_count":794618,"screen_name":"AOC","status_count":4},
+  {"avg_score_lr":0.7838,"avg_score_nb":0.7838,"follower_count":790014,"screen_name":"POTUS","status_count":74},
+  {"avg_score_lr":0.0,"avg_score_nb":0.0,"follower_count":657448,"screen_name":"HILLARYCLINTON","status_count":6},
+  {"avg_score_lr":0.2308,"avg_score_nb":0.2308,"follower_count":604397,"screen_name":"NYTIMES","status_count":312},
+  {"avg_score_lr":0.2222,"avg_score_nb":0.2222,"follower_count":601848,"screen_name":"BERNIESANDERS","status_count":9},
+  {"avg_score_lr":0.7602,"avg_score_nb":0.7602,"follower_count":596627,"screen_name":"WHITEHOUSE","status_count":196},
+  {"avg_score_lr":0.0,"avg_score_nb":0.0,"follower_count":567173,"screen_name":"SENSANDERS","status_count":6},
+  {"avg_score_lr":0.2592,"avg_score_nb":0.2592,"follower_count":554626,"screen_name":"CNN","status_count":652},
+  {"avg_score_lr":0.069,"avg_score_nb":0.069,"follower_count":550729,"screen_name":"SPEAKERPELOSI","status_count":29}
+]
+```
+
+> NOTES:
+>
+>  + `follower_count` is: "the number of followers also talking about impeachment". the real follower counts are likely (much) higher than the numbers represented here.
+>   + the query is guaranteed to return the top x users, but they may not be sorted when you get them. responsibility of client to sort
