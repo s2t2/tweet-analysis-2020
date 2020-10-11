@@ -20,4 +20,10 @@ JK JK, we're going to dynamically find the tweet min, and we also want to includ
 
 ```sh
 START_DATE="2019-12-20" N_PERIODS=60 python -m app.bot_impact_v4.daily_active_edge_downloader
+
+APP_ENV="prodlike" START_DATE="2020-01-08" N_PERIODS=40 python -m app.bot_impact_v4.daily_active_edge_downloader
+
 ```
+
+
+Export these CSV files to google cloud, where we are running the impact assessment notebook w/ BERT classifier for each day.
