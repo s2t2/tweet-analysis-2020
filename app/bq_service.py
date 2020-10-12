@@ -1426,8 +1426,9 @@ class BigQueryService():
                 screen_name --, user_id, user_created_at
                 ,status_count
                 ,follower_count
-                ,round(avg_score_lr * 10000) / 10000 as avg_score_lr -- round to four decimal places
-                ,round(avg_score_lr * 10000) / 10000 as avg_score_nb -- round to four decimal places
+                ,avg_score_lr
+                ,avg_score_nb
+                ,user_category as category
             FROM `{self.dataset_address}.nlp_v2_predictions_by_user_most_followed`
             ORDER BY follower_count DESC
             LIMIT @limit
