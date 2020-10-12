@@ -97,20 +97,22 @@ Returns list of user objects, with mean opinion scores and other aggregated metr
 
 ```json
 [
-  {"avg_score_lr":0.877,"avg_score_nb":0.877,"follower_count":1161079,"screen_name":"REALDONALDTRUMP","status_count":374},
-  {"avg_score_lr":0.25,"avg_score_nb":0.25,"follower_count":794618,"screen_name":"AOC","status_count":4},
-  {"avg_score_lr":0.7838,"avg_score_nb":0.7838,"follower_count":790014,"screen_name":"POTUS","status_count":74},
-  {"avg_score_lr":0.0,"avg_score_nb":0.0,"follower_count":657448,"screen_name":"HILLARYCLINTON","status_count":6},
-  {"avg_score_lr":0.2308,"avg_score_nb":0.2308,"follower_count":604397,"screen_name":"NYTIMES","status_count":312},
-  {"avg_score_lr":0.2222,"avg_score_nb":0.2222,"follower_count":601848,"screen_name":"BERNIESANDERS","status_count":9},
-  {"avg_score_lr":0.7602,"avg_score_nb":0.7602,"follower_count":596627,"screen_name":"WHITEHOUSE","status_count":196},
-  {"avg_score_lr":0.0,"avg_score_nb":0.0,"follower_count":567173,"screen_name":"SENSANDERS","status_count":6},
-  {"avg_score_lr":0.2592,"avg_score_nb":0.2592,"follower_count":554626,"screen_name":"CNN","status_count":652},
-  {"avg_score_lr":0.069,"avg_score_nb":0.069,"follower_count":550729,"screen_name":"SPEAKERPELOSI","status_count":29}
+  {"avg_score_lr":0.877,"avg_score_nb":0.877,"category":"ELECTED-OFFICIAL","follower_count":1161079,"screen_name":"REALDONALDTRUMP","status_count":374},
+  {"avg_score_lr":0.25,"avg_score_nb":0.25,"category":"ELECTED-OFFICIAL","follower_count":794618,"screen_name":"AOC","status_count":4},
+  {"avg_score_lr":0.7838,"avg_score_nb":0.7838,"category":null,"follower_count":790014,"screen_name":"POTUS","status_count":74},
+  {"avg_score_lr":0.0,"avg_score_nb":0.0,"category":"ELECTED-OFFICIAL","follower_count":657448,"screen_name":"HILLARYCLINTON","status_count":6},
+  {"avg_score_lr":0.2308,"avg_score_nb":0.2308,"category":"MAJOR-MEDIA-OUTLET","follower_count":604397,"screen_name":"NYTIMES","status_count":312},
+  {"avg_score_lr":0.2222,"avg_score_nb":0.2222,"category":"ELECTED-OFFICIAL","follower_count":601848,"screen_name":"BERNIESANDERS","status_count":9},
+  {"avg_score_lr":0.7602,"avg_score_nb":0.7602,"category":null,"follower_count":596627,"screen_name":"WHITEHOUSE","status_count":196},
+  {"avg_score_lr":0.0,"avg_score_nb":0.0,"category":"ELECTED-OFFICIAL","follower_count":567173,"screen_name":"SENSANDERS","status_count":6},
+  {"avg_score_lr":0.2592,"avg_score_nb":0.2592,"category":"MAJOR-MEDIA-OUTLET","follower_count":554626,"screen_name":"CNN","status_count":652},
+  {"avg_score_lr":0.069,"avg_score_nb":0.069,"category":"ELECTED-OFFICIAL","follower_count":550729,"screen_name":"SPEAKERPELOSI","status_count":29}
+  ]
 ]
 ```
 
 > NOTES:
 >
 >  + `follower_count` is: "the number of followers also talking about impeachment". the real follower counts are likely (much) higher than the numbers represented here.
->   + the query is guaranteed to return the top x users, but they may not be sorted when you get them. responsibility of client to sort
+>  + the query is guaranteed to return the top x users, but they may not be sorted when you get them. responsibility of client to sort
+>  + `category` is a subjective label meant to help filter users for comparison. includes "ELECTED-OFFICIAL", "PARTY", and "MAJOR-MEDIA-OUTLET". NOTE: @FoxNews does not appear in the dataset because they tweet URLs only.
