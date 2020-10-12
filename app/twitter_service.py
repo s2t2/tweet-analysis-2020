@@ -81,6 +81,21 @@ if __name__ == "__main__":
     user_id = service.get_user_id(SCREEN_NAME)
     print(user_id)
 
+
+    statuses = service.api.user_timeline(SCREEN_NAME)
+    for status in statuses:
+        breakpoint()
+        print(status.status_text)
+
+
+
+
+
+
+
+
+
+
     print("-------------")
     print(SCREEN_NAME)
     print("FRIEND NAMES:")
