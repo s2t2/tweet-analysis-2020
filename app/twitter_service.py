@@ -77,12 +77,20 @@ if __name__ == "__main__":
 
     print("-------------")
     print(SCREEN_NAME)
+
+    print("-------------")
     print("USER ID:")
     user_id = service.get_user_id(SCREEN_NAME)
     print(user_id)
 
     print("-------------")
-    print(SCREEN_NAME)
+    print("STATUSES:")
+    statuses = service.api.user_timeline(SCREEN_NAME)
+    for status in statuses:
+        #breakpoint()
+        print(status.status_text)
+
+    print("-------------")
     print("FRIEND NAMES:")
 
     #friend_ids = service.api.friends_ids(SCREEN_NAME)
@@ -91,5 +99,5 @@ if __name__ == "__main__":
     friend_ids = service.get_friends(screen_name=SCREEN_NAME)
     print(len(friend_ids))
 
-    friend_ids = service.get_friends(user_id=44196397)
-    print(len(friend_ids))
+    #friend_ids = service.get_friends(user_id=44196397)
+    #print(len(friend_ids))
