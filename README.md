@@ -7,7 +7,7 @@ This project builds upon the research of Tauhid Zaman, Nicolas Guenon Des Mesnar
 
 ## Table of Contents
 
-Version 1 (works in progress, investigations, archive):
+Version 1.0 (works in progress, investigations, archive):
 
   + [Tweet Collection v1](/app/tweet_collection/README.md)
   + [Friend Collection v1](/app/friend_collection/README.md)
@@ -19,14 +19,17 @@ Version 1 (works in progress, investigations, archive):
     + [KS Tests v1](/app/retweet_graphs/README.md#KS-Tests)
   + [Retweet Graphs v2](/app/retweet_graphs_v2/README.md)
     + [Bot Classification v3 (Daily Periods)](/app/retweet_graphs_v2/README.md#k-days-bot-classification)
-    + [Community Assignment](/app/bot_communities/README.md#Assignment)
-    + [Community Analysis](/app/bot_communities/README.md#Analysis)
+    + [Bot Community Assignment](/app/bot_communities/README.md#Assignment)
+    + [Bot Community Analysis](/app/bot_communities/README.md#Analysis)
+    + [Bot Community Language Analysis (NLP)](/app/nlp/README.md)
     + [Bot Follower Graphs](/app/bot_follower_graphs/README.md)
+    + [NLP v2](/app/nlp_v2/README.md)
+    + [Bot Impact Assessment v4](/app/bot_impact_v4/README.md)
+  + [API v0](/api/README.md)
 
-Version 2 (current, stable, mature):
+Version 2.0 (current, stable, mature):
 
   + [Tweet Collection v2](/app/tweet_collection_v2/README.md)
-
 
 ## Installation
 
@@ -75,13 +78,9 @@ FYI: in the bucket, there will also exist some temporary tables used by BigQuery
 
 The app will run scripts that take a long time. To have those scripts send emails when they are done, first obtain a [SendGrid API Key](https://app.sendgrid.com/settings/api_keys), then set it as an environment variable (see environment variable setup below).
 
-### Basilica Credentials
-
-If using the Basilica API, obtain a [Basilica API Key](https://www.basilica.ai/api-keys/) and set the `BASILICA_API_KEY` environment variable accordingly (see environment variable setup below).
-
 ### Local Database
 
-To download some of the data from BigQuery into a local database, first create a local PostgreSQL database called something like "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
+To optionally download some of the data from BigQuery into a local database, first create a local PostgreSQL database called something like "impeachment_analysis", then set the `DATABASE_URL` environment variable accordingly (see environment variable setup below).
 
 ### Environment Variables
 

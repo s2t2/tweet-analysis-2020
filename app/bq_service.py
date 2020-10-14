@@ -1197,6 +1197,252 @@ class BigQueryService():
     def nlp_v2_get_predictions_table(self, model_name):
         return self.client.get_table(f"{self.dataset_address}.nlp_v2_predictions_{model_name}") # API call.
 
+    #
+    # DAILY ACTIVE FRIEND GRAPHS V4
+    #
+
+    def fetch_daily_statuses(self, date, limit=None):
+        sql = f"""
+            SELECT DISTINCT
+                t.status_id
+                , t.status_text
+                , t.created_at
+                , t.user_id
+                , UPPER(t.user_screen_name) as screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                --,bu.community_id
+                -- ,r.tweet_count as rate
+            FROM `{self.dataset_address}.tweets` t
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = cast(t.user_id as int64)
+            WHERE EXTRACT(DATE from created_at) = '{date}'
+            --LIMIT 10
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_tweeter_statuses(self, date, tweet_min=None, limit=None):
+        sql = f"""
+            SELECT DISTINCT
+                t.status_id
+                ,t.status_text
+                ,t.created_at
+                ,t.user_id
+                ,UPPER(t.user_screen_name) as screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,r.tweet_count as rate
+            FROM `{self.dataset_address}.tweets` t
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = cast(t.user_id as int64)
+            JOIN (
+                SELECT
+                cast(user_id as INT64) as user_id, count(distinct status_id) as tweet_count
+                FROM `{self.dataset_address}.tweets` t
+                WHERE EXTRACT(DATE from created_at) = '{date}'
+                GROUP BY 1
+                -- LIMIT 10
+            ) r ON r.user_id = cast(t.user_id as int64)
+            WHERE EXTRACT(DATE from created_at) = '{date}'
+        """
+        if tweet_min:
+            sql += f" AND tweet_count >= {int(tweet_min)};"
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_tweeter_statuses_for_model_training(self, date, tweet_min=None, limit=None):
+        sql = f"""
+            WITH daily_tweets AS (
+                SELECT
+                    cast(t.user_id as int64) as user_id
+                    ,UPPER(t.user_screen_name) as screen_name
+                    ,cast(t.status_id as int64) as status_id
+                    ,t.status_text
+                    ,t.created_at
+                FROM `{self.dataset_address}.tweets` t
+                WHERE extract(date from t.created_at) = '{date}'
+            )
+
+            SELECT DISTINCT
+                t.status_id ,t.status_text ,t.created_at
+                ,t.user_id ,t.screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,r.tweet_count as rate
+                ,st.status_count as status_text_occurrence
+            FROM daily_tweets t
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = t.user_id
+            JOIN (
+                SELECT
+                    CAST(user_id as INT64) as user_id
+                    ,count(distinct status_id) as tweet_count
+                FROM daily_tweets t
+                GROUP BY 1
+            ) r ON r.user_id = cast(t.user_id as int64)
+            LEFT JOIN (
+                SELECT
+                    t.status_text
+                    ,count(distinct t.status_id) as status_count
+                FROM daily_tweets t
+                GROUP BY 1
+            ) st ON st.status_text = t.status_text
+        """
+        if tweet_min:
+            sql += f" AND tweet_count >= {int(tweet_min)};"
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_user_friends(self, date, tweet_min=None, limit=None):
+        sql = f"""
+            SELECT dau.user_id, dau.rate, uf.screen_name ,uf.friend_count, uf.friend_names
+            FROM (
+                SELECT cast(user_id as INT64) as user_id, count(distinct status_id) as rate
+                FROM `{self.dataset_address}.tweets` t
+                WHERE EXTRACT(DATE from t.created_at) = '{date}'
+                GROUP BY 1
+            ) dau
+            JOIN `{self.dataset_address}.active_user_friends` uf ON uf.user_id = dau.user_id
+        """
+        if tweet_min:
+            sql += f" WHERE dau.rate >= {int(tweet_min)};"
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_edge_friends(self, date, tweet_min=2, limit=None):
+        sql = f"""
+            WITH dau AS (
+                SELECT
+                    cast(user_id as INT64) as user_id
+                    ,upper(user_screen_name) as screen_name
+                    ,count(distinct status_id) as rate
+                FROM `{self.dataset_address}.tweets`
+                WHERE EXTRACT(DATE FROM created_at) = '{date}'
+                GROUP BY 1,2
+                HAVING count(distinct status_id) >= {int(tweet_min)}
+            )
+
+            SELECT
+                dau.user_id
+                ,dau.screen_name
+                ,dau.rate
+                ,ARRAY_AGG(DISTINCT uff.friend_name) as friend_names
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM dau
+            JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = dau.user_id
+            WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+            GROUP BY 1,2,3
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_active_edge_friends_for_csv(self, date, tweet_min=2, limit=None):
+        sql = f"""
+            WITH dau AS (
+                SELECT
+                    cast(user_id as INT64) as user_id
+                    ,upper(user_screen_name) as screen_name
+                    ,count(distinct status_id) as rate
+                FROM `{self.dataset_address}.tweets`
+                WHERE EXTRACT(DATE FROM created_at) = '{date}'
+                GROUP BY 1,2
+                HAVING count(distinct status_id) >= {int(tweet_min)}
+            )
+
+            SELECT
+                dau.user_id
+                ,dau.screen_name
+                ,dau.rate
+                ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM dau
+            JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = dau.user_id
+            WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+            GROUP BY 1,2,3
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+
+
+    def fetch_daily_statuses_with_opinion_scores(self, date, limit=None):
+        sql = f"""
+            WITH daily_tweets as (
+                SELECT user_id ,screen_name ,status_id ,status_text ,created_at ,score_lr ,score_nb
+                FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
+                WHERE extract(date from created_at) = '{date}'
+                    AND score_lr is not null and score_nb is not null -- there are 30,000 total null lr scores. drop for now
+            )
+
+            SELECT
+                t.user_id
+                ,t.screen_name
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,r.status_count as rate
+                ,t.status_id
+                ,t.status_text
+                ,st.status_count as status_text_occurrences
+                ,t.created_at
+                ,t.score_lr
+                ,t.score_nb
+            FROM daily_tweets t
+            JOIN (
+                SELECT user_id, count(distinct status_id) as status_count
+                FROM daily_tweets
+                GROUP BY 1
+            ) r ON r.user_id = t.user_id
+            LEFT JOIN (
+                SELECT status_text ,count(distinct status_id) as status_count
+                FROM daily_tweets
+                GROUP BY 1
+            ) st ON st.status_text = t.status_text
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = t.user_id
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_daily_nodes_with_active_edges(self, date, limit=None):
+        sql = f"""
+            WITH dau AS (
+                SELECT
+                    user_id
+                    ,screen_name
+                    ,count(distinct status_id) as rate
+                FROM `{self.dataset_address}.nlp_v2_predictions_combined` p
+                WHERE extract(date from created_at) = '{date}'
+                    AND score_lr is not null and score_nb is not null -- there are 30,000 total null lr scores. drop for now
+                GROUP BY 1,2
+            )
+
+            SELECT
+                dau.user_id
+                ,dau.screen_name
+                ,dau.rate
+                ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+                ,cast(bu.community_id as int64) as community_id
+                ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+                ,count(DISTINCT uff.friend_name) as friend_count
+            FROM dau
+            JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = dau.user_id
+            LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = dau.user_id
+            WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM dau)
+            GROUP BY 1,2,3,4,5
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+
+
 
 
 
