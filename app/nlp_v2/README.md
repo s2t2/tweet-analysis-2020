@@ -25,7 +25,9 @@ Then download a copy of that table into this directory as "data/nlp_v2/2_communi
 
 Now you are ready for training.
 
-## Model Training and Evaluation
+## Sklearn Models
+
+### Training and Evaluation
 
 Train some models on the labeled training data, and save them:
 
@@ -33,7 +35,7 @@ Train some models on the labeled training data, and save them:
 APP_ENV="prodlike" python -m app.nlp_v2.model_training
 ```
 
-## Model Predictions
+### Predictions
 
 Promote a given model to use for classification:
 
@@ -53,4 +55,18 @@ Or to score all the unseen tweets:
 
 ```sh
 APP_ENV="prodlike" LIMIT=10000 BATCH_SIZE=900 python -m app.nlp_v2.bulk_predict
+```
+
+## BERT Transformer
+
+Upload daily "tweets.csv" files to CoLab in daily folders under "daily_active_edge_friend_graphs_v5".
+
+Use the Colab Notebook to train a BERT model on each day's tweets, and save scores as "tweets_BERT_Impeachment_800KTweets.csv".
+
+Download all the daily "tweets_BERT_Impeachment_800KTweets.csv" files into this local repo (it takes a while - an automated google drive downloader would be helpful).
+
+Bulk upload all daily BERT scores to BQ (and GCS):
+
+```sh
+APP_ENV="prodlike" python -m app.nlp_v2.bert_score_uploader
 ```
