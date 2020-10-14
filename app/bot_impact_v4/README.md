@@ -12,8 +12,7 @@ DATE="2020-01-23" TWEET_MIN=5 python -m app.bot_impact_v4.daily_active_user_frie
 DATE="2020-01-23" TWEET_MIN=5 python -m app.bot_impact_v4.daily_active_edge_friend_grapher
 ```
 
-
-
+## For Real Though (v5)
 
 
 JK JK, we're going to dynamically find the tweet min, and we also want to include tweet opinion scores:
@@ -22,8 +21,6 @@ JK JK, we're going to dynamically find the tweet min, and we also want to includ
 START_DATE="2019-12-20" N_PERIODS=60 python -m app.bot_impact_v4.daily_active_edge_downloader
 
 APP_ENV="prodlike" START_DATE="2020-01-08" N_PERIODS=40 python -m app.bot_impact_v4.daily_active_edge_downloader
-
 ```
 
-
-Export these CSV files to google cloud, where we are running the impact assessment notebook w/ BERT classifier for each day.
+This produces daily "nodes.csv" and "tweets.csv" files in the "daily_active_edge_friend_graphs_v5". Upload these CSV files to Google Drive, where we are running the impact assessment notebook w/ BERT classifier for each day. TODO: auto-upload to Google Drive.

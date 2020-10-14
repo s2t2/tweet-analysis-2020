@@ -59,6 +59,8 @@ APP_ENV="prodlike" LIMIT=10000 BATCH_SIZE=900 python -m app.nlp_v2.bulk_predict
 
 ## BERT Transformer
 
+Use the [bot impact preparation code](/app/bot_impact_v4/README.md) to
+
 Upload daily "tweets.csv" files to CoLab in daily folders under "daily_active_edge_friend_graphs_v5".
 
 Use the Colab Notebook to train a BERT model on each day's tweets, and save scores as "tweets_BERT_Impeachment_800KTweets.csv".
