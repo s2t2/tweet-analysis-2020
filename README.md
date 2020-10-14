@@ -23,9 +23,10 @@ Version 1.0 (works in progress, investigations, archive):
     + [Bot Community Analysis](/app/bot_communities/README.md#Analysis)
     + [Bot Community Language Analysis (NLP)](/app/nlp/README.md)
     + [Bot Follower Graphs](/app/bot_follower_graphs/README.md)
-    + [NLP v2](/app/nlp_v2/README.md)
     + [Bot Impact Assessment v4](/app/bot_impact_v4/README.md)
-  + [API v0](/api/README.md)
+    + [NLP v2](/app/nlp_v2/README.md)
+  + [API v0](/api/README.md#Version-0-Endpoints)
+  + [API v1](/api/README.md#Version-1-Endpoints)
 
 Version 2.0 (current, stable, mature):
 

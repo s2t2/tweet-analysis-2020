@@ -11,9 +11,11 @@ FLASK_APP="api" flask run
 
 Or use the production API server: https://impeachment-tweet-analysis-api.herokuapp.com/
 
-## [Documentation (Version 0)](/api/docs/endpoints-v0.md)
+## Documentation
 
-## [Documentation (Version 1)](/api/docs/endpoints-v1.md)
+### [Version 0 Endpoints](/api/docs/endpoints-v0.md)
+
+### [Version 1 Endpoints](/api/docs/endpoints-v1.md)
 
 ## Testing
 
