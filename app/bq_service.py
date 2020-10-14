@@ -1203,7 +1203,6 @@ class BigQueryService():
                     prediction STRING -- todo: convert this D/R label back to 0/1 "score"
                 );
             """
-        breakpoint()
         return self.execute_query(sql)
 
     def nlp_v2_get_predictions_table(self, model_name):
