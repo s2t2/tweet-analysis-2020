@@ -1185,13 +1185,24 @@ class BigQueryService():
         return self.execute_query(sql)
 
     def nlp_v2_destructively_migrate_predictions_table(self, model_name):
-        sql = f"""
-            DROP TABLE IF EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}`;
-            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}` (
-                status_id INT64,
-                prediction STRING
-            );
-        """
+        if model_name.lower() == "bert":
+            sql = f"""
+                DROP TABLE IF EXISTS `{self.dataset_address}.nlp_v2_predictions_bert`;
+                CREATE TABLE IF NOT EXISTS `{self.dataset_address}.nlp_v2_predictions_bert` (
+                    status_id INT64,
+                    logit_0 FLOAT64,
+                    logit_1 FLOAT64,
+                    prediction FLOAT64
+                );
+            """
+        else:
+            sql = f"""
+                DROP TABLE IF EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}`;
+                CREATE TABLE IF NOT EXISTS `{self.dataset_address}.nlp_v2_predictions_{model_name}` (
+                    status_id INT64,
+                    prediction STRING -- todo: convert this D/R label back to 0/1 "score"
+                );
+            """
         return self.execute_query(sql)
 
     def nlp_v2_get_predictions_table(self, model_name):
@@ -1447,7 +1458,6 @@ class BigQueryService():
 
 
 
-
     #
     # API - V0
     # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
@@ -1652,9 +1662,6 @@ class BigQueryService():
                 status_id
                 ,status_text
                 ,created_at
-                ,prediction_lr
-                ,prediction_nb
-                ,prediction_bert
                 ,score_lr
                 ,score_nb
                 ,score_bert
@@ -1674,6 +1681,7 @@ class BigQueryService():
                 ,follower_count
                 ,avg_score_lr
                 ,avg_score_nb
+                ,avg_score_bert
                 ,user_category as category
             FROM `{self.dataset_address}.nlp_v2_predictions_by_user_most_followed`
             ORDER BY follower_count DESC
