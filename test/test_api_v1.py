@@ -6,7 +6,7 @@ from conftest import CI_ENV
 
 @pytest.mark.skipif(CI_ENV, reason="avoid issuing HTTP requests on CI")
 def test_users_most_retweeted(api_client):
-    expected_keys = ['avg_score_lr', 'avg_score_nb', 'category', 'follower_count', 'screen_name', 'status_count']
+    expected_keys = ['avg_score_bert', 'avg_score_lr', 'avg_score_nb', 'category', 'follower_count', 'screen_name', 'status_count']
 
     response = api_client.get('/api/v1/users_most_followed')
     users = json.loads(response.data)

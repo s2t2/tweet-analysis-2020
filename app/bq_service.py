@@ -1684,6 +1684,7 @@ class BigQueryService():
                 ,follower_count
                 ,avg_score_lr
                 ,avg_score_nb
+                ,avg_score_bert
                 ,user_category as category
             FROM `{self.dataset_address}.nlp_v2_predictions_by_user_most_followed`
             ORDER BY follower_count DESC
