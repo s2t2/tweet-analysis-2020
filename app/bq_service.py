@@ -1662,9 +1662,6 @@ class BigQueryService():
                 status_id
                 ,status_text
                 ,created_at
-                ,prediction_lr
-                ,prediction_nb
-                ,prediction_bert
                 ,score_lr
                 ,score_nb
                 ,score_bert
