@@ -129,7 +129,8 @@ class TweetCollector(StreamListener):
         Param: i (int) increasing rate limit number from the twitter api
         Returns: number of seconds to sleep for
         """
-        return (int(i) + 1) ** 2 # raise to the power of two
+        #return (int(i) + 1) ** 2 # raise to the power of two
+        return int(i) * 3
 
     def on_timeout(self):
         print("TIMEOUT!")
