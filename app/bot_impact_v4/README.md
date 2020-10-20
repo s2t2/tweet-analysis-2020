@@ -54,5 +54,13 @@ CREATE TABLE impeachment_production.nodes_with_active_edges_v6 as (
   LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = au.user_id
   WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM au)
   GROUP BY 1,2,3,4,5
-) -- THIS QUERY TAKES A LONG TIME :-D
+) -- THIS QUERY TAKES A LONG TIME :-D (3 min 13 sec) resulting in 2,869,590 rows
+```
+
+The table is too large to export to anywhere, so let's download it to CSV and manually upload to google drive:
+
+```sh
+#DESTRUCTIVE=true BATCH_SIZE=100 LIMIT=303 python -m app.bot_impact_v4.active_edge_v6_downloader
+
+python -m app.bot_impact_v4.active_edge_v6_downloader
 ```

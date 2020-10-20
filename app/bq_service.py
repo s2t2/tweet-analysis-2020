@@ -1458,7 +1458,7 @@ class BigQueryService():
     # ACTIVE FRIEND GRAPHS V6
     #
 
-    #def fetch_nodes_with_active_edges_v6(self, limit=None):
+    #def migrate_populate_nodes_with_active_edges_v6(self, limit=None):
     #    sql = f"""
     #        WITH au AS (
     #            SELECT
@@ -1488,7 +1488,14 @@ class BigQueryService():
     #        sql += f" LIMIT {int(limit)};"
     #    return self.execute_query(sql)
 
-
+    def fetch_nodes_with_active_edges_v6(self, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, rate, bot, community_id, friend_names, friend_count
+            FROM`{self.dataset_address}.nodes_with_active_edges_v6`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
 
 
 
