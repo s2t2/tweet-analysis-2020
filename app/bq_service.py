@@ -1419,6 +1419,10 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    #
+    # DAILY ACTIVE FRIEND GRAPHS V5
+    #
+
     def fetch_daily_nodes_with_active_edges(self, date, limit=None):
         sql = f"""
             WITH dau AS (
@@ -1450,10 +1454,48 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    #
+    # ACTIVE FRIEND GRAPHS V6
+    #
 
+    #def migrate_populate_nodes_with_active_edges_v6(self, limit=None):
+    #    sql = f"""
+    #        WITH au AS (
+    #            SELECT
+    #                cast(user_id as int64) as user_id
+    #                ,upper(user_screen_name) as screen_name
+    #                ,count(distinct status_id) as rate
+    #            FROM `{self.dataset_address}.tweets` t
+    #            WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
+    #            GROUP BY 1,2
+    #        )
+    #
+    #        SELECT
+    #            au.user_id
+    #            ,au.screen_name
+    #            ,au.rate
+    #            ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+    #            ,cast(bu.community_id as int64) as community_id
+    #            ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+    #            ,count(DISTINCT uff.friend_name) as friend_count
+    #        FROM au
+    #        JOIN `{self.dataset_address}.user_friends_flat` uff ON cast(uff.user_id as int64) = au.user_id
+    #        LEFT JOIN `{self.dataset_address}.2_bot_communities` bu ON bu.user_id = au.user_id
+    #        WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM au)
+    #        GROUP BY 1,2,3,4,5
+    #    """
+    #    if limit:
+    #        sql += f" LIMIT {int(limit)};"
+    #    return self.execute_query(sql)
 
-
-
+    def fetch_nodes_with_active_edges_v6(self, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, rate, bot, community_id, friend_names, friend_count
+            FROM`{self.dataset_address}.nodes_with_active_edges_v6`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
 
 
 
