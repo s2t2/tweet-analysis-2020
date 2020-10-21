@@ -30,6 +30,7 @@ if __name__ == "__main__":
     # turns out VictoryHistogram likes this format, so lets just convert it to json...
 
     response = {
+        "date": date,
         "hist": hist.tolist(),
         "bin_edges": [round(v.item(), 2)  for v in bin_edges] # round to 2 decimal places because dealing with some vals like 0.35000000000000003 ewww
     }
