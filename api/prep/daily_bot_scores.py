@@ -62,15 +62,20 @@ if __name__ == "__main__":
 
 
 
-    #bot_probability_bars = df["bot_probability"].apply(binned_score)
+
+    #hist, bin_edges =  np.histogram(df["bot_probability"], bins=20, range=[0, 1]) # in bins of 0.05
+    #categories = [round(val, 2) for val in bin_edges.tolist()[0:20]] #> [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+    #response = [{k: v} for k,v in zip(categories, hist)]
+    ##> [{0.0: 634}, {0.05: 42}, {0.1: 30}, {0.15: 32}, {0.2: 32}, {0.25: 25}, {0.3: 48}, {0.35: 59}, {0.4: 62}, {0.45: 592}, {0.5: 322649}, {0.55: 2953}, {0.6: 1709}, {0.65: 1251}, {0.7: 1049}, {0.75: 792}, {0.8: 783}, {0.85: 740}, {0.9: 784}, {0.95: 1410}]
+    #print("WRITING JSON BARS", json_bars_filepath)
+    #with open(json_bars_filepath, "w") as json_file:
+    #    json.dump(response, json_file, cls=NpEncoder)
+
 
     hist, bin_edges =  np.histogram(df["bot_probability"], bins=20, range=[0, 1]) # in bins of 0.05
-
     categories = [round(val, 2) for val in bin_edges.tolist()[0:20]] #> [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
-
-    response = [{k: v} for k,v in zip(categories, hist)]
+    response = [{"category":k, "frequency": v} for k,v in zip(categories, hist)]
     #> [{0.0: 634}, {0.05: 42}, {0.1: 30}, {0.15: 32}, {0.2: 32}, {0.25: 25}, {0.3: 48}, {0.35: 59}, {0.4: 62}, {0.45: 592}, {0.5: 322649}, {0.55: 2953}, {0.6: 1709}, {0.65: 1251}, {0.7: 1049}, {0.75: 792}, {0.8: 783}, {0.85: 740}, {0.9: 784}, {0.95: 1410}]
-
     print("WRITING JSON BARS", json_bars_filepath)
     with open(json_bars_filepath, "w") as json_file:
         json.dump(response, json_file, cls=NpEncoder)
