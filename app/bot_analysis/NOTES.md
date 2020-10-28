@@ -62,9 +62,11 @@ CREATE TABLE impeachment_production.bots_above_80_v2 as (
 
 ## Analysis Queries - Bots vs Humans
 
+### Users Most Retweeted
+
+Users Most Retweeted:
 
 ```sql
--- users most retweeted
 SELECT DISTINCT
     rt.retweeted_user_id
     ,rt.retweeted_user_screen_name
@@ -105,5 +107,35 @@ LIMIT 1000
 
 ```
 
+### Top Hashtags
+
+Operating on only 6.7M tweets that likely have hashtags:
+
+```sql
+SELECT count(distinct status_id) as status_count
+FROM impeachment_production.tweets
+WHERE REGEXP_CONTAINS(upper(status_text), '#') -- 6,878,708
+```
+
+Prep a table of tweets with hashtags.
+
+```sql
+CREATE TABLE impeachment_production.tag_tweets as (
+  SELECT cast(user_id as int64) as user_id, cast(status_id as int64) as status_id, status_text
+  FROM impeachment_production.tweets
+  WHERE REGEXP_CONTAINS(upper(status_text), '#') -- 6,878,708
+  -- LIMIT 10
+)
+```
+
+Download the table via BigQuery / GCS. Save locally as "data/bot_analysis/tag_tweets.csv".
+
+Top hashtags:
+
+```py
+```
 
 Top hashtags used by bots vs non-bots:
+
+```sql
+```
