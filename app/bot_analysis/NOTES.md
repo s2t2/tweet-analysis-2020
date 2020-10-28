@@ -133,6 +133,7 @@ Download the table via BigQuery / GCS (JK use script below). Save locally as "da
 Top hashtags:
 
 ```py
+python -m app.bot_analysis.top_tags
 ```
 
 Top hashtags used by bots vs non-bots:
