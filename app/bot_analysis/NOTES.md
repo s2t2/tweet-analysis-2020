@@ -117,26 +117,27 @@ FROM impeachment_production.tweets
 WHERE REGEXP_CONTAINS(upper(status_text), '#') -- 6,878,708
 ```
 
-Prep a table of tweets with hashtags.
+Prep a table of tweets with hashtags, also including a bot flag:
 
 ```sql
-CREATE TABLE impeachment_production.tag_tweets as (
-  SELECT cast(user_id as int64) as user_id, cast(status_id as int64) as status_id, status_text
-  FROM impeachment_production.tweets
-  WHERE REGEXP_CONTAINS(upper(status_text), '#') -- 6,878,708
-  -- LIMIT 10
+DROP TABLE IF EXISTS impeachment_production.statuses_with_tags;
+CREATE TABLE impeachment_production.statuses_with_tags as (
+  SELECT
+    cast(t.user_id as int64) as user_id
+    ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+    ,cast(t.status_id as int64) as status_id
+    , t.status_text
+  FROM impeachment_production.tweets t
+  LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = cast(t.user_id as int64)
+  WHERE REGEXP_CONTAINS(status_text, '#') -- 6,878,708
+  --LIMIT 10
 )
 ```
 
-Download the table via BigQuery / GCS (JK use script below). Save locally as "data/bot_analysis/tag_tweets.csv".
-
-Top hashtags:
+Top status hashtags (by bots vs non-bots):
 
 ```py
-python -m app.bot_analysis.top_tags
-```
-
-Top hashtags used by bots vs non-bots:
-
-```sql
+python -m app.bot_analysis.top_status_tags
+# DESTRUCTIVE=true LIMIT=1000 BATCH_SIZE=100 python -m app.bot_analysis.top_status_tags
+# APP_ENV="prodlike" python -m app.bot_analysis.top_status_tags
 ```

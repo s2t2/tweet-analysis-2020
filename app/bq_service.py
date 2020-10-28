@@ -1506,10 +1506,10 @@ class BigQueryService():
     # BOT ANALYSIS
     #
 
-    def fetch_tag_tweets(self, limit=None):
+    def fetch_statuses_with_tags(self, limit=None):
         sql = f"""
-            SELECT user_id, status_id, status_text
-            FROM`{self.dataset_address}.tag_tweets`
+            SELECT user_id, is_bot, status_id, status_text
+            FROM`{self.dataset_address}.statuses_with_tags`
         """
         if limit:
             sql += f" LIMIT {int(limit)};"
