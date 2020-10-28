@@ -128,7 +128,7 @@ CREATE TABLE impeachment_production.tag_tweets as (
 )
 ```
 
-Download the table via BigQuery / GCS. Save locally as "data/bot_analysis/tag_tweets.csv".
+Download the table via BigQuery / GCS (JK use script below). Save locally as "data/bot_analysis/tag_tweets.csv".
 
 Top hashtags:
 
