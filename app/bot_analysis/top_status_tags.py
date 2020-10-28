@@ -11,11 +11,7 @@ LIMIT = os.getenv("LIMIT") # 1000 # None  # os.getenv("LIMIT")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="25_000")) # 100
 DESTRUCTIVE = (os.getenv("DESTRUCTIVE", default="false") == "true") # True
 
-#def tweet_stream(limit=LIMIT):
-#    bq_service = BigQueryService()
-#    return bq_service.fetch_tag_tweets(limit=limit)
-
-def download_tag_tweets():
+def download_tweets():
     job = Job()
     bq_service = BigQueryService()
 
@@ -34,7 +30,6 @@ def download_tag_tweets():
 
 if __name__ == "__main__":
 
-
     storage = FileStorage(dirpath="bot_analysis")
     csv_filepath = os.path.join(storage.local_dirpath, "tag_tweets.csv")
 
@@ -43,7 +38,7 @@ if __name__ == "__main__":
         df = read_csv(csv_filepath)
     else:
         print("DOWNLOADING TWEETS...")
-        df = download_tag_tweets()
+        df = download_tweets()
         df.to_csv(csv_filepath, index=False)
 
     print(fmt_n(len(df)))
