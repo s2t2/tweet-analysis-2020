@@ -79,17 +79,20 @@ if __name__ == "__main__":
     else:
         print("DOWNLOADING TWEETS...")
         tweets_df = download_tweets()
+        print("TOKENIZING TWEETS...")
+        tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
+        print(tweets_df.head())
         tweets_df.to_csv(tweets_csv_filepath, index=False)
     print(fmt_n(len(tweets_df)))
     print(tweets_df.head())
 
+
+
+
+    breakpoint()
+
     print("----------------------")
     print("ANALYZING TWEETS...")
-
-    if "status_tags" not in tweets_df.columns.tolist():
-        print("TOKENIZING...")
-        tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
-        tweets_df.to_csv(tweets_csv_filepath, index=False)
 
     tags_csv_filepath = os.path.join(storage.local_dirpath, "top_tags.csv")
     if os.path.isfile(tags_csv_filepath) and not TAGS_DESTRUCTIVE:
