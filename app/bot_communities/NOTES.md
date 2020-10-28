@@ -62,5 +62,66 @@ LEFT JOIN impeachment_production.user_details_v3 ud ON ud.user_id = dbp.user_id
 WHERE dbp.bot_probability > 0.8 -- 24150
 GROUP BY 1,2,3,4
 ORDER BY 3 desc
+```
+
+
+```sql
+CREATE TABLE impeachment_production.bots_above_80_v2 as (
+  SELECT
+    dbp.user_id
+    ,ud.screen_names
+    ,ud.screen_name_count
+    ,bu.community_id
+    ,count(distinct dbp.start_date) as day_count
+    , avg(dbp.bot_probability) as avg_bot_probability
+  FROM impeachment_production.daily_bot_probabilities dbp -- 208640
+  LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = dbp.user_id
+  LEFT JOIN impeachment_production.user_details_v3 ud ON ud.user_id = dbp.user_id
+  WHERE dbp.bot_probability > 0.8 -- 24150
+  GROUP BY 1,2,3,4
+  ORDER BY 3 desc
+)
+```
+
+
+```sql
+-- users most retweeted
+SELECT DISTINCT
+    rt.retweeted_user_id
+    ,rt.retweeted_user_screen_name
+
+    ,count(distinct rt.user_id) as retweeter_count
+    ,count(distinct rt.status_id) as retweet_count
+
+FROM impeachment_production.retweets_v2 rt
+GROUP BY 1,2
+ORDER BY 3 DESC
+LIMIT 1000
+```
+
+Users most retweeted by bots vs non-bots:
+
+```sql
+
+-- users most retweeted
+-- (by bots vs humans)
+SELECT DISTINCT
+    rt.retweeted_user_id
+    ,rt.retweeted_user_screen_name
+
+    ,count(distinct rt.user_id) as retweeter_count
+    ,count(distinct rt.status_id) as retweet_count
+
+    ,count(distinct CASE WHEN bu.user_id IS NOT NULL THEN rt.user_id END) as bot_retweeter_count
+    ,count(distinct CASE WHEN bu.user_id IS NOT NULL THEN rt.status_id END) as bot_retweet_count
+
+    ,count(distinct CASE WHEN bu.user_id IS NULL THEN rt.user_id END) as human_retweeter_count
+    ,count(distinct CASE WHEN bu.user_id IS NULL THEN rt.status_id END) as human_retweet_count
+
+FROM impeachment_production.retweets_v2 rt
+LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = rt.user_id
+GROUP BY 1,2
+ORDER BY 3 DESC
+LIMIT 1000
 
 ```
