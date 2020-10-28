@@ -81,20 +81,14 @@ if __name__ == "__main__":
         tweets_df = download_tweets()
         print("TOKENIZING TWEETS...")
         tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
-        print(tweets_df.head())
         tweets_df.to_csv(tweets_csv_filepath, index=False)
     print(fmt_n(len(tweets_df)))
     print(tweets_df.head())
 
-
-
-
-    breakpoint()
-
     print("----------------------")
     print("ANALYZING TWEETS...")
 
-    tags_csv_filepath = os.path.join(storage.local_dirpath, "top_tags.csv")
+    tags_csv_filepath = os.path.join(storage.local_dirpath, "top_status_tags.csv")
     if os.path.isfile(tags_csv_filepath) and not TAGS_DESTRUCTIVE:
         print("LOADING TOP TAGS...")
         tags_df = read_csv(tags_csv_filepath)
@@ -106,9 +100,9 @@ if __name__ == "__main__":
 
     for is_bot, filtered_df in tweets_df.groupby(["is_bot"]):
         bot_or_human = {True: "bot", False: "human"}[is_bot]
-        tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_tags_{bot_or_human}.csv")
+        bh_tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_tags_{bot_or_human}.csv")
         print(bot_or_human.upper())
 
         bot_or_human_tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
         print(bot_or_human_tags_df.head())
-        bot_or_human_tags_df.head(1000).to_csv(tags_csv_filepath, index=False)
+        bot_or_human_tags_df.head(1000).to_csv(bh_tags_csv_filepath, index=False)
