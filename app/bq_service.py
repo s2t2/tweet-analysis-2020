@@ -1500,6 +1500,41 @@ class BigQueryService():
 
 
 
+
+
+    #
+    # BOT ANALYSIS
+    #
+
+    def fetch_tag_tweets(self, limit=None):
+        sql = f"""
+            SELECT user_id, status_id, status_text
+            FROM`{self.dataset_address}.tag_tweets`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #
     # API - V0
     # ... ALL ENDPOINTS MUST PREVENT SQL INJECTION
