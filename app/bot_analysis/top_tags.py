@@ -85,11 +85,17 @@ if __name__ == "__main__":
 
     print("----------------------")
     print("ANALYZING TWEETS...")
+
     if "status_tags" not in tweets_df.columns.tolist():
         print("TOKENIZING...")
         tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
         tweets_df.to_csv(tweets_csv_filepath, index=False)
 
-    print("SUMMARIZING...")
-    tags_df = summarize_token_frequencies(tweets_df["status_tags"].tolist())
-    tags_df.to_csv(tags_csv_filepath, index=False)
+    if os.path.isfile(tags_csv_filepath):
+        print("LOADING TOP TAGS...")
+        tags_df = read_csv(tags_csv_filepath)
+    else:
+        print("SUMMARIZING...")
+        tags_df = summarize_token_frequencies(tweets_df["status_tags"].tolist())
+        tags_df.to_csv(tags_csv_filepath, index=False)
+    print(tags_df.head())
