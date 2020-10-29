@@ -145,16 +145,21 @@ python -m app.bot_analysis.top_status_tags
 ### Bots Most Active
 
 ```sql
--- bots most active
-SELECT
-  user_id ,user_created_at
-  ,screen_name_count ,screen_names
-  ,is_bot ,community_id
-  , status_count, avg_score_lr, avg_score_nb, avg_score_bert
-FROM impeachment_production.user_details_v4
-WHERE is_bot = true
----screen_name_count > 3 and screen_name_count < 12
-ORDER BY status_count DESC
-LIMIT 100
-
+CREATE TABLE impeachment_production.bots_most_active as (
+  SELECT
+    user_id
+    ,user_created_at
+    ,screen_name_count
+    ,screen_names
+    ,is_bot
+    ,community_id
+    ,status_count
+    ,avg_score_lr
+    ,avg_score_nb
+    ,avg_score_bert
+  FROM impeachment_production.user_details_v4
+  WHERE is_bot = true
+  ORDER BY status_count DESC
+  LIMIT 1000
+)
 ```
