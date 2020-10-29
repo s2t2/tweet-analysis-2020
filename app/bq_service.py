@@ -1497,9 +1497,14 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
-
-
-
+    def fetch_sn_nodes_with_active_edges_v7(self, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, status_count as rate, is_bot as bot, community_id, friend_names, friend_count
+            FROM`{self.dataset_address}.nodes_with_active_edges_v7_sn`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
 
 
     #

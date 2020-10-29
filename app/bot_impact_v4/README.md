@@ -267,6 +267,8 @@ CREATE TABLE impeachment_production.nodes_with_active_edges_v7_id as (
     ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
 
     --,tp.screen_name
+    --,count(distinct tp.screen_name) as screen_name_count
+    --,STRING_AGG(DISTINCT tp.screen_name) as screen_names -- STRING AGG FOR CSV OUTPUT!
     --,extract(date from min(tp.created_at)) as status_created_min
     --,extract(date from max(tp.created_at)) as status_created_max
     ,count(distinct tp.status_id) as status_count
@@ -281,4 +283,49 @@ CREATE TABLE impeachment_production.nodes_with_active_edges_v7_id as (
   WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM scored_tweets)
   GROUP BY user_id, user_created, is_bot, community_id --, screen_name
 ) -- TAKES A FEW MINUTES
+```
+
+```sql
+/*
+SELECT
+-- count(distinct user_id)  -- 2,869,590 --, sum(status_count)  -- 50,372,443
+  user_id ,count(distinct screen_name) as sn_count
+FROM impeachment_production.nodes_with_active_edges_v7_sn
+GROUP BY 1
+HAVING sn_count > 3 and sn_count < 10
+LIMIT 100
+
+*/
+
+SELECT
+  user_id, user_created, is_bot, community_id
+  ,friend_count -- ,friend_names
+  --,screen_name_count  --,screen_names
+  ,status_count
+  ,avg_score_lr
+  ,avg_score_nb
+  ,avg_score_bert
+
+FROM impeachment_production.nodes_with_active_edges_v7_id
+--WHERE user_id = 2838283974
+--WHERE user_id = 1207729717635436545
+WHERE user_id = 1136942510771724289
+
+```
+
+
+
+
+
+
+
+
+
+
+The table is too large to export to anywhere, so let's download it to CSV and manually upload to google drive:
+
+```sh
+#DESTRUCTIVE=true BATCH_SIZE=100 LIMIT=303 python -m app.bot_impact_v4.active_edge_v7_downloader
+
+python -m app.bot_impact_v4.active_edge_v7_downloader
 ```
