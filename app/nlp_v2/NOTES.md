@@ -109,6 +109,10 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_by_user as (
 )
 ```
 
+> NOTE: if the user changes screen names, this has a row per user id per screen name
+
+
+
 Top 100,000 users most followed:
 
 ```sql

@@ -64,3 +64,124 @@ The table is too large to export to anywhere, so let's download it to CSV and ma
 
 python -m app.bot_impact_v4.active_edge_v6_downloader
 ```
+
+
+## JK (v7)
+
+So the original assess data was made on bots in communities only, but we want all bots, regardless of their community assignment.
+
+```sql
+SELECT
+  up.user_id
+  ,up.screen_name
+  ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+  ,bu.community_id
+
+  ,bu.screen_names as bot_screen_names
+  ,bu.screen_name_count as bot_screen_name_count
+
+
+  ,up.follower_count
+  ,up.status_count
+  ,up.avg_score_lr
+  ,up.avg_score_nb
+  ,up.avg_score_bert
+FROM impeachment_production.nlp_v2_predictions_by_user up
+LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = up.user_id
+-- WHERE bu.user_id IS NOT NULL and up.follower_count is not null
+  -- and up.screen_name = "DRAGONS_ANGELS" -- up.user_id = 2838283974
+WHERE up.user_id = 2838283974
+ORDER BY bot_screen_name_count desc
+LIMIT 10
+```
+
+```sql
+SELECT
+ p.user_id
+ ,p.screen_name
+ ,p.user_created_at
+ -- ,p.status_id, status_text,
+ ,p.score_lr, p.score_nb, p.score_bert
+FROM impeachment_production.nlp_v2_predictions_combined p
+-- LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = up.user_id
+WHERE user_id = 2838283974
+```
+
+```sql
+
+-- SN COUNT BOTS VS HUMANS
+
+SELECT
+  tp.user_id
+  ,tp.user_created_at
+  -- ,bu.screen_names
+  -- ,bu.screen_name_count
+  ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+  ,bu.community_id
+
+  ,count(distinct tp.screen_name) as screen_name_count
+  ,count(distinct tp.status_id) as status_count
+
+  ,round(avg(tp.score_lr) * 10000) / 10000 as avg_score_lr -- round to four decimal places
+  ,round(avg(tp.score_nb) * 10000) / 10000 as avg_score_nb -- round to four decimal places
+  ,round(avg(tp.score_bert) * 10000) / 10000 as avg_score_bert -- round to four decimal places
+FROM impeachment_production.nlp_v2_predictions_combined tp
+LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = tp.user_id
+WHERE tp.user_id = 2838283974
+GROUP BY 1,2,3,4
+```
+
+
+```sql
+
+CREATE TABLE impeachment_production.user_details_v4 AS (
+  -- this is based off combined predictions for the primary collection period only
+  SELECT
+    tp.user_id
+    ,tp.user_created_at
+    ,count(distinct tp.screen_name) as screen_name_count
+    ,COALESCE(STRING_AGG(DISTINCT upper(tp.screen_name), ' | ') , "") as screen_names
+
+    ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+    ,bu.community_id
+
+    ,count(distinct tp.status_id) as status_count
+
+    ,round(avg(tp.score_lr) * 10000) / 10000 as avg_score_lr -- round to four decimal places
+    ,round(avg(tp.score_nb) * 10000) / 10000 as avg_score_nb -- round to four decimal places
+    ,round(avg(tp.score_bert) * 10000) / 10000 as avg_score_bert -- round to four decimal places
+  FROM impeachment_production.nlp_v2_predictions_combined tp
+  LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = tp.user_id
+  --WHERE tp.user_id = 2838283974
+  GROUP BY 1,2,5,6
+  -- LIMIT 100
+)
+```
+
+```sql
+CREATE TABLE impeachment_production.nodes_with_active_edges_v7 as (
+  WITH au AS (
+      SELECT
+          cast(user_id as int64) as user_id
+          ,upper(user_screen_name) as screen_name
+          ,count(distinct status_id) as rate
+      FROM impeachment_production.tweets t
+      WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
+      GROUP BY 1,2
+  )
+
+  SELECT
+      au.user_id
+      ,au.screen_name
+      ,au.rate
+      ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
+      ,cast(bu.community_id as int64) as community_id
+      ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+      ,count(DISTINCT uff.friend_name) as friend_count
+  FROM au
+  JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = au.user_id
+  LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = au.user_id
+  WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM au)
+  GROUP BY 1,2,3,4,5
+) -- THIS QUERY TAKES A LONG TIME
+```
