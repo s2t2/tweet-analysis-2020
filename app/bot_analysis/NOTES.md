@@ -154,6 +154,7 @@ CREATE TABLE impeachment_production.bots_most_active as (
     ,is_bot
     ,community_id
     ,status_count
+    ,rt_count
     ,avg_score_lr
     ,avg_score_nb
     ,avg_score_bert
@@ -163,3 +164,5 @@ CREATE TABLE impeachment_production.bots_most_active as (
   LIMIT 1000
 )
 ```
+
+Export the top 100 to JSON and use for the website.

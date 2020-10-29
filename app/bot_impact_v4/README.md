@@ -145,11 +145,12 @@ CREATE TABLE impeachment_production.user_details_v4 AS (
     ,bu.community_id
 
     ,count(distinct tp.status_id) as status_count
+    ,count(distinct CASE WHEN tp.is_rt THEN tp.status_id END) as rt_count
 
     ,round(avg(tp.score_lr) * 10000) / 10000 as avg_score_lr -- round to four decimal places
     ,round(avg(tp.score_nb) * 10000) / 10000 as avg_score_nb -- round to four decimal places
     ,round(avg(tp.score_bert) * 10000) / 10000 as avg_score_bert -- round to four decimal places
-  FROM impeachment_production.nlp_v2_predictions_combined tp
+  FROM impeachment_production.nlp_v2_predictions_combined_v2 tp
   LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = tp.user_id
   --WHERE tp.user_id = 2838283974
   GROUP BY 1,2,5,6

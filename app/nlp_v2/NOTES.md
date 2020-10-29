@@ -66,6 +66,7 @@ CREATE TABLE impeachment_production.nlp_v2_predictions_combined as (
     ,t.user_created_at
 
     ,t.status_id
+
     ,t.created_at
     ,t.status_text
     --,lr.prediction as prediction_lr
@@ -569,4 +570,32 @@ SELECT
    ,count(distinct CASE WHEN score_lr is not null then status_id end) as lr_count -- 67636557 why?
    ,count(distinct CASE WHEN score_nb is not null then status_id end) as nb_count -- 67666557
 FROM impeachment_production.nlp_v2_predictions_combined p
+```
+
+
+Adding rt status:
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.nlp_v2_predictions_combined_v2;
+CREATE TABLE impeachment_production.nlp_v2_predictions_combined_v2 as (
+  SELECT DISTINCT
+    cast(t.user_id as int64) as user_id
+    ,upper(t.user_screen_name) as screen_name
+    ,t.user_created_at
+
+    ,t.status_id
+    ,CASE WHEN t.retweet_status_id IS NOT NULL THEN true ELSE false END is_rt
+    ,t.created_at
+    ,t.status_text
+
+    ,case when lr.prediction = "D" then 0 when lr.prediction = "R" then 1 end score_lr
+    ,case when nb.prediction = "D" then 0 when nb.prediction = "R" then 1 end score_nb
+    ,bert.prediction as score_bert
+
+  FROM impeachment_production.tweets t
+  LEFT JOIN impeachment_production.nlp_v2_predictions_logistic_regression lr ON lr.status_id = cast(t.status_id as int64)
+  LEFT JOIN impeachment_production.nlp_v2_predictions_multinomial_nb nb ON nb.status_id = cast(t.status_id as int64)
+  LEFT JOIN impeachment_production.nlp_v2_predictions_bert bert ON bert.status_id = cast(t.status_id as int64)
+)
 ```
