@@ -135,7 +135,6 @@ GROUP BY 1,2,3,4
 ```sql
 
 CREATE TABLE impeachment_production.user_details_v4 AS (
-  -- this is based off combined predictions for the primary collection period only
   SELECT
     tp.user_id
     ,tp.user_created_at
@@ -158,30 +157,128 @@ CREATE TABLE impeachment_production.user_details_v4 AS (
 )
 ```
 
+
+OK here we go:
+
+
 ```sql
-CREATE TABLE impeachment_production.nodes_with_active_edges_v7 as (
-  WITH au AS (
-      SELECT
-          cast(user_id as int64) as user_id
-          ,upper(user_screen_name) as screen_name
-          ,count(distinct status_id) as rate
-      FROM impeachment_production.tweets t
-      WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
-      GROUP BY 1,2
+WITH scored_tweets as (
+  SELECT
+    tp.user_id ,tp.user_created_at ,tp.screen_name
+    ,tp.status_id ,tp.created_at --,tp.status_text
+    ,tp.score_lr ,tp.score_nb ,tp.score_bert
+  FROM impeachment_production.nlp_v2_predictions_combined tp
+  WHERE user_id = 2838283974
+  --WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
+  --ORDER BY created_at
+)
+
+SELECT
+  tp.user_id
+  ,extract(date from tp.user_created_at) as user_created
+
+  ,count(DISTINCT uff.friend_name) as user_friend_count
+  --,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+
+  ,tp.screen_name
+  ,extract(date from min(tp.created_at)) as status_created_min
+  ,extract(date from max(tp.created_at)) as status_created_max
+  ,count(distinct tp.status_id) as status_count
+  --,round(avg(tp.score_lr) * 10000) / 10000 as avg_score_lr -- round to four decimal places
+  --,round(avg(tp.score_nb) * 10000) / 10000 as avg_score_nb -- round to four decimal places
+  --,round(avg(tp.score_bert) * 10000) / 10000 as avg_score_bert -- round to four decimal places
+   ,avg(tp.score_lr) as avg_score_lr -- round to four decimal places
+  ,avg(tp.score_nb) as avg_score_nb -- round to four decimal places
+  ,avg(tp.score_bert) as avg_score_bert
+
+FROM scored_tweets as tp
+LEFT JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = tp.user_id
+--LEFT JOIN impeachment_production.user_friends_flat uff ON uff.screen_name = tp.screen_name
+
+--WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM scored_tweets)
+  --and tp.user_id = 2838283974
+GROUP BY 1,2,4 --,4,5,6,7,8
+
+```
+
+
+```sql
+-- ROW PER USER ID PER SCREEN NAME
+CREATE TABLE impeachment_production.nodes_with_active_edges_v7_sn as (
+  WITH scored_tweets as (
+    SELECT
+      tp.user_id ,tp.user_created_at ,tp.screen_name
+      ,tp.status_id --,tp.created_at --,tp.status_text
+      ,tp.score_lr ,tp.score_nb ,tp.score_bert
+    FROM impeachment_production.nlp_v2_predictions_combined tp
+    --WHERE user_id = 2838283974
+    WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
+    --ORDER BY created_at
   )
 
   SELECT
-      au.user_id
-      ,au.screen_name
-      ,au.rate
-      ,CASE WHEN bu.community_id IS NOT NULL THEN TRUE ELSE FALSE END bot
-      ,cast(bu.community_id as int64) as community_id
-      ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
-      ,count(DISTINCT uff.friend_name) as friend_count
-  FROM au
-  JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = au.user_id
-  LEFT JOIN impeachment_production.2_bot_communities bu ON bu.user_id = au.user_id
-  WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM au)
-  GROUP BY 1,2,3,4,5
-) -- THIS QUERY TAKES A LONG TIME
+    tp.user_id
+    ,extract(date from tp.user_created_at) as user_created
+
+    ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+    ,bu.community_id
+
+    ,count(DISTINCT uff.friend_name) as active_friend_count
+    ,STRING_AGG(DISTINCT uff.friend_name) as active_friend_names -- STRING AGG FOR CSV OUTPUT!
+
+    ,tp.screen_name
+    --,extract(date from min(tp.created_at)) as status_created_min
+    --,extract(date from max(tp.created_at)) as status_created_max
+    ,count(distinct tp.status_id) as status_count
+    ,avg(tp.score_lr) as avg_score_lr -- round to four decimal places
+    ,avg(tp.score_nb) as avg_score_nb -- round to four decimal places
+    ,avg(tp.score_bert) as avg_score_bert
+
+  FROM scored_tweets as tp
+  LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = tp.user_id
+  LEFT JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = tp.user_id
+  WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM scored_tweets)
+  GROUP BY user_id, user_created, is_bot, community_id, screen_name
+) -- TAKES A FEW MINUTES
+```
+
+```sql
+-- ROW PER USER ID
+CREATE TABLE impeachment_production.nodes_with_active_edges_v7_id as (
+  WITH scored_tweets as (
+    SELECT
+      tp.user_id ,tp.user_created_at ,tp.screen_name
+      ,tp.status_id ,tp.created_at --,tp.status_text
+      ,tp.score_lr ,tp.score_nb ,tp.score_bert
+    FROM impeachment_production.nlp_v2_predictions_combined tp
+    --WHERE user_id = 2838283974
+    WHERE created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59' -- inclusive (primary collection period)
+    --ORDER BY created_at
+  )
+
+  SELECT
+    tp.user_id
+    ,extract(date from tp.user_created_at) as user_created
+
+    ,CASE WHEN bu.user_id IS NOT NULL THEN true ELSE false END is_bot
+    ,bu.community_id
+
+    ,count(DISTINCT uff.friend_name) as friend_count
+    ,STRING_AGG(DISTINCT uff.friend_name) as friend_names -- STRING AGG FOR CSV OUTPUT!
+
+    --,tp.screen_name
+    --,extract(date from min(tp.created_at)) as status_created_min
+    --,extract(date from max(tp.created_at)) as status_created_max
+    ,count(distinct tp.status_id) as status_count
+
+    ,round(avg(tp.score_lr) * 10000) / 10000 as avg_score_lr -- round to four decimal places
+    ,round(avg(tp.score_nb) * 10000) / 10000 as avg_score_nb -- round to four decimal places
+    ,round(avg(tp.score_bert) * 10000) / 10000 as avg_score_bert -- round to four decimal places
+
+  FROM scored_tweets as tp
+  LEFT JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = tp.user_id
+  LEFT JOIN impeachment_production.user_friends_flat uff ON cast(uff.user_id as int64) = tp.user_id
+  WHERE uff.friend_name in (SELECT DISTINCT screen_name FROM scored_tweets)
+  GROUP BY user_id, user_created, is_bot, community_id --, screen_name
+) -- TAKES A FEW MINUTES
 ```
