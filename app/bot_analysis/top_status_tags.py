@@ -75,9 +75,10 @@ def summarize_token_frequencies(tokens_series):
 if __name__ == "__main__":
 
     storage = FileStorage(dirpath="bot_analysis")
-    tweets_csv_filepath = os.path.join(storage.local_dirpath, "statuses_with_tags.csv")
-    tags_csv_filepath = os.path.join(storage.local_dirpath, "top_status_tags.csv")
 
+
+
+    tweets_csv_filepath = os.path.join(storage.local_dirpath, "statuses_with_tags.csv")
     if os.path.isfile(tweets_csv_filepath) and not DESTRUCTIVE:
         print("LOADING TWEETS...")
         tweets_df = read_csv(tweets_csv_filepath)
@@ -89,10 +90,15 @@ if __name__ == "__main__":
     print(tweets_df.head())
 
 
-    print("TOKENIZING TWEETS...")
-    breakpoint()
-    tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
 
+    print("TOKENIZING TWEETS...")
+    #tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
+    tweets_df["status_tags"] = tweets_df["status_text"].map(parse_hashtags)
+
+
+
+    tags_csv_filepath = os.path.join(storage.local_dirpath, "top_status_tags.csv")
+    top_tags_csv_filepath = os.path.join(storage.local_dirpath, "top_1000_status_tags.csv")
     if os.path.isfile(tags_csv_filepath) and not TAGS_DESTRUCTIVE:
         print("LOADING TOP TAGS...")
         tags_df = read_csv(tags_csv_filepath)
@@ -100,21 +106,19 @@ if __name__ == "__main__":
         print("SUMMARIZING...")
         tags_df = summarize_token_frequencies(tweets_df["status_tags"])
         tags_df.to_csv(tags_csv_filepath, index=False)
+        tags_df.head(1000).to_csv(top_tags_csv_filepath, index=False)
     print(tags_df.head())
 
 
 
-
-
-
-
-    exit()
-
     for is_bot, filtered_df in tweets_df.groupby(["is_bot"]):
         bot_or_human = {True: "bot", False: "human"}[is_bot]
-        bh_tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_status_tags_{bot_or_human}.csv")
         print(bot_or_human.upper())
 
-        bot_or_human_tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
-        print(bot_or_human_tags_df.head())
-        bot_or_human_tags_df.head(1000).to_csv(bh_tags_csv_filepath, index=False)
+        bh_tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
+        print(bh_tags_df.head())
+
+        bh_tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_{bot_or_human}_status_tags.csv")
+        bh_top_tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_1000_{bot_or_human}_status_tags.csv")
+        bh_tags_df.to_csv(bh_tags_csv_filepath, index=False)
+        bh_tags_df.head(1000).to_csv(bh_top_tags_csv_filepath, index=False)
