@@ -39,33 +39,37 @@ def parse_hashtags(status_text):
     tags = [token.upper() for token in status_text.split() if token.startswith("#") and not token.endswith("#")]
     return tags
 
-def summarize_token_frequencies(token_sets, rank_metric="token_count"):
+def summarize_token_frequencies(tokens_series):
     """
     Param token_sets : a list of tokens for each document in a collection
 
     Returns a DataFrame with a row per topic and columns for various TF/IDF-related scores.
     """
     print("COMPUTING TOKEN AND DOCUMENT FREQUENCIES...")
-
     token_counter = Counter()
     doc_counter = Counter()
+    my_counter = Counter()
 
-    for tokens in token_sets:
+    for tokens in tokens_series:
         token_counter.update(tokens)
         doc_counter.update(set(tokens)) # removes duplicate tokens so they only get counted once per doc!
 
-    df = DataFrame(zip(doc_counter.keys(), doc_counter.values()), columns=["token", "doc_count"]).merge(
-        DataFrame(zip(token_counter.keys(), token_counter.values()), columns=["token", "token_count"]), on="token"
-    )
+    token_counts = zip(token_counter.keys(), token_counter.values())
+    doc_counts = zip(doc_counter.keys(), doc_counter.values())
 
-    df["token_pct"] = df["token_count"] / df["token_count"].sum()
-    df["doc_pct"] = df["doc_count"] / len(token_sets)
+    token_df = DataFrame(token_counts, columns=["token", "count"])
+    doc_df = DataFrame(doc_counts, columns=["token", "doc_count"])
 
-    #df["naive_tfidf"] = df["token_count"] / (1 - df["doc_count"]) # not sure about the denominator
+    df = doc_df.merge(token_df, on="token")
 
-    df["rank"] = df[rank_metric].rank(method="first", ascending=False)
+    df["rank"] = df["count"].rank(method="first", ascending=False)
+    df["pct"] = df["count"] / df["count"].sum()
+    df["doc_pct"] = df["doc_count"] / len(tokens_series)
 
-    return df.reindex(columns=["token", "rank", "token_count", "token_pct", "doc_count", "doc_pct"]).sort_values(by="rank")
+    #df = df.sort_values(by="rank")
+    #df["running_pct"] = df["pct"].cumsum()
+
+    return df.reindex(columns=["token", "rank", "count", "pct", "doc_count", "doc_pct"]).sort_values(by="rank")
 
 
 if __name__ == "__main__":
@@ -80,27 +84,22 @@ if __name__ == "__main__":
     else:
         print("DOWNLOADING TWEETS...")
         tweets_df = download_tweets()
-        print("TOKENIZING TWEETS...")
-        tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
         tweets_df.to_csv(tweets_csv_filepath, index=False)
-
     print(fmt_n(len(tweets_df)))
     print(tweets_df.head())
 
-    print("----------------------")
-    print("ANALYZING TWEETS...")
 
+    print("TOKENIZING TWEETS...")
+    breakpoint()
+    tweets_df["status_tags"] = tweets_df["status_text"].apply(parse_hashtags)
 
     if os.path.isfile(tags_csv_filepath) and not TAGS_DESTRUCTIVE:
         print("LOADING TOP TAGS...")
         tags_df = read_csv(tags_csv_filepath)
     else:
         print("SUMMARIZING...")
-        tags_df = summarize_token_frequencies(tweets_df["status_tags"].tolist())
-
-        breakpoint()
+        tags_df = summarize_token_frequencies(tweets_df["status_tags"])
         tags_df.to_csv(tags_csv_filepath, index=False)
-
     print(tags_df.head())
 
 
