@@ -115,7 +115,7 @@ if __name__ == "__main__":
         bot_or_human = {True: "bot", False: "human"}[is_bot]
         print(bot_or_human.upper())
 
-        bh_tags_df = summarize_token_frequencies(filtered_df["status_tags"].tolist())
+        bh_tags_df = summarize_token_frequencies(filtered_df["status_tags"])
         print(bh_tags_df.head())
 
         bh_tags_csv_filepath = os.path.join(storage.local_dirpath, f"top_{bot_or_human}_status_tags.csv")
