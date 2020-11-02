@@ -167,6 +167,15 @@ CREATE TABLE impeachment_production.bots_most_active as (
 
 Export the top 100 to JSON and use for the website.
 
+
+
+
+
+
+
+
+
+
 ## Analysis Queries - Bot Communities
 
 Users most retwteeted by bot community:
@@ -186,4 +195,57 @@ WHERE community_id = 0
 GROUP BY 1,2,3
 ORDER BY 5 DESC
 LIMIT 1000
+```
+
+## Analysis Queries - Bot Opinion Communities
+
+Users most retweeted by bot opinion community:
+
+
+```sql
+
+/*
+SELECT DISTINCT
+    bu.community_id
+    ,rt.retweeted_user_id
+    ,rt.retweeted_user_screen_name
+    ,count(distinct rt.user_id) as retweeter_count
+    ,count(distinct rt.status_id) as retweet_count --
+FROM impeachment_production.retweets_v2 rt
+JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = rt.user_id
+WHERE community_id is null
+GROUP BY 1,2,3
+ORDER BY 5 DESC
+LIMIT 1000
+*/
+
+  SELECT
+    --bu.user_id
+    --,bu.user_created_at
+    --,bu.screen_name_count
+    --,bu.screen_names
+    --,bu.is_bot
+    --,bu.community_id
+    --,status_count
+    --,rt_count
+    --,bu.avg_score_lr
+    --,bu.avg_score_nb
+    --,bu.avg_score_bert
+
+    "Pro-Impeachment BERT" as opinion_community
+    ,rt.retweeted_user_id
+    ,rt.retweeted_user_screen_name
+    ,count(distinct rt.user_id) as retweeter_count
+    ,count(distinct rt.status_id) as retweet_count
+
+  FROM impeachment_production.user_details_v4 bu
+  JOIN impeachment_production.retweets_v2 rt ON bu.user_id = rt.user_id
+  --WHERE is_bot = true and avg_score_bert < 0.5 -- 10,114
+  WHERE is_bot = true and avg_score_bert > 0.5 -- 13929
+  --WHERE is_bot = true and avg_score_bert = 0.5 -- 0
+  GROUP BY 1,2,3
+  ORDER BY 5 DESC
+  LIMIT 1000
+
+
 ```
