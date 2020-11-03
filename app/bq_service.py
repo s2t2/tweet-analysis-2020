@@ -1520,6 +1520,22 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    def fetch_user_details_vq(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id ,creation_date ,screen_name_count
+                ,status_count, rt_count
+                ,is_bot ,bot_community
+                ,mean_opinion ,opinion_community
+                ,q_status_count ,q_status_pct
+            FROM`{self.dataset_address}.user_details_vq`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
 
 
 

@@ -250,7 +250,9 @@ LIMIT 1000
 
 ```
 
-## Bot Language
+## Disinformation Campaigns
+
+  + https://wt.social/post/fighting-misinformation/nvrqyhu5325591624484
 
 
 Flattening a table of status hashtags. This will be the key for quick queries.
@@ -395,10 +397,57 @@ FROM impeachment_production.user_details_v4 u
 LIMIT 10
 ```
 
-Which bots are retweeting a specific set of topics?
-
+Which bots are retweeting a specific set of disinformation topics?
 
 
 ```sql
+DROP TABLE IF EXISTS impeachment_production.user_details_vq;
+CREATE TABLE impeachment_production.user_details_vq as (
 
+  SELECT
+    u.user_id
+    ,extract(date from u.user_created_at) as creation_date
+    ,u.screen_name_count --,u.screen_names
+    ,u.status_count ,u.rt_count
+
+
+    ,u.is_bot
+    ,u.community_id as bot_community
+
+    --,u.avg_score_lr ,u.avg_score_nb ,u.avg_score_bert
+    ,coalesce(avg_score_bert, avg_score_lr, avg_score_nb) as mean_opinion
+    ,case
+      when coalesce(avg_score_bert, avg_score_lr, avg_score_nb) > 0.5 then 1
+      when coalesce(avg_score_bert, avg_score_lr, avg_score_nb) < 0.5 then 0
+    end opinion_community
+
+
+    ,coalesce(q.status_count, 0) as q_status_count
+    --,q.tag_count as q_tag_count
+    ,coalesce(round(q.status_count / u.status_count, 4), 0) as q_status_pct
+
+  FROM impeachment_production.user_details_v4 u
+  LEFT JOIN (
+    SELECT user_id ,count(distinct status_id) as status_count, count(tag) as tag_count
+    FROM impeachment_production.status_tags_v2_flat
+    WHERE tag in ('#QANON', '#WWG1WGA', '#GREATAWAKENING', '#WAKEUPAMERICA', '#WEARETHENEWSNOW')
+    GROUP BY 1
+  ) q ON q.user_id = u.user_id
+  --WHERE avg_score_bert is null and avg_score_lr is null
+  --LIMIT 10
+)
+
+/*
+SELECT *
+FROM impeachment_production.user_details_vq -- 3,600,545
+LIMIT 10
+*/
 ```
+
+```py
+DESTRUCTIVE=true LIMIT=1000 BATCH_SIZE=100 python -m app.bot_analysis.user_details_vq
+
+# APP_ENV="prodlike" python -m app.bot_analysis.user_details_vq
+```
+
+Export to Tableau and have some fun!
