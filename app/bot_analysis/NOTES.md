@@ -1,8 +1,8 @@
 
 
+# Analysis Queries
 
-
-## Analysis Queries - All Bots
+## Detection All Bots
 
 Generate "all_bots_grouped_by_id_and_screen_name.csv":
 
@@ -60,7 +60,7 @@ CREATE TABLE impeachment_production.bots_above_80_v2 as (
 )
 ```
 
-## Analysis Queries - Bots vs Humans
+## Bots vs Humans
 
 ### Users Most Retweeted
 
@@ -176,7 +176,7 @@ Export the top 100 to JSON and use for the website.
 
 
 
-## Analysis Queries - Bot Communities
+## Bot Network Communities
 
 Users most retwteeted by bot community:
 
@@ -197,7 +197,7 @@ ORDER BY 5 DESC
 LIMIT 1000
 ```
 
-## Analysis Queries - Bot Opinion Communities
+## Bot Opinion Communities
 
 Users most retweeted by bot opinion community:
 
@@ -240,12 +240,133 @@ LIMIT 1000
 
   FROM impeachment_production.user_details_v4 bu
   JOIN impeachment_production.retweets_v2 rt ON bu.user_id = rt.user_id
-  --WHERE is_bot = true and avg_score_bert < 0.5 -- 10,114
-  WHERE is_bot = true and avg_score_bert > 0.5 -- 13929
+  WHERE is_bot = true and avg_score_bert < 0.5 -- 10,114
+  --WHERE is_bot = true and avg_score_bert > 0.5 -- 13929
   --WHERE is_bot = true and avg_score_bert = 0.5 -- 0
   GROUP BY 1,2,3
   ORDER BY 5 DESC
   LIMIT 1000
 
+
+```
+
+## Bot Language
+
+
+Flattening a table of status hashtags. This will be the key for quick queries.
+
+Regex tests:
+
+```sql
+SELECT
+  --t.status_text,
+  REGEXP_EXTRACT_ALL(t.status_text, r'#[A-Za-z0-9\-\.\_]+') as tags
+FROM (
+  SELECT 'RT @Rosie: trump is unfit to lead - he should be impeached for firing the Vindman brothers #VindmanIsAHero #CoronavirusOutbreak is real - #…' as status_text
+) t
+--> #VindmanIsAHero
+--> #CoronavirusOutbreak
+```
+
+```sql
+SELECT
+  --t.status_text,
+  REGEXP_EXTRACT_ALL(upper(t.status_text), r'#[A-Z0-9]+') as tags
+FROM (
+  SELECT 'RT @Rosie: trump is unfit to lead - he should be impeached for firing the Vindman brothers #VindmanIsAHero #CoronavirusOutbreak is real - #… RT @evamckend: It began with bold refusal to act as neutral party in #impeachment.  By wearing down Senators w/ grueling schedule, keeping… #impeachment-scam yo' as status_text
+) t
+```
+
+```sql
+SELECT
+ t.user_id
+ ,status_id
+ ,status_text
+ --,REGEXP_EXTRACT_ALL(t.status_text, r'#[A-Za-z0-9\-\.\_]+') as tags
+ ,REGEXP_EXTRACT_ALL(upper(t.status_text), r'#[A-Z0-9]+') as tags
+ ,REGEXP_EXTRACT_ALL(upper(t.status_text), r'@[A-Z0-9]+') as mentions
+FROM impeachment_production.statuses_with_tags t
+LIMIT 100
+```
+
+```sql
+SELECT
+ cast(t.user_id as int64) as user_id
+ ,cast(t.status_id as int64) as status_id
+ ,t.created_at
+ ,t.status_text
+ ,REGEXP_EXTRACT_ALL(upper(t.status_text), r'#[A-Z0-9]+') as tags
+FROM impeachment_production.tweets t
+WHERE REGEXP_CONTAINS(t.status_text, '#')
+LIMIT 100
+```
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.status_tags_v2;
+CREATE TABLE impeachment_production.status_tags_v2 as (
+  SELECT
+   cast(t.user_id as int64) as user_id
+   ,cast(t.status_id as int64) as status_id
+   --,t.created_at
+   --,t.status_text
+   ,REGEXP_EXTRACT_ALL(upper(t.status_text), r'#[A-Z0-9]+') as tags
+  FROM impeachment_production.tweets t
+  WHERE REGEXP_CONTAINS(t.status_text, '#')
+  --LIMIT 10
+)
+```
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.status_mentions_v2;
+CREATE TABLE impeachment_production.status_mentions_v2 as (
+  SELECT
+   cast(t.user_id as int64) as user_id
+   ,cast(t.status_id as int64) as status_id
+   --,t.created_at
+   --,t.status_text
+   ,REGEXP_EXTRACT_ALL(upper(t.status_text), r'@[A-Z0-9]+') as mentions
+  FROM impeachment_production.tweets t
+  WHERE REGEXP_CONTAINS(t.status_text, '@')
+  --LIMIT 10
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+```sql
+SELECT
+  u.user_id
+   --,u.user_created_at
+  ,extract(date from u.user_created_at) as creation_date
+  ,u.screen_name_count
+  --,u.screen_names
+  ,status_count
+  ,rt_count
+  ,u.is_bot
+  ,u.community_id as bot_network_community
+  ,case when avg_score_bert > 0.5 then 1 when avg_score_bert < 0.5 then 0 end opinion_community
+  ,u.avg_score_lr
+  ,u.avg_score_nb
+  ,u.avg_score_bert
+
+
+FROM impeachment_production.user_details_v4 u
+--JOIN impeachment_production.bots_above_80_v2 bu ON bu.bot_id = u.user_id
+LIMIT 10
+```
+
+Which bots are retweeting a specific set of topics?
+
+
+
+```sql
 
 ```
