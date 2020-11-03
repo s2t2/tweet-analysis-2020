@@ -372,6 +372,17 @@ GROUP BY 1
 ORDER BY 2 DESC
 ```
 
+```sql
+SELECT
+  u.is_bot
+  ,count(distinct st.user_id) as user_count
+  ,count(distinct st.status_id) as status_count
+  , count(st.tag) as tag_count -- 406,767
+FROM impeachment_production.status_tags_v2_flat st
+JOIN impeachment_production.user_details_v4 u ON u.user_id = st.user_id
+WHERE st.tag in ('#QANON', '#WWG1WGA', '#GREATAWAKENING', '#WAKEUPAMERICA', '#WEARETHENEWSNOW')
+GROUP BY 1
+```
 
 
 
@@ -452,3 +463,38 @@ DESTRUCTIVE=true LIMIT=1000 BATCH_SIZE=100 python -m app.bot_analysis.user_detai
 ```
 
 Export to Tableau and have some fun!
+
+
+Prove some findings:
+
+```sql
+
+SELECT
+ case when is_bot = true then "Bot" else "Human" end bot_status
+ ,case when q_status_count > 0 then true else false end disinformation_spreader
+ ,count(distinct user_id) as user_count
+ ,sum(status_count) as status_count
+FROM impeachment_production.user_details_vq
+GROUP BY 1,2
+
+
+```
+
+```sql
+
+SELECT
+ case when is_bot = true then "Bot" else "Human" end bot_status
+ --,case when q_status_count > 0 then true else false end disinformation_spreader
+
+ ,count(distinct user_id) as user_count
+ ,count(distinct case when q_status_count > 0 then user_id end) as q_user_count
+ ,count(distinct case when q_status_count > 0 then user_id end) / count(distinct user_id) as q_user_pct
+
+  -- this is the number of tweets by users who spread disinfo, not the total tweets about disinfo
+ --,sum(status_count) as status_count
+ --,sum(case when q_status_count > 0 then status_count end) as q_status_count
+ --,sum(case when q_status_count > 0 then status_count end) / sum(status_count) as q_status_pct
+
+FROM impeachment_production.user_details_vq
+GROUP BY 1
+```
