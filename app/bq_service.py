@@ -1523,7 +1523,7 @@ class BigQueryService():
     def fetch_user_details_vq(self, limit=None):
         sql = f"""
             SELECT
-                user_id ,creation_date ,screen_name_count
+                user_id ,creation_date ,screen_name_count, screen_names
                 ,status_count, rt_count
                 ,is_bot ,bot_community
                 ,mean_opinion ,opinion_community

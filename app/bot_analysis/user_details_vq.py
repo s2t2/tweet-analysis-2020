@@ -31,7 +31,7 @@ def download_user_details():
 
 if __name__ == "__main__":
 
-    storage = FileStorage(dirpath="bot_analysis")
+    storage = FileStorage(dirpath="disinformation")
 
     csv_filepath = os.path.join(storage.local_dirpath, "user_details_vq.csv")
     if os.path.isfile(csv_filepath) and not DESTRUCTIVE:

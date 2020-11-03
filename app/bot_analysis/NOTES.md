@@ -407,7 +407,8 @@ CREATE TABLE impeachment_production.user_details_vq as (
   SELECT
     u.user_id
     ,extract(date from u.user_created_at) as creation_date
-    ,u.screen_name_count --,u.screen_names
+    ,u.screen_name_count
+    ,u.screen_names
     ,u.status_count ,u.rt_count
 
 
