@@ -350,8 +350,25 @@ CREATE TABLE IF NOT EXISTS impeachment_production.status_mentions_v2_flat as (
 )
 ```
 
+```sql
+-- https://wt.social/post/fighting-misinformation/nvrqyhu5325591624484
+SELECT
+  count(distinct user_id) as user_count -- 33,923
+  ,count(distinct status_id) as status_count -- 154,031
+  , count(tag) as tag_count -- 406,767
+FROM impeachment_production.status_tags_v2_flat
+WHERE tag in ('#QANON', '#WWG1WGA', '#GREATAWAKENING', '#WAKEUPAMERICA', '#WEARETHENEWSNOW')
+```
 
-
+```sql
+SELECT tag
+,count(distinct user_id) as user_count ,count(distinct status_id) as status_count, count(tag) as tag_count
+FROM impeachment_production.status_tags_v2_flat
+--WHERE user_id = 1086761984807194624
+WHERE tag in ('#QANON', '#WWG1WGA', '#GREATAWAKENING', '#WAKEUPAMERICA', '#WEARETHENEWSNOW')
+GROUP BY 1
+ORDER BY 2 DESC
+```
 
 
 
