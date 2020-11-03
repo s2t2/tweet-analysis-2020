@@ -314,9 +314,7 @@ CREATE TABLE impeachment_production.status_tags_v2 as (
   WHERE REGEXP_CONTAINS(t.status_text, '#')
   --LIMIT 10
 )
-```
 
-```sql
 DROP TABLE IF EXISTS impeachment_production.status_mentions_v2;
 CREATE TABLE impeachment_production.status_mentions_v2 as (
   SELECT
@@ -331,9 +329,26 @@ CREATE TABLE impeachment_production.status_mentions_v2 as (
 )
 ```
 
+Flattened tables for faster joining in the future:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.status_tags_v2_flat;
+CREATE TABLE IF NOT EXISTS impeachment_production.status_tags_v2_flat as (
+    SELECT user_id, status_id, tag
+    FROM impeachment_production.status_tags_v2
+    CROSS JOIN UNNEST(tags) AS tag
+    -- LIMIT 10
+);
 
 
-
+DROP TABLE IF EXISTS impeachment_production.status_mentions_v2_flat;
+CREATE TABLE IF NOT EXISTS impeachment_production.status_mentions_v2_flat as (
+    SELECT user_id, status_id, mention
+    FROM impeachment_production.status_mentions_v2
+    CROSS JOIN UNNEST(mentions) AS mention
+    -- LIMIT 10
+)
+```
 
 
 
