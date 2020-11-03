@@ -192,6 +192,7 @@ Grouping and aggregation, working with multi-indices:
 ## Regular Expressions
 
   + https://stackoverflow.com/questions/2527892/parsing-a-tweet-to-extract-hashtags-into-an-array
+  + https://www.regexpal.com/96916
 
 ## Basilica
 
