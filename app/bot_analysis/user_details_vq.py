@@ -47,6 +47,10 @@ def download_data():
     return DataFrame(records)
 
 def ks_test_response(x, y):
+    """
+    Params x and y : two arrays of sample observations assumed to be drawn from a continuous distribution, sample sizes can be different.
+    See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
+    """
     xy_result = ks_2samp(x, y)
     response = {
         "stat": xy_result.statistic,
@@ -54,7 +58,6 @@ def ks_test_response(x, y):
         "interpret_pval_max": PVAL_MAX,
         "interpret": interpret_ks(xy_result)
     }
-    pprint(response)
     return response
 
 if __name__ == "__main__":
@@ -78,16 +81,16 @@ if __name__ == "__main__":
         print(len(x), len(y), len(x) + len(y) == len(df))
         response = ks_test_response(x, y)
         response["name"] = "User Creation Dates (Bot vs Human)"
+        pprint(response)
         with open(json_filepath, "w") as json_file:
             json.dump(response, json_file)
 
-
-        print("DISINFORMATION SPREADER VS NOT...")
         json_filepath = os.path.join(storage.local_dirpath, "ks_test_creation_disinformation.json")
         x = sorted(df[df["q_status_count"] > 0]["creation_ts"].tolist())
         y = sorted(df[df["q_status_count"] == 0]["creation_ts"].tolist())
-        print(len(x), len(y), len(x) + len(y) == len(df))
+        print(f"DISINFORMATION SPREADER ({fmt_n(len(x))}) VS NOT ({fmt_n(len(y))}) ...")
         response = ks_test_response(x, y)
         response["name"] = "User Creation Dates (Disinformation Spreader vs Others)"
+        pprint(response)
         with open(json_filepath, "w") as json_file:
             json.dump(response, json_file)
