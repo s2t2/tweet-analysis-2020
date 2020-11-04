@@ -46,6 +46,17 @@ def download_data():
 
     return DataFrame(records)
 
+def ks_test_response(x, y):
+    xy_result = ks_2samp(x, y)
+    response = {
+        "stat": xy_result.statistic,
+        "pval": xy_result.pvalue,
+        "interpret_pval_max": PVAL_MAX,
+        "interpret": interpret_ks(xy_result)
+    }
+    pprint(response)
+    return response
+
 if __name__ == "__main__":
 
     storage = FileStorage(dirpath="disinformation")
@@ -58,53 +69,25 @@ if __name__ == "__main__":
         print("TESTING USER CREATION DATES...")
 
         df["creation_ts"] = df["creation_date"].map(date_to_ts)
+        all_timestamps = sorted(df["creation_ts"].tolist())
 
         print("BOT VS HUMAN...")
-        all_timestamps = sorted(df["creation_ts"].tolist())
-        bot_timestamps = sorted(df[df["is_bot"] == True]["creation_ts"].tolist())
-        human_timestamps = sorted(df[df["is_bot"] == False]["creation_ts"].tolist())
-        print(len(bot_timestamps), len(human_timestamps), len(bot_timestamps) + len(human_timestamps) == len(df))
-
-        print("BOTS VS HUMANS")
-        bh_result = ks_2samp(bot_timestamps, human_timestamps)
-        print(bh_result) #> KstestResult(statistic=0.08727875810101371, pvalue=1.9483380181138512e-159)
-        print(interpret_ks(bh_result)) #> 'REJECT (DIFF)'
-
-        ba_result = ks_2samp(all_timestamps, bot_timestamps)
-        print(ba_result) #> KstestResult(statistic=0.08669335172277393, pvalue=2.5849735178899478e-157)
-        print(interpret_ks(ba_result)) #>'REJECT (DIFF)'
-
-        ha_result = ks_2samp(all_timestamps, human_timestamps)
-        print(ha_result) #> KstestResult(statistic=0.0005854063782397834, pvalue=0.5699404349689656)
-        print(interpret_ks(ha_result))  #> ACCEPT (SAME)
-
-        response = {
-            "name": "User Creation Dates (Bot vs Human)",
-            "counts": {
-                "all": len(all_timestamps),
-                "bot": len(bot_timestamps),
-                "human": len(human_timestamps),
-            },
-            "pval_max": PVAL_MAX,
-            "results": {
-                "bot_vs_human": {"stat": bh_result.statistic, "pval": bh_result.pvalue, "interpret": interpret_ks(bh_result)},
-                "bot_vs_all": {"stat": ba_result.statistic, "pval": ba_result.pvalue, "interpret": interpret_ks(ba_result)},
-                "human_vs_all": {"stat": ha_result.statistic, "pval": ha_result.pvalue, "interpret": interpret_ks(ha_result)}
-            }
-        }
-        pprint(response)
-
         json_filepath = os.path.join(storage.local_dirpath, "ks_test_creation_bots_humans.json")
+        x = sorted(df[df["is_bot"] == True]["creation_ts"].tolist())
+        y = sorted(df[df["is_bot"] == False]["creation_ts"].tolist())
+        print(len(x), len(y), len(x) + len(y) == len(df))
+        response = ks_test_response(x, y)
+        response["name"] = "User Creation Dates (Bot vs Human)"
         with open(json_filepath, "w") as json_file:
             json.dump(response, json_file)
 
 
-        print(my_data)
-
-
-        #print("DISINFORMATION SPREADER VS NOT...")
-
-
-
-
-        breakpoint()
+        print("DISINFORMATION SPREADER VS NOT...")
+        json_filepath = os.path.join(storage.local_dirpath, "ks_test_creation_disinformation.json")
+        x = sorted(df[df["q_status_count"] > 0]["creation_ts"].tolist())
+        y = sorted(df[df["q_status_count"] == 0]["creation_ts"].tolist())
+        print(len(x), len(y), len(x) + len(y) == len(df))
+        response = ks_test_response(x, y)
+        response["name"] = "User Creation Dates (Disinformation Spreader vs Others)"
+        with open(json_filepath, "w") as json_file:
+            json.dump(response, json_file)
