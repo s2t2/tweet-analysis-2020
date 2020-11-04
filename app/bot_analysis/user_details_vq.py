@@ -4,7 +4,7 @@ from pprint import pprint
 import json
 
 from pandas import DataFrame, read_csv
-from scipy.stats import ks_2samp
+from scipy.stats import ks_2samp #, ttest_ind
 
 from app.bq_service import BigQueryService
 from app.file_storage import FileStorage
@@ -72,13 +72,12 @@ if __name__ == "__main__":
         print("TESTING USER CREATION DATES...")
 
         df["creation_ts"] = df["creation_date"].map(date_to_ts)
-        all_timestamps = sorted(df["creation_ts"].tolist())
+        metric = "creation_ts"
 
-        print("BOT VS HUMAN...")
         json_filepath = os.path.join(storage.local_dirpath, "ks_test_creation_bots_humans.json")
-        x = sorted(df[df["is_bot"] == True]["creation_ts"].tolist())
-        y = sorted(df[df["is_bot"] == False]["creation_ts"].tolist())
-        print(len(x), len(y), len(x) + len(y) == len(df))
+        x = sorted(df[df["is_bot"] == True][metric].tolist())
+        y = sorted(df[df["is_bot"] == False][metric].tolist())
+        print(f"BOTS ({fmt_n(len(x))}) VS HUMANS ({fmt_n(len(y))}) ...")
         response = ks_test_response(x, y)
         response["name"] = "User Creation Dates (Bot vs Human)"
         pprint(response)
@@ -86,11 +85,41 @@ if __name__ == "__main__":
             json.dump(response, json_file)
 
         json_filepath = os.path.join(storage.local_dirpath, "ks_test_creation_disinformation.json")
-        x = sorted(df[df["q_status_count"] > 0]["creation_ts"].tolist())
-        y = sorted(df[df["q_status_count"] == 0]["creation_ts"].tolist())
+        x = sorted(df[df["q_status_count"] > 0][metric].tolist())
+        y = sorted(df[df["q_status_count"] == 0][metric].tolist())
         print(f"DISINFORMATION SPREADER ({fmt_n(len(x))}) VS NOT ({fmt_n(len(y))}) ...")
         response = ks_test_response(x, y)
         response["name"] = "User Creation Dates (Disinformation Spreader vs Others)"
         pprint(response)
         with open(json_filepath, "w") as json_file:
             json.dump(response, json_file)
+
+        print("-----------------------")
+        print("TESTING SCREEN NAME COUNTS...")
+        metric = "screen_name_count"
+
+        json_filepath = os.path.join(storage.local_dirpath, "ks_test_sncounts_bots_humans.json")
+        x = df[df["is_bot"] == True][metric]
+        y = df[df["is_bot"] == False][metric]
+        print(f"BOTS ({fmt_n(len(x))}) VS HUMANS ({fmt_n(len(y))}) ...")
+        print(x.value_counts())
+        print(y.value_counts())
+        response = ks_test_response(sorted(x.tolist()), sorted(y.tolist()))
+        response["name"] = "Screen Name Changes (Bot vs Human)"
+        pprint(response)
+        with open(json_filepath, "w") as json_file:
+            json.dump(response, json_file)
+        #t_result = ttest_ind(sorted(x.tolist()), sorted(y.tolist()))
+
+        json_filepath = os.path.join(storage.local_dirpath, "ks_test_sncounts_disinformation.json")
+        x = df[df["q_status_count"] > 0][metric]
+        y = df[df["q_status_count"] == 0][metric]
+        print(f"DISINFORMATION SPREADER ({fmt_n(len(x))}) VS NOT ({fmt_n(len(y))}) ...")
+        print(x.value_counts())
+        print(y.value_counts())
+        response = ks_test_response(sorted(x.tolist()), sorted(y.tolist()))
+        response["name"] = "Screen Name Changes (Disinformation Spreader vs Others)"
+        pprint(response)
+        with open(json_filepath, "w") as json_file:
+            json.dump(response, json_file)
+        #t_result = ttest_ind(sorted(x.tolist()), sorted(y.tolist()))
