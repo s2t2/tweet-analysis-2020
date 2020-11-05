@@ -199,56 +199,80 @@ LIMIT 1000
 
 ## Bot Opinion Communities
 
-Users most retweeted by bot opinion community:
+Out of 21K bots, 10K have anti-Trump opinions and 14K have pro-Trump opinions.
+
+```sql
+SELECT
+--u.user_id -- ,u.user_created_at ,u.screen_name_count ,u.screen_name
+--  ,u.is_bot ,u.community_id as bot_network_id
+--  ,u.status_count ,u.rt_count
+--  ,u.avg_score_lr ,u.avg_score_nb ,u.avg_score_bert
+
+
+    --,count(distinct case when avg_score_lr = 0.5 then u.user_id end) as lr_mid
+  --,count(distinct case when avg_score_nb = 0.5 then u.user_id end) as nb_mid
+  --,count(distinct case when avg_score_bert = 0.5 then u.user_id end) as bert_mid -- 0
+
+  count(distinct case when avg_score_lr is not null then u.user_id end) as lr_bots
+  ,count(distinct case when avg_score_lr < 0.5 then u.user_id end) as lr_0
+  ,count(distinct case when avg_score_lr > 0.5 then u.user_id end) as lr_1
+
+  ,count(distinct case when avg_score_nb is not null then u.user_id end) as nb_bots
+  ,count(distinct case when avg_score_nb < 0.5 then u.user_id end) as nb_0
+  ,count(distinct case when avg_score_nb > 0.5 then u.user_id end) as nb_1
+
+  ,count(distinct case when avg_score_bert is not null then u.user_id end) as bert_bots
+  ,count(distinct case when avg_score_bert < 0.5 then u.user_id end) as bert_0
+  ,count(distinct case when avg_score_bert > 0.5 then u.user_id end) as bert_1
+
+FROM impeachment_production.user_details_v4 u
+WHERE u.is_bot = true
+--LIMIT 10
+```
+
+Users most retweeted by bot opinion community (upload as "bot_activity/bot_community_X_users_most_retweeted.csv"):
 
 
 ```sql
+SELECT
+  rt.retweeted_user_id
+  ,rt.retweeted_user_screen_name
+  ,count(distinct rt.user_id) as retweeter_count
+  ,count(distinct rt.status_id) as retweet_count
 
-/*
-SELECT DISTINCT
-    bu.community_id
-    ,rt.retweeted_user_id
-    ,rt.retweeted_user_screen_name
-    ,count(distinct rt.user_id) as retweeter_count
-    ,count(distinct rt.status_id) as retweet_count --
 FROM impeachment_production.retweets_v2 rt
-JOIN impeachment_production.bots_above_80_v2 bu ON bu.user_id = rt.user_id
-WHERE community_id is null
-GROUP BY 1,2,3
-ORDER BY 5 DESC
+JOIN impeachment_production.user_details_v4 bu ON bu.user_id = rt.user_id
+WHERE is_bot = true
+  and avg_score_bert < 0.5 -- 10,114
+  --and avg_score_bert > 0.5 -- 13,929
+GROUP BY 1,2
+ORDER BY 4 DESC
 LIMIT 1000
-*/
-
-  SELECT
-    --bu.user_id
-    --,bu.user_created_at
-    --,bu.screen_name_count
-    --,bu.screen_names
-    --,bu.is_bot
-    --,bu.community_id
-    --,status_count
-    --,rt_count
-    --,bu.avg_score_lr
-    --,bu.avg_score_nb
-    --,bu.avg_score_bert
-
-    "Pro-Impeachment BERT" as opinion_community
-    ,rt.retweeted_user_id
-    ,rt.retweeted_user_screen_name
-    ,count(distinct rt.user_id) as retweeter_count
-    ,count(distinct rt.status_id) as retweet_count
-
-  FROM impeachment_production.user_details_v4 bu
-  JOIN impeachment_production.retweets_v2 rt ON bu.user_id = rt.user_id
-  WHERE is_bot = true and avg_score_bert < 0.5 -- 10,114
-  --WHERE is_bot = true and avg_score_bert > 0.5 -- 13929
-  --WHERE is_bot = true and avg_score_bert = 0.5 -- 0
-  GROUP BY 1,2,3
-  ORDER BY 5 DESC
-  LIMIT 1000
-
-
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Disinformation Campaigns
 
@@ -497,42 +521,4 @@ SELECT
 
 FROM impeachment_production.user_details_vq
 GROUP BY 1
-```
-
-
-
-
-
-
-## Opinion-based Bot Communities
-
-Out of 21K bots, 10K have anti-Trump opinions and 14K have pro-Trump opinions.
-
-```sql
-SELECT
---u.user_id -- ,u.user_created_at ,u.screen_name_count ,u.screen_name
---  ,u.is_bot ,u.community_id as bot_network_id
---  ,u.status_count ,u.rt_count
---  ,u.avg_score_lr ,u.avg_score_nb ,u.avg_score_bert
-
-
-    --,count(distinct case when avg_score_lr = 0.5 then u.user_id end) as lr_mid
-  --,count(distinct case when avg_score_nb = 0.5 then u.user_id end) as nb_mid
-  --,count(distinct case when avg_score_bert = 0.5 then u.user_id end) as bert_mid -- 0
-
-  count(distinct case when avg_score_lr is not null then u.user_id end) as lr_bots
-  ,count(distinct case when avg_score_lr < 0.5 then u.user_id end) as lr_0
-  ,count(distinct case when avg_score_lr > 0.5 then u.user_id end) as lr_1
-
-  ,count(distinct case when avg_score_nb is not null then u.user_id end) as nb_bots
-  ,count(distinct case when avg_score_nb < 0.5 then u.user_id end) as nb_0
-  ,count(distinct case when avg_score_nb > 0.5 then u.user_id end) as nb_1
-
-  ,count(distinct case when avg_score_bert is not null then u.user_id end) as bert_bots
-  ,count(distinct case when avg_score_bert < 0.5 then u.user_id end) as bert_0
-  ,count(distinct case when avg_score_bert > 0.5 then u.user_id end) as bert_1
-
-FROM impeachment_production.user_details_v4 u
-WHERE u.is_bot = true
---LIMIT 10
 ```
