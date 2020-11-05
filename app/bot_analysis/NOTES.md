@@ -498,3 +498,41 @@ SELECT
 FROM impeachment_production.user_details_vq
 GROUP BY 1
 ```
+
+
+
+
+
+
+## Opinion-based Bot Communities
+
+Out of 21K bots, 10K have anti-Trump opinions and 14K have pro-Trump opinions.
+
+```sql
+SELECT
+--u.user_id -- ,u.user_created_at ,u.screen_name_count ,u.screen_name
+--  ,u.is_bot ,u.community_id as bot_network_id
+--  ,u.status_count ,u.rt_count
+--  ,u.avg_score_lr ,u.avg_score_nb ,u.avg_score_bert
+
+
+    --,count(distinct case when avg_score_lr = 0.5 then u.user_id end) as lr_mid
+  --,count(distinct case when avg_score_nb = 0.5 then u.user_id end) as nb_mid
+  --,count(distinct case when avg_score_bert = 0.5 then u.user_id end) as bert_mid -- 0
+
+  count(distinct case when avg_score_lr is not null then u.user_id end) as lr_bots
+  ,count(distinct case when avg_score_lr < 0.5 then u.user_id end) as lr_0
+  ,count(distinct case when avg_score_lr > 0.5 then u.user_id end) as lr_1
+
+  ,count(distinct case when avg_score_nb is not null then u.user_id end) as nb_bots
+  ,count(distinct case when avg_score_nb < 0.5 then u.user_id end) as nb_0
+  ,count(distinct case when avg_score_nb > 0.5 then u.user_id end) as nb_1
+
+  ,count(distinct case when avg_score_bert is not null then u.user_id end) as bert_bots
+  ,count(distinct case when avg_score_bert < 0.5 then u.user_id end) as bert_0
+  ,count(distinct case when avg_score_bert > 0.5 then u.user_id end) as bert_1
+
+FROM impeachment_production.user_details_v4 u
+WHERE u.is_bot = true
+--LIMIT 10
+```
