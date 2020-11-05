@@ -252,6 +252,27 @@ LIMIT 1000
 
 
 
+Statuses most retweeted by bot opinion community (upload as "bot_activity/bot_community_X_statuses_most_retweeted.csv"):
+
+
+```sql
+SELECT
+  rt.status_text
+  ,count(distinct rt.user_id) as retweeter_count
+  ,count(distinct rt.status_id) as retweet_count
+
+FROM impeachment_production.retweets_v2 rt
+JOIN impeachment_production.user_details_v4 bu ON bu.user_id = rt.user_id
+WHERE is_bot = true
+  --and avg_score_bert < 0.5 -- 10,114
+  and avg_score_bert > 0.5 -- 13,929
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 1000
+```
+
+
+
 
 
 
