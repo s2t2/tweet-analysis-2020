@@ -230,7 +230,7 @@ WHERE u.is_bot = true
 --LIMIT 10
 ```
 
-Users most retweeted by bot opinion community (upload as "bot_activity/bot_community_X_users_most_retweeted.csv"):
+Users most retweeted by bot opinion community (upload as "bot_beneficiaries/users_most_retweeted_opinion_community_X.csv"):
 
 
 ```sql
@@ -252,7 +252,7 @@ LIMIT 1000
 
 
 
-Statuses most retweeted by bot opinion community (upload as "bot_activity/bot_community_X_statuses_most_retweeted.csv"):
+Statuses most retweeted by bot opinion community (upload as "bot_beneficiaries/statuses_most_retweeted_opinion_community_X.csv"):
 
 
 ```sql
@@ -266,6 +266,25 @@ JOIN impeachment_production.user_details_v4 bu ON bu.user_id = rt.user_id
 WHERE is_bot = true
   --and avg_score_bert < 0.5 -- 10,114
   and avg_score_bert > 0.5 -- 13,929
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 1000
+```
+
+
+Top status tags by bot opinion community (upload as "bot_language/top_status_tags_opinion_community_X.csv"):
+
+```sql
+SELECT
+  st.tag
+  ,count(distinct st.user_id) as bot_count
+  ,count(distinct st.status_id) as status_count
+
+FROM impeachment_production.user_details_v4 bu
+JOIN impeachment_production.status_tags_v2_flat st ON bu.user_id = st.user_id
+WHERE is_bot = true
+  and avg_score_bert < 0.5 -- 10,114
+  --and avg_score_bert > 0.5 -- 13,929
 GROUP BY 1
 ORDER BY 3 DESC
 LIMIT 1000
