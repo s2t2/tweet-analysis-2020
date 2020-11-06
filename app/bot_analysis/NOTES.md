@@ -489,7 +489,7 @@ WHERE u.is_bot = true
 --LIMIT 10
 ```
 
-Users most retweeted by bot opinion community (upload as "bot_beneficiaries/users_most_retweeted_opinion_community_X.csv"):
+Users most retweeted by bot opinion community (upload as "users_most_retweeted_opinion_community_X.csv"):
 
 
 ```sql
@@ -511,7 +511,7 @@ LIMIT 1000
 
 
 
-Statuses most retweeted by bot opinion community (upload as "bot_beneficiaries/statuses_most_retweeted_opinion_community_X.csv"):
+Statuses most retweeted by bot opinion community (upload as "statuses_most_retweeted_opinion_community_X.csv"):
 
 
 ```sql
@@ -531,7 +531,7 @@ LIMIT 1000
 ```
 
 
-Top status tags by bot opinion community (upload as "bot_language/top_status_tags_opinion_community_X.csv"):
+Top status tags by bot opinion community (upload as "top_status_tags_opinion_community_X.csv"):
 
 ```sql
 SELECT
@@ -578,7 +578,6 @@ CREATE TABLE impeachment_production.user_profiles_v2 as (
 )
 ```
 
-
 ```sql
 DROP TABLE IF EXISTS impeachment_production.profile_tags_v2;
 CREATE TABLE impeachment_production.profile_tags_v2 as (
@@ -591,8 +590,6 @@ CREATE TABLE impeachment_production.profile_tags_v2 as (
 )
 ```
 
-Flattened tables for faster joining in the future:
-
 ```sql
 DROP TABLE IF EXISTS impeachment_production.profile_tags_v2_flat;
 CREATE TABLE IF NOT EXISTS impeachment_production.profile_tags_v2_flat as (
@@ -601,4 +598,102 @@ CREATE TABLE IF NOT EXISTS impeachment_production.profile_tags_v2_flat as (
     CROSS JOIN UNNEST(tags) AS tag
     -- LIMIT 10
 )
+```
+
+Top profile tags by bot opinion community (upload as "top_profile_tags_opinion_community_X.csv"):
+
+```sql
+SELECT
+  pt.tag
+  ,count(distinct pt.user_id) as bot_count
+
+FROM impeachment_production.user_details_v4 bu
+JOIN impeachment_production.profile_tags_v2_flat pt ON bu.user_id = pt.user_id
+WHERE is_bot = true
+  and avg_score_bert < 0.5 -- 10,114
+  --and avg_score_bert > 0.5 -- 13,929
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1000
+```
+
+## Bot Network Communities
+
+> Re-doing, for comprehensiveness
+
+Users most retweeted by bot network (upload as "users_most_retweeted_network_X.csv"):
+
+
+```sql
+SELECT
+  rt.retweeted_user_id
+  ,rt.retweeted_user_screen_name
+  ,count(distinct rt.user_id) as retweeter_count
+  ,count(distinct rt.status_id) as retweet_count
+
+FROM impeachment_production.retweets_v2 rt
+JOIN impeachment_production.user_details_v4 bu ON bu.user_id = rt.user_id
+WHERE is_bot = true
+  and community_id = 0
+  --and community_id = 1
+GROUP BY 1,2
+ORDER BY 4 DESC
+LIMIT 1000
+```
+
+
+
+Statuses most retweeted by bot network (upload as "statuses_most_retweeted_network_X.csv"):
+
+
+```sql
+SELECT
+  rt.status_text
+  ,count(distinct rt.user_id) as retweeter_count
+  ,count(distinct rt.status_id) as retweet_count
+
+FROM impeachment_production.retweets_v2 rt
+JOIN impeachment_production.user_details_v4 bu ON bu.user_id = rt.user_id
+WHERE is_bot = true
+  and community_id = 0
+  --and community_id = 1
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 1000
+```
+
+
+Top status tags by bot network (upload as "top_status_tags_network_X.csv"):
+
+```sql
+SELECT
+  st.tag
+  ,count(distinct st.user_id) as bot_count
+  ,count(distinct st.status_id) as status_count
+
+FROM impeachment_production.user_details_v4 bu
+JOIN impeachment_production.status_tags_v2_flat st ON bu.user_id = st.user_id
+WHERE is_bot = true
+  and community_id = 0
+  --and community_id = 1
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 1000
+```
+
+Top profile tags by bot network (upload as "top_profile_tags_network_X.csv"):
+
+```sql
+SELECT
+  pt.tag
+  ,count(distinct pt.user_id) as bot_count
+
+FROM impeachment_production.user_details_v4 bu
+JOIN impeachment_production.profile_tags_v2_flat pt ON bu.user_id = pt.user_id
+WHERE is_bot = true
+  and community_id = 0
+  --and community_id = 1
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1000
 ```
