@@ -23,10 +23,12 @@ if __name__ == "__main__":
     for row in bq_service.fetch_topics():
         print(row.topic, "|", dt_to_s(row.created_at))
 
+    exit() # just don't risk deleting the tweets table ok?
+
     # TWEETS
 
-    seek_confirmation()
-    if bq_service.destructive:
-        input(f"THIS WILL DESTROY THE TWEETS TABLE ON '{bq_service.dataset_address.upper()}'. ARE YOU REALLY SURE YOU WANT TO DO THIS?")
-
-    bq_service.migrate_tweets_table()
+    # seek_confirmation()
+    # if bq_service.destructive:
+    #     input(f"THIS WILL DESTROY THE TWEETS TABLE ON '{bq_service.dataset_address.upper()}'. ARE YOU REALLY SURE YOU WANT TO DO THIS?")
+    #     seek_confirmation()
+    # bq_service.migrate_tweets_table()

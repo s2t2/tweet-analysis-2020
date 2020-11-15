@@ -14,6 +14,31 @@ Make a directory in the "data/tweet_collection_v2" dir called something like "el
     #creepyjoe
     #sleepyjoe
     #voteblue
+    #DNCC
+    #RNCC
+    President T
+    Kamala
+    Pence
+    WhiteHouse
+    POTUS
+    #BuildBackBetter
+    TeamTrump
+    TeamJoe
+    88022
+    30330
+    #FillTheSeat
+    #FillThatSeat
+    #Debates2020
+    #Vote2020
+    #ElectionDay
+    #ElectionDay2020
+    #ElectionNight
+    #ElectionNight2020
+    #KAG
+    #StopTheSteal
+    #SharpieGate
+    #RiggedElection
+
 
 > FYI: the first row "topic" is a required column header. Twitter will match these topics case-insensitively and inclusively, so a topic of "rain" would include tweets about "#Rainbows".
 
@@ -71,7 +96,7 @@ git push heroku master
 # git push heroku collection-2:master -f
 ```
 
-Finally, manually turn on the "tweet_collector" dyno (Hobby tier is fine) to collect tweets to the production database.
+Finally, manually turn on or restart the "tweet_collector" dyno (Hobby tier is fine) to collect tweets to the production database.
 
 And view logs as desired:
 

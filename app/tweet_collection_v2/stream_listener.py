@@ -109,6 +109,7 @@ class TweetCollector(StreamListener):
     def on_exception(self, exception):
         # has encountered errors:
         #  + urllib3.exceptions.ProtocolError: ('Connection broken: IncompleteRead(0 bytes read)'
+        #  + urllib3.exceptions.ProtocolError: ('Connection broken: ConnectionResetError(104, 'Connection reset by peer')'
         #  + urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool
         print("EXCEPTION:", type(exception))
         print(exception)
@@ -129,6 +130,7 @@ class TweetCollector(StreamListener):
         Param: i (int) increasing rate limit number from the twitter api
         Returns: number of seconds to sleep for
         """
+        #return (int(i) + 1) * 2 # multiply by two
         return (int(i) + 1) ** 2 # raise to the power of two
 
     def on_timeout(self):
