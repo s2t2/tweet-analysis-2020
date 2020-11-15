@@ -142,10 +142,6 @@ LIMIT 10
 
 
 ```sql
--- for the follower:
--- ... are they bot or not?
--- ... is their opinion 0 or 1?
-
 DROP TABLE IF EXISTS impeachment_production.active_followers_bh_v2;
 CREATE TABLE IF NOT EXISTS impeachment_production.active_followers_bh_v2 as (
   SELECT
@@ -159,8 +155,8 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_followers_bh_v2 as (
 
     ,array_agg(distinct case when follower_is_bot = true then follower_id end) as follower_ids_b
     ,array_agg(distinct case when follower_is_bot = false then follower_id end) as follower_ids_h
-
   FROM (
+    -- for the follower: are they bot or not? ... todo: is their opinion 0 or 1?
     SELECT
       uff.user_id
       ,uff.screen_name
@@ -169,9 +165,12 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_followers_bh_v2 as (
       ,CASE WHEN fbu.user_id IS NOT NULL THEN true ELSE false END follower_is_bot
     FROM impeachment_production.active_followers_flat_v2 uff
     LEFT JOIN impeachment_production.bots_above_80_v2 fbu ON fbu.user_id = uff.follower_id
-    -- LIMIT 10
+    --WHERE CASE WHEN fbu.user_id IS NOT NULL THEN true ELSE false END is null
+    WHERE uff.follower_id is not null
+    --LIMIT 10
   ) zz
   GROUP BY 1
+  --LIMIT 10
 )
 
 ```
