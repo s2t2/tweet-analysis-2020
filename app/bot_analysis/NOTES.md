@@ -431,7 +431,34 @@ GROUP BY 1
 
 
 
+Formalize the q users table:
 
+```sql
+DROP TABLE IF EXISTS impeachment_production.q_users;
+CREATE TABLE IF NOT EXISTS impeachment_production.q_users as (
+  SELECT
+    user_id
+    ,count(distinct status_id) as q_status_count
+    ,count(tag) as q_tag_count
+  FROM impeachment_production.status_tags_v2_flat
+  WHERE tag in ('#QANON', '#WWG1WGA', '#GREATAWAKENING', '#WAKEUPAMERICA', '#WEARETHENEWSNOW')
+  GROUP BY 1
+)
+```
+
+Who were biggest disinfo spreaders?
+
+```sql
+-- who are the biggest spreaders?
+
+SELECT qu.user_id ,qu.q_status_count ,qu.q_tag_count
+ ,ud.screen_names
+FROM impeachment_production.q_users qu -- 33,923
+LEFT JOIN impeachment_production.user_details_v4 ud on ud.user_id = qu.user_id
+WHERE qu.q_status_count > 1 -- 15,323
+ORDER BY qu.q_status_count DESC
+LIMIT 1000
+```
 
 
 
