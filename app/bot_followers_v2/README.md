@@ -174,3 +174,170 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_followers_bh_v2 as (
 )
 
 ```
+
+
+```sql
+SELECT count(distinct user_id) as user_count -- 2,971,946 (users who have followers)
+FROM impeachment_production.active_followers_bh_v2
+```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_followers_bh_v2;
+CREATE TABLE IF NOT EXISTS impeachment_production.user_followers_bh_v2 as (
+  SELECT
+    uf.user_id
+    ,extract(date from ud.user_created_at) as created_on
+    ,ud.screen_name_count
+    ,ud.screen_names
+    ,ud.is_bot
+    ,ud.community_id as bot_network
+    ,ud.status_count
+    ,ud.rt_count
+    ,ud.avg_score_lr
+    ,ud.avg_score_nb
+    ,ud.avg_score_bert
+    --,cast(round(ud.avg_score_lr) as int64) as community_lr
+    --,cast(round(ud.avg_score_nb) as int64) as community_nb
+    --,cast(round(ud.avg_score_bert) as int64) as community_bert
+
+    ,uf.follower_count
+    ,uf.follower_count_b
+    ,uf.follower_count_h
+    ,uf.follower_ids_b
+    ,uf.follower_ids_h
+  FROM impeachment_production.active_followers_bh_v2 uf
+  JOIN impeachment_production.user_details_v4 ud ON ud.user_id = uf.user_id
+  --LIMIT 10
+)
+```
+
+```sql
+SELECT
+   coalesce(
+        cast(round(avg_score_bert) as int64),
+        cast(round(avg_score_nb) as int64),
+        cast(round(avg_score_lr) as int64),
+        999
+    ) as opinion_community
+
+  ,count(distinct user_id) as user_count
+FROM impeachment_production.user_followers_v2
+-- WHERE is_bot = true -- 22814
+--WHERE community_bert is null -- 422,312
+GROUP BY 1
+```
+
+opinion_community	| user_count
+--- | ---
+0	| 1,913,883
+1	| 1,058,062
+
+
+```sql
+SELECT
+   coalesce(
+        cast(round(avg_score_bert) as int64),
+        cast(round(avg_score_nb) as int64),
+        cast(round(avg_score_lr) as int64),
+        999
+    ) as opinion_community
+    ,is_bot
+  ,count(distinct user_id) as user_count
+FROM impeachment_production.user_followers_v2
+-- WHERE is_bot = true -- 22814
+--WHERE community_bert is null -- 422,312
+GROUP BY 1,2
+```
+
+
+opinion_community	| is_bot	| user_count
+---	| ---	| ---
+0	| false	| 1,904,201
+1	| false	| 1,044,930
+1	| true	| 13,132
+0	| true	| 9,682
+
+
+```sql
+SELECT
+   coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
+  ,count(distinct user_id) as user_count
+FROM impeachment_production.user_followers_bh_v2
+WHERE coalesce(avg_score_bert, avg_score_nb, avg_score_lr) = 0.5  -- 13,122
+GROUP BY 1
+```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_follower_network_v2;
+CREATE TABLE IF NOT EXISTS user_follower_network_v2 as (
+  SELECT
+     user_id
+     ,created_on
+     ,screen_name_count
+     ,screen_names
+     ,is_bot
+     ,bot_network
+     ,status_count
+     ,rt_count
+     ,avg_score_lr
+     ,avg_score_nb
+     ,avg_score_bert
+     ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_community
+
+     ,follower_count
+     ,follower_count_b
+     ,follower_count_h
+     ,follower_ids_b
+     ,follower_ids_h
+  FROM impeachment_production.user_followers_bh_v2
+  WHERE coalesce(avg_score_bert, avg_score_nb, avg_score_lr) <> 0.5  -- excludes 13,122 humans
+  --LIMIT 10
+)
+```
+
+
+Export this table to GCS as "user_follower_network_v2/nodes_*.csv" (sharded into smaller files due to size),
+
+then upload all smaller files into drive as "gcs_exports/user_follower_network_v2/nodes_*.csv".
+
+Oh need to add q status...
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_details_v5;
+CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v5 as (
+  SELECT
+    uf.user_id
+    ,extract(date from ud.user_created_at) as created_on
+    ,ud.screen_name_count
+    ,ud.screen_names
+
+    ,ud.is_bot
+    ,ud.community_id as bot_network
+
+    ,case when q.q_status_count > 0 then true else false end is_q
+    ,q.q_status_count
+
+    ,ud.status_count
+    ,ud.rt_count
+
+    ,ud.avg_score_lr
+    ,ud.avg_score_nb
+    ,ud.avg_score_bert
+    ,cast(round(coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr)) as int64) as opinion_community
+
+    ,uf.follower_count
+    ,uf.follower_count_b
+    ,uf.follower_count_h
+    ,uf.follower_ids_b
+    ,uf.follower_ids_h
+
+  FROM impeachment_production.active_followers_bh_v2 uf
+  JOIN impeachment_production.user_details_v4 ud ON ud.user_id = uf.user_id
+  LEFT JOIN impeachment_production.q_users q ON q.user_id = uf.user_id
+  WHERE coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) <> 0.5
+  --LIMIT 10
+)
+```
