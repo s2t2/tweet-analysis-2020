@@ -731,7 +731,9 @@ LIMIT 1000
 
 ## Bot vs Human by Opinion Community
 
-Figures for the paper (Daily Activity Metrics):
+Figures for the paper (Daily Activity Metrics).
+
+If you want to differentiate rts from tweets:
 
 ```sql
 SELECT
@@ -741,15 +743,15 @@ SELECT
     ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN t.user_id END) as users_b1
     ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NULL THEN t.status_id END) as tweets_b0
     ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NULL THEN t.status_id END) as tweets_b1
-    --,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_b0
-    --,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_b1
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_b0
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_b1
 
     ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN t.user_id END) as users_h0
     ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN t.user_id END) as users_h1
     ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NULL THEN t.status_id END) as tweets_h0
     ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NULL THEN t.status_id END) as tweets_h1
-    --,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_h0
-    --,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_h1
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_h0
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 AND t.retweet_status_id IS NOT NULL THEN t.status_id END) as retweets_h1
 
   FROM impeachment_production.tweets t
   JOIN impeachment_production.user_details_v4 u ON u.user_id = cast(t.user_id as int64)
@@ -758,4 +760,29 @@ SELECT
   GROUP BY 1
   ORDER BY 1
 
+```
+
+
+Use this one:
+
+```sql
+SELECT
+    extract(date from t.created_at) as date
+
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN t.user_id END) as users_b0
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN t.user_id END) as users_b1
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN t.status_id END) as tweets_b0
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN t.status_id END) as tweets_b1
+
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN t.user_id END) as users_h0
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN t.user_id END) as users_h1
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN t.status_id END) as tweets_h0
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN t.status_id END) as tweets_h1
+
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.user_details_v4 u ON u.user_id = cast(t.user_id as int64)
+  WHERE t.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
+    and u.avg_score_bert is not null
+  GROUP BY 1
+  ORDER BY 1
 ```
