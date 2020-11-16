@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS user_follower_network_v2 as (
 
 Export this table to GCS as "user_follower_network_v2/nodes_*.csv" (sharded into smaller files due to size),
 
-then upload all smaller files into drive as "gcs_exports/user_follower_network_v2/nodes_*.csv".
+then upload all smaller files into drive as "user_follower_network_v2/nodes_*.csv".
 
 Oh need to add q status...
 
@@ -339,5 +339,40 @@ CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v5 as (
   LEFT JOIN impeachment_production.q_users q ON q.user_id = uf.user_id
   WHERE coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) <> 0.5
   --LIMIT 10
+)
+```
+
+
+Execute each of these queries and "save" the result to google drive:
+
+```sql
+-- nodes.csv
+SELECT user_id , created_on ,screen_name_count ,screen_names
+ ,is_bot ,bot_network ,is_q, q_status_count
+ ,status_count ,rt_count ,opinion_community
+ ,follower_count, follower_count_b, follower_count_h
+FROM impeachment_production.user_details_v5
+
+-- follower_edges.csv
+SELECT user_id
+ ,follower_ids_b, follower_ids_h
+FROM impeachment_production.user_details_v5
+```
+
+JK the edges are too big, so go the GCS export route with manual uploads to "user_follower_network_v2/follower_edges_*.csv".
+
+```sql
+CREATE TABLE impeachment_production.user_follower_network_v2_nodes as (
+SELECT user_id , created_on ,screen_name_count ,screen_names
+ ,is_bot ,bot_network ,is_q, q_status_count
+ ,status_count ,rt_count ,opinion_community
+ ,follower_count, follower_count_b, follower_count_h
+FROM impeachment_production.user_details_v5
+)
+
+CREATE TABLE impeachment_production.user_follower_network_v2_edges as (
+SELECT user_id
+ ,follower_ids_b, follower_ids_h
+FROM impeachment_production.user_details_v5
 )
 ```
