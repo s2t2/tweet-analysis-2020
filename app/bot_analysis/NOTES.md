@@ -981,8 +981,10 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
 
 Re-do daily bots vs human follower counts.
 
-Helper table:
+Helper tables to shrink everything so the final query can maybe complete...
 
+
+Bot followers:
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.active_bot_followers_flat_v2;
@@ -992,7 +994,59 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_bot_followers_flat_v2 a
   FROM impeachment_production.active_followers_flat_v2 auff
   JOIN impeachment_production.user_details_v6_full u ON u.user_id = auff.user_id
   JOIN impeachment_production.user_details_v6_full fu ON fu.user_id = auff.follower_id
-  WHERE u.is_Bot=True
+  WHERE u.is_Bot=True and u.opinion_community is not null
   --LIMIT 10
+)
+```
+
+Shorter user details table just for bots:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.bot_details_v6_full;
+CREATE TABLE IF NOT EXISTS impeachment_production.bot_details_v6_full as (
+  SELECT u.*
+  FROM impeachment_production.user_details_v6_full u
+  WHERE u.is_bot=True and u.opinion_community is not null
+)
+```
+
+Bot tweets:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.bot_tweets;
+CREATE TABLE IF NOT EXISTS impeachment_production.bot_tweets as (
+  -- ACTIVE USERS WHO FOLLOW BOTS
+  SELECT
+    bu.user_id as bot_id
+    ,cast(t.status_id as int64) as status_id
+    ,cast(t.retweet_status_id as int64) as rt_status_id
+    ,t.created_at
+    ,t.status_text
+  FROM impeachment_production.bot_details_v6_full bu
+  JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = bu.user_id
+)
+```
+
+Daily bot activity counts (final query):
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.daily_bot_activity;
+CREATE TABLE IF NOT EXISTS impeachment_production.daily_bot_activity as (
+  SELECT
+      extract(date from bt.created_at) as date
+
+      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bt.bot_id END) as users_b0
+      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bt.bot_id END) as users_b1
+      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bt.status_id END) as tweets_b0
+      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bt.status_id END) as tweets_b1
+      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bfl.follower_id END) as followers_b0
+      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bfl.follower_id END) as followers_b1
+
+    FROM impeachment_production.bot_details_v6_full bu
+    JOIN impeachment_production.bot_tweets bt ON bu.user_id = bt.bot_id
+    LEFT JOIN impeachment_production.active_bot_followers_flat_v2 bfl ON bu.user_id = bfl.bot_id
+    WHERE bt.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
+    GROUP BY 1
+    -- ORDER BY 1
 )
 ```
