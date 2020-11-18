@@ -180,6 +180,30 @@ Export the top 100 to JSON and use for the website.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Disinformation Campaigns
 
   + https://wt.social/post/fighting-misinformation/nvrqyhu5325591624484
@@ -950,5 +974,25 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
   GROUP BY 1, 2, 3
   HAVING count(distinct tags0.tag) = 0 -- out of 33.9K q users, 25.8K are pure q
   ORDER BY 2 desc
+)
+```
+
+## Daily Bot Followers
+
+Re-do daily bots vs human follower counts.
+
+Helper table:
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.active_bot_followers_flat_v2;
+CREATE TABLE IF NOT EXISTS impeachment_production.active_bot_followers_flat_v2 as (
+  -- ACTIVE USERS WHO FOLLOW BOTS
+  SELECT auff.user_id as bot_id ,auff.follower_id ,fu.is_bot as follower_is_bot
+  FROM impeachment_production.active_followers_flat_v2 auff
+  JOIN impeachment_production.user_details_v6_full u ON u.user_id = auff.user_id
+  JOIN impeachment_production.user_details_v6_full fu ON fu.user_id = auff.follower_id
+  WHERE u.is_Bot=True
+  --LIMIT 10
 )
 ```
