@@ -461,6 +461,47 @@ LIMIT 1000
 ```
 
 
+How many q bots vs humans? 1 vs 0 opinion?
+
+```sql
+SELECT
+  count(distinct qu.user_id) as q_user_count
+  ,count(distinct case when is_bot=True then qu.user_id end) as q_bot_count
+  ,count(distinct case when is_bot=False then qu.user_id end) as q_human_count
+  ,count(distinct case when coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) < 0.5 then qu.user_id end) as opinion0
+  ,count(distinct case when coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) > 0.5 then qu.user_id end) as opinion1
+
+FROM impeachment_production.q_users qu
+LEFT JOIN impeachment_production.user_details_v4 ud on ud.user_id = qu.user_id
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -812,4 +853,99 @@ SELECT
     and u.avg_score_bert is not null
   GROUP BY 1
   ORDER BY 1
+```
+
+
+```sql
+SELECT
+    extract(date from t.created_at) as date
+
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN t.user_id END) as users_b0
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN t.user_id END) as users_b1
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN t.user_id END) as users_h0
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN t.user_id END) as users_h1
+
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN t.status_id END) as tweets_b0
+    ,count(distinct CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN t.status_id END) as tweets_b1
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN t.status_id END) as tweets_h0
+    ,count(distinct CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN t.status_id END) as tweets_h1
+
+    ,sum(CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN u.follower_count END) as  follower_reach_b0
+    ,sum(CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN u.follower_count END) as  follower_reach_b1
+    ,sum(CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN u.follower_count END) as follower_reach_h0
+    ,sum(CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN u.follower_count END) as follower_reach_h1
+
+    ,sum(CASE WHEN u.is_bot = true and u.avg_score_bert < 0.5 THEN u.follower_count_h END) as  human_follower_reach_b0
+    ,sum(CASE WHEN u.is_bot = true and u.avg_score_bert > 0.5 THEN u.follower_count_h END) as  human_follower_reach_b1
+    ,sum(CASE WHEN u.is_bot = false and u.avg_score_bert < 0.5 THEN u.follower_count_h END) as human_follower_reach_h0
+    ,sum(CASE WHEN u.is_bot = false and u.avg_score_bert > 0.5 THEN u.follower_count_h END) as human_follower_reach_h1
+
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.user_details_v5 u ON u.user_id = cast(t.user_id as int64)
+  WHERE t.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
+    and u.avg_score_bert is not null
+  GROUP BY 1
+  ORDER BY 1
+```
+
+## Disinfo Campaigns (Q Users) - v2
+
+We may have some false positives in the original `q_users` table, so we're going to see if we can drop some based on their also mentioning some left-leaning tags. This would mean we have to also drop left-leaning users from the q users. They only comprise 3% of the total universe of q users. Maybe we can keep them in the table, for reference, but add some filter conditions in the dataframe that we export to CSV.
+
+```sql
+SELECT distinct tag, count(tag) as freq
+FROM impeachment_production.status_tags_v2_flat
+where user_id = 36690283 -- false positive q
+group by 1
+order by 2 desc
+limit 100
+```
+
+
+```sql
+SELECT distinct hashtag
+FROM impeachment_production.2_community_tags
+WHERE community_id = 0
+```
+
+```sql
+WITH tags0 as (
+  SELECT distinct hashtag as tag
+  FROM impeachment_production.2_community_tags
+  WHERE community_id = 0
+  ORDER BY 1
+)
+
+SELECT
+  tags0.tag
+  , count(distinct user_id) as user_count
+  ,count(distinct status_id) as status_count
+FROM tags0
+LEFT JOIN impeachment_production.status_tags_v2_flat st ON st.tag = tags0.tag
+GROUP BY 1
+ORDER BY 2 desc
+
+```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.q_users_v2;
+CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
+  SELECT
+    qu.user_id
+    ,qu.q_status_count
+    ,qu.q_tag_count
+    --,count(distinct tags0.tag) as t0_count
+  FROM impeachment_production.q_users qu
+  LEFT JOIN impeachment_production.status_tags_v2_flat st ON qu.user_id = st.user_id --ON st.tag = tags0.tag
+  LEFT JOIN (
+    SELECT distinct hashtag as tag
+    FROM impeachment_production.2_community_tags
+    WHERE community_id = 0
+    ORDER BY 1
+  ) tags0 ON st.tag = tags0.tag
+  GROUP BY 1, 2, 3
+  HAVING count(distinct tags0.tag) = 0 -- out of 33.9K q users, 25.8K are pure q
+  ORDER BY 2 desc
+)
 ```

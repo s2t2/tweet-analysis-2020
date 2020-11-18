@@ -376,3 +376,77 @@ SELECT user_id
 FROM impeachment_production.user_details_v5
 )
 ```
+
+## Figures
+
+```sql
+
+-- for each day, how many bots were active?
+-- what are the follower counts for each bot?
+-- what are the opinion communities?
+
+--SELECT
+--    extract(date from t.created_at) as date
+--    ,count(distinct t.user_id) as user_count
+--  FROM impeachment_production.tweets t
+--  --JOIN impeachment_production.user_details_v5 u ON u.user_id = cast(t.user_id as int64)
+--  WHERE t.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
+--    --and u.avg_score_bert is not null
+--  GROUP BY 1
+--  ORDER BY 1
+
+--SELECT
+--  u.user_id
+--  ,u.screen_names
+--  ,u.opinion_community
+--  ,u.is_q
+--  ,u.status_count
+--  ,u.follower_count
+--  ,u.follower_count_b
+--  ,u.follower_count_h
+--FROM impeachment_production.user_details_v5 u
+----JOIN impeachment_production.tweets t on cast(t.user_id as int64) = u.user_id
+--WHERE u.is_bot = true
+--LIMIT 10
+
+SELECT
+  extract(date from t.created_at) as date
+
+  ,count(distinct t.user_id) as user_count
+
+  ,count(distinct case when is_bot=true and u.opinion_community=0 then u.user_id end) as user_count_b0
+  ,count(distinct case when is_bot=true and u.opinion_community=1 then u.user_id end) as user_count_b1
+  --,count(distinct case when is_bot=false and u.opinion_community=0 then u.user_id end) as user_count_h0
+  --,count(distinct case when is_bot=false and u.opinion_community=1 then u.user_id end) as user_count_h1
+
+  ,sum(case when is_bot=true and u.opinion_community=0 then u.status_count end) as  status_count_b0
+  ,sum(case when is_bot=true and u.opinion_community=1 then u.status_count end) as  status_count_b1
+  --,sum(case when is_bot=false and u.opinion_community=0 then u.status_count end) as status_count_h0
+  --,sum(case when is_bot=false and u.opinion_community=1 then u.status_count end) as status_count_h1
+
+  ,sum(case when is_bot=true and u.opinion_community=0 then u.follower_count end) as  follower_count_b0
+  ,sum(case when is_bot=true and u.opinion_community=1 then u.follower_count end) as  follower_count_b1
+  --,sum(case when is_bot=false and u.opinion_community=0 then u.follower_count end) as follower_count_h0
+  --,sum(case when is_bot=false and u.opinion_community=1 then u.follower_count end) as follower_count_h1
+
+
+  ,sum(case when is_bot=true and u.opinion_community=0 then u.follower_count_b end) as  follower_count_b0_b
+  ,sum(case when is_bot=true and u.opinion_community=1 then u.follower_count_b end) as  follower_count_b1_b
+
+  ,sum(case when is_bot=true and u.opinion_community=0 then u.follower_count_h end) as  follower_count_b0_h
+  ,sum(case when is_bot=true and u.opinion_community=1 then u.follower_count_h end) as  follower_count_b1_h
+
+FROM impeachment_production.user_details_v5 u
+JOIN impeachment_production.tweets t on cast(t.user_id as int64) = u.user_id
+WHERE u.is_bot = true
+GROUP BY 1
+--LIMIT 10
+
+
+```
+
+# User Friends - v2
+
+JK we also want to make friend networks. So let's re-do this. We'll make a smaller nodes table, with friend/follower counts, and a separate table for friend edges, and a separate table for follower edges.
+
+See [Friend Follower Networks](/app/friend_follower_networks/README.md).
