@@ -153,3 +153,21 @@ LEFT JOIN impeachment_production.active_user_friends_bh_v2 ufr ON ud.user_id = u
 --LIMIT 10
 )
 ```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_details_v6_slim;
+CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v6_slim as (
+  SELECT
+    user_id
+    ,created_on
+    ,screen_name_count --,screen_names
+    ,is_bot ,bot_rt_network
+    ,is_q ,q_status_count
+    ,status_count ,rt_count
+    ,opinion_community
+    ,follower_count
+    ,friend_count
+  FROM impeachment_production.user_details_v6_full
+)
+```

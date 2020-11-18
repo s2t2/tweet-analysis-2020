@@ -999,15 +999,31 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_bot_followers_flat_v2 a
 )
 ```
 
-Shorter user details table just for bots:
+Shorter and slimmer user details table just for bots:
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.bot_details_v6_full;
-CREATE TABLE IF NOT EXISTS impeachment_production.bot_details_v6_full as (
-  SELECT u.*
-  FROM impeachment_production.user_details_v6_full u
-  WHERE u.is_bot=True and u.opinion_community is not null
+--DROP TABLE IF EXISTS impeachment_production.bot_details_v6_full;
+--CREATE TABLE IF NOT EXISTS impeachment_production.bot_details_v6_full as (
+--  SELECT u.*
+--  FROM impeachment_production.user_details_v6_full u
+--  WHERE u.is_bot=True and u.opinion_community is not null
+--)
+
+DROP TABLE IF EXISTS impeachment_production.bot_details_v6_slim;
+CREATE TABLE IF NOT EXISTS impeachment_production.bot_details_v6_slim as (
+  SELECT user_id
+    ,created_on
+    ,screen_name_count --,screen_names
+    ,is_bot ,bot_rt_network
+    ,is_q ,q_status_count
+    ,status_count ,rt_count
+    ,opinion_community
+    ,follower_count
+    ,friend_count
+  FROM impeachment_production.user_details_v6_slim
+  WHERE is_bot=True and opinion_community is not null
 )
+
 ```
 
 Bot tweets:
@@ -1024,28 +1040,47 @@ CREATE TABLE IF NOT EXISTS impeachment_production.bot_tweets as (
     ,t.status_text
   FROM impeachment_production.bot_details_v6_full bu
   JOIN impeachment_production.tweets t ON cast(t.user_id as int64) = bu.user_id
+  WHERE bt.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
 )
 ```
+
+Daily Active bots:
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.daily_active_bots;
+CREATE TABLE IF NOT EXISTS impeachment_production.daily_active_bots as (
+  SELECT
+    extract(date from bt.created_at) as date
+    ,bt.bot_id as bot_id
+  FROM impeachment_production.bot_tweets bt
+  GROUP BY 1,2
+)
+```
+
+
+
 
 Daily bot activity counts (final query):
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.daily_bot_activity;
-CREATE TABLE IF NOT EXISTS impeachment_production.daily_bot_activity as (
-  SELECT
-      extract(date from bt.created_at) as date
+DROP TABLE IF EXISTS impeachment_production.daily_bot_follower_counts;
+CREATE TABLE IF NOT EXISTS impeachment_production.daily_bot_follower_counts as (
+    WITH bots_slim as (
+        SELECT user_id, opinion_community
+        FROM impeachment_production.bot_details_v6_slim bu
+    )
 
-      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bt.bot_id END) as users_b0
-      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bt.bot_id END) as users_b1
-      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bt.status_id END) as tweets_b0
-      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bt.status_id END) as tweets_b1
-      ,count(distinct CASE WHEN bu.opinion_community=0 THEN bfl.follower_id END) as followers_b0
-      ,count(distinct CASE WHEN bu.opinion_community=1 THEN bfl.follower_id END) as followers_b1
+    SELECT
+        dab.date
 
-    FROM impeachment_production.bot_details_v6_full bu
-    JOIN impeachment_production.bot_tweets bt ON bu.user_id = bt.bot_id
-    LEFT JOIN impeachment_production.active_bot_followers_flat_v2 bfl ON bu.user_id = bfl.bot_id
-    WHERE bt.created_at BETWEEN '2019-12-20 00:00:00' AND '2020-02-15 23:59:59'
+        ,count(distinct CASE WHEN bu.opinion_community=0 THEN dab.bot_id END) as users_b0
+        ,count(distinct CASE WHEN bu.opinion_community=1 THEN dab.bot_id END) as users_b1
+        ,count(distinct CASE WHEN bu.opinion_community=0 THEN bfl.follower_id END) as followers_b0
+        ,count(distinct CASE WHEN bu.opinion_community=1 THEN bfl.follower_id END) as followers_b1
+
+    FROM bots_slim bu
+    JOIN impeachment_production.daily_active_bots dab ON dab.bot_id = bu.user_id
+    LEFT JOIN impeachment_production.active_bot_followers_flat_v2 bfl ON dab.bot_id = bfl.bot_id
     GROUP BY 1
     -- ORDER BY 1
 )
