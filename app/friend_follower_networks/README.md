@@ -108,3 +108,48 @@ LEFT JOIN impeachment_production.active_user_friends_bh_v2 ufr ON ud.user_id = u
 )
 
 ```
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.user_details_v6_full;
+CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v6_full as (
+SELECT
+  ud.user_id
+  ,extract(date from ud.user_created_at) as created_on
+  ,ud.screen_name_count
+  ,ud.screen_names
+
+  ,ud.is_bot
+  ,ud.community_id as bot_rt_network
+
+  ,case when q.q_status_count > 0 then true else false end is_q
+  ,q.q_status_count
+
+  ,ud.status_count
+  ,ud.rt_count
+
+  ,ud.avg_score_lr
+  ,ud.avg_score_nb
+  ,ud.avg_score_bert
+  ,cast(round(coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr)) as int64) as opinion_community
+
+  ,ufl.follower_count
+  ,ufl.follower_count_b
+  ,ufl.follower_count_h
+  ,ufl.follower_ids_b
+  ,ufl.follower_ids_h
+
+  ,ufr.friend_count
+  ,ufr.friend_count_b
+  ,ufr.friend_count_h
+  ,ufr.friend_ids_b
+  ,ufr.friend_ids_h
+
+FROM impeachment_production.user_details_v4 ud
+LEFT JOIN impeachment_production.q_users_v2 q ON q.user_id = ud.user_id
+LEFT JOIN impeachment_production.active_followers_bh_v2 ufl ON ud.user_id = ufl.user_id
+LEFT JOIN impeachment_production.active_user_friends_bh_v2 ufr ON ud.user_id = ufr.user_id
+--WHERE coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) <> 0.5
+--LIMIT 10
+)
+```

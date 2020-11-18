@@ -927,6 +927,7 @@ ORDER BY 2 desc
 
 ```
 
+Filter out users who used any left tags, or whose opinion was left:
 
 ```sql
 DROP TABLE IF EXISTS impeachment_production.q_users_v2;
@@ -944,6 +945,8 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
     WHERE community_id = 0
     ORDER BY 1
   ) tags0 ON st.tag = tags0.tag
+  LEFT JOIN impeachment_production.user_details_v4 ud on ud.user_id = qu.user_id
+  WHERE coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) > 0.5
   GROUP BY 1, 2, 3
   HAVING count(distinct tags0.tag) = 0 -- out of 33.9K q users, 25.8K are pure q
   ORDER BY 2 desc
