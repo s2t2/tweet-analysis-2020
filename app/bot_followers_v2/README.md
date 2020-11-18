@@ -142,37 +142,32 @@ LIMIT 10
 
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.active_followers_bh_v2;
-CREATE TABLE IF NOT EXISTS impeachment_production.active_followers_bh_v2 as (
+DROP TABLE IF EXISTS impeachment_production.active_user_friends_bh_v2;
+CREATE TABLE IF NOT EXISTS impeachment_production.active_user_friends_bh_v2 as (
   SELECT
      user_id
-     --,screen_name
-    ,count(distinct follower_id) as follower_count
-    --,array_agg(distinct follower_id) as follower_ids
-
-    ,count(distinct case when follower_is_bot = true then follower_id end) as follower_count_b
-    ,count(distinct case when follower_is_bot = false then follower_id end) as follower_count_h
-
-    ,array_agg(distinct case when follower_is_bot = true then follower_id end) as follower_ids_b
-    ,array_agg(distinct case when follower_is_bot = false then follower_id end) as follower_ids_h
+    ,count(distinct friend_id) as friend_count
+    ,count(distinct case when friend_is_bot = true then friend_id end) as friend_count_b
+    ,count(distinct case when friend_is_bot = false then friend_id end) as friend_count_h
+    --,array_agg(distinct case when friend_is_bot = true and friend_id is not null then friend_id end) as friend_ids_b
+    --,array_agg(distinct case when friend_is_bot = false and friend_id is not null then friend_id end) as friend_ids_h
+    ,string_agg(distinct case when friend_is_bot = true then friend_id end, " | ") as friend_ids_b
+    ,string_agg(distinct case when friend_is_bot = false then friend_id end,  " | ") as friend_ids_h
   FROM (
-    -- for the follower: are they bot or not? ... todo: is their opinion 0 or 1?
     SELECT
       uff.user_id
       ,uff.screen_name
-      ,uff.follower_id
-      ,uff.follower_name
-      ,CASE WHEN fbu.user_id IS NOT NULL THEN true ELSE false END follower_is_bot
-    FROM impeachment_production.active_followers_flat_v2 uff
-    LEFT JOIN impeachment_production.bots_above_80_v2 fbu ON fbu.user_id = uff.follower_id
-    --WHERE CASE WHEN fbu.user_id IS NOT NULL THEN true ELSE false END is null
-    WHERE uff.follower_id is not null
+      ,uff.friend_id
+      ,uff.friend_name
+      ,CASE WHEN fbu.user_id IS NOT NULL THEN true ELSE false END friend_is_bot
+    FROM impeachment_production.active_user_friends_flat_v2 uff
+    LEFT JOIN impeachment_production.bots_above_80_v2 fbu ON fbu.user_id = uff.friend_id
+    WHERE uff.friend_id is not null
     --LIMIT 10
   ) zz
   GROUP BY 1
   --LIMIT 10
 )
-
 ```
 
 

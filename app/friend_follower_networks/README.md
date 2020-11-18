@@ -19,9 +19,9 @@ LEFT JOIN impeachment_production.user_screen_names usn ON usn.screen_name = uff.
 DROP TABLE IF EXISTS impeachment_production.active_user_friends_flat_v2;
 CREATE TABLE IF NOT EXISTS impeachment_production.active_user_friends_flat_v2 as (
 SELECT
-  uff.user_id
+  cast(uff.user_id as int64) as user_id
   ,uff.screen_name
-  ,usn.user_id as friend_id
+  ,cast(usn.user_id as int64) as friend_id
   ,uff.friend_name
 FROM impeachment_production.active_user_friends_flat uff
 LEFT JOIN impeachment_production.user_screen_names usn ON usn.screen_name = uff.friend_name
@@ -35,8 +35,8 @@ LEFT JOIN impeachment_production.user_screen_names usn ON usn.screen_name = uff.
 ## Active Friend BH
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.active_friends_bh_v2;
-CREATE TABLE IF NOT EXISTS impeachment_production.active_friends_bh_v2 as (
+DROP TABLE IF EXISTS impeachment_production.active_user_friends_bh_v2;
+CREATE TABLE IF NOT EXISTS impeachment_production.active_user_friends_bh_v2 as (
   SELECT
      user_id
     ,count(distinct friend_id) as friend_count
@@ -72,7 +72,7 @@ For active users only, with flags for bot, opinion community, q, etc.
 DROP TABLE IF EXISTS impeachment_production.user_details_v6;
 CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v6 as (
 SELECT
-  uf.user_id
+  ud.user_id
   ,extract(date from ud.user_created_at) as created_on
   ,ud.screen_name_count
   ,ud.screen_names
@@ -95,16 +95,16 @@ SELECT
   ,ufl.follower_count_b --,ufl.follower_ids_b
   ,ufl.follower_count_h --,ufl.follower_ids_h
 
-  --,ufr.friend_count
-  --,ufr.friend_count_b --,ufr.friend_ids_b
-  --,ufr.friend_count_h --,ufr.friend_ids_b
+  ,ufr.friend_count
+  ,ufr.friend_count_b --,ufr.friend_ids_b
+  ,ufr.friend_count_h --,ufr.friend_ids_b
 
 FROM impeachment_production.user_details_v4 ud
-LEFT JOIN impeachment_production.q_users_v2 q ON q.user_id = uf.user_id
-LEFT JOIN impeachment_production.active_followers_bh_v2 uf ON ud.user_id = ufl.user_id
-LEFT JOIN impeachment_production.active_friends_bh_v2 uf ON ud.user_id = ufr.user_id
+LEFT JOIN impeachment_production.q_users_v2 q ON q.user_id = ud.user_id
+LEFT JOIN impeachment_production.active_followers_bh_v2 ufl ON ud.user_id = ufl.user_id
+LEFT JOIN impeachment_production.active_user_friends_bh_v2 ufr ON ud.user_id = ufr.user_id
 --WHERE coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) <> 0.5
-LIMIT 10
+--LIMIT 10
 )
 
 ```
