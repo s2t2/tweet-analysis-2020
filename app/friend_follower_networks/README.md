@@ -161,13 +161,13 @@ CREATE TABLE IF NOT EXISTS impeachment_production.user_details_v6_slim as (
   SELECT
     user_id
     ,created_on
-    ,screen_name_count --,screen_names
+    ,screen_name_count ,screen_names
     ,is_bot ,bot_rt_network
     ,is_q ,q_status_count
     ,status_count ,rt_count
     ,opinion_community
-    ,follower_count
-    ,friend_count
+    ,follower_count ,follower_count_b ,follower_count_h
+    ,friend_count,friend_count_b ,friend_count_h
   FROM impeachment_production.user_details_v6_full
 )
 ```

@@ -1013,13 +1013,13 @@ DROP TABLE IF EXISTS impeachment_production.bot_details_v6_slim;
 CREATE TABLE IF NOT EXISTS impeachment_production.bot_details_v6_slim as (
   SELECT user_id
     ,created_on
-    ,screen_name_count --,screen_names
+    ,screen_name_count,screen_names
     ,is_bot ,bot_rt_network
     ,is_q ,q_status_count
     ,status_count ,rt_count
     ,opinion_community
-    ,follower_count
-    ,friend_count
+    ,follower_count ,follower_count_b ,follower_count_h
+    ,friend_count,friend_count_b ,friend_count_h
   FROM impeachment_production.user_details_v6_slim
   WHERE is_bot=True and opinion_community is not null
 )
@@ -1077,6 +1077,11 @@ CREATE TABLE IF NOT EXISTS impeachment_production.daily_bot_follower_counts as (
         ,count(distinct CASE WHEN bu.opinion_community=1 THEN dab.bot_id END) as users_b1
         ,count(distinct CASE WHEN bu.opinion_community=0 THEN bfl.follower_id END) as followers_b0
         ,count(distinct CASE WHEN bu.opinion_community=1 THEN bfl.follower_id END) as followers_b1
+
+        ,count(distinct CASE WHEN bu.opinion_community=0 and bfl.follower_is_bot=false THEN bfl.follower_id END) as human_followers_b0
+        ,count(distinct CASE WHEN bu.opinion_community=1 and bfl.follower_is_bot=false then bfl.follower_id END) as human_followers_b1
+        ,count(distinct CASE WHEN bu.opinion_community=0 and bfl.follower_is_bot=true THEN bfl.follower_id END) as bot_followers_b0
+        ,count(distinct CASE WHEN bu.opinion_community=1 and bfl.follower_is_bot=true then bfl.follower_id END) as bot_followers_b1
 
     FROM bots_slim bu
     JOIN impeachment_production.daily_active_bots dab ON dab.bot_id = bu.user_id
