@@ -977,6 +977,79 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
 )
 ```
 
+### Q Creation Spikes
+
+
+```sql
+
+```
+
+
+
+
+### Adding Q Lookup to Daily Nodes CSV Files
+
+```sql
+SELECT user_id, screen_names, is_q, q_status_count
+FROM impeachment_production.user_details_v6_slim
+```
+
+Export to drive as "user_details_v6/q_user_lookups.csv"
+
+
+## Tweet Details
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.tweet_details_v6;
+CREATE TABLE IF NOT EXISTS impeachment_production.tweet_details_v6 as (
+SELECT
+  u.user_id
+  ,u.screen_name_count
+  ,u.screen_names
+  ,u.created_on
+  ,u.is_bot
+  ,u.is_q
+  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+
+  ,u.opinion_community
+
+  ,cast(t.status_id as int64) as status_id
+  ,case when t.retweet_status_id IS NULL then true else false end is_rt
+  ,case when t.retweet_status_id is not null
+    then upper(split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)])  end rt_user_sn
+  ,t.status_text
+  ,t.created_at
+FROM impeachment_production.user_details_v6_slim u
+JOIN impeachment_production.tweets t on cast(t.user_id as int64) = u.user_id
+WHERE u.created_on <> '1970-01-01'
+-- LIMIT 10
+)
+```
+
+
+
+```sh
+LIMIT=1000 BATCH_SIZE=100 DESTRUCTIVE=true python -m app.bot_analysis.download_tweet_details_v6
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Daily Bot Followers
 
 Re-do daily bots vs human follower counts.
