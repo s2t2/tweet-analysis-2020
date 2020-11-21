@@ -35,6 +35,7 @@ if __name__ == "__main__":
         job.end()
 
         tweets_df = DataFrame(records)
+        print("WRITING RECORDS TO CSV...")
         tweets_df.to_csv(tweets_csv_filepath, index=False)
 
     print("TWEETS:", fmt_n(len(tweets_df)))
