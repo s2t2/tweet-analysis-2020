@@ -1209,3 +1209,46 @@ CREATE TABLE IF NOT EXISTS impeachment_production.daily_bot_follower_counts as (
     -- ORDER BY 1
 )
 ```
+
+## Follower Venn Diagrams
+
+```sql
+-- for each follower, are they a follower of bot0? bot1? neither? both?
+-- how many users of each kind does each follower follow?
+-- we have to know whether the user they follow is bot or not
+
+--SELECT
+-- uff.user_id ,uff.screen_name
+-- ,u.is_bot as user_is_bot
+-- ,u.opinion_community as user_opinion
+-- ,uff.follower_id ,uff.follower_name
+--FROM impeachment_production.user_followers_flat_v2 uff
+--JOIN impeachment_production.user_details_v6_slim u on u.user_id = uff.user_id
+--LIMIT 10
+
+
+-- how many users of each kind does each follower follow?
+DROP TABLE IF EXISTS impeachment_production.active_follower_friend_counts;
+CREATE TABLE IF NOT EXISTS impeachment_production.active_follower_friend_counts as (
+  SELECT
+    uff.follower_id ,uff.follower_name
+    ,count(distinct uff.user_id) as friend_count
+
+    ,count(distinct case when u.is_bot=True then uff.user_id end) as bot_friend_count
+    ,count(distinct case when u.is_bot=False then uff.user_id end) as human_friend_count
+
+    ,count(distinct case when u.opinion_community=0 then uff.user_id end) as opinion_1_friend_count
+    ,count(distinct case when u.opinion_community=1 then uff.user_id end) as opinion_0_friend_count
+
+    ,count(distinct case when u.is_bot=True and u.opinion_community=0 then uff.user_id end) as b0_friend_count
+    ,count(distinct case when u.is_bot=True and u.opinion_community=1 then uff.user_id end) as b1_friend_count
+    ,count(distinct case when u.is_bot=False and u.opinion_community=0 then uff.user_id end) as h0_friend_count
+    ,count(distinct case when u.is_bot=False and u.opinion_community=1 then uff.user_id end) as h1_friend_count
+
+  FROM impeachment_production.active_followers_flat_v2 uff
+  JOIN impeachment_production.user_details_v6_slim u on u.user_id = uff.user_id
+  GROUP BY 1,2
+
+)
+
+```
