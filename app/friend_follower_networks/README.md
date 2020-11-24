@@ -131,6 +131,7 @@ SELECT
   ,ud.avg_score_lr
   ,ud.avg_score_nb
   ,ud.avg_score_bert
+  --,coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr) as opinion_score
   ,cast(round(coalesce(ud.avg_score_bert, ud.avg_score_nb, ud.avg_score_lr)) as int64) as opinion_community
 
   ,ufl.follower_count
@@ -165,7 +166,7 @@ SELECT
     ,is_bot ,bot_rt_network
     ,is_q ,q_status_count
     ,status_count ,rt_count
-    ,avg_score_lr ,avg_score_nb ,avg_score_bert ,opinion_community
+    ,avg_score_lr ,avg_score_nb ,avg_score_bert ,opinion_community --,opinion_score}
     ,follower_count ,follower_count_b ,follower_count_h
     ,friend_count,friend_count_b ,friend_count_h
   FROM impeachment_production.user_details_v6_full

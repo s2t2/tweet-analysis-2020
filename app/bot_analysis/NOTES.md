@@ -977,14 +977,60 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
 )
 ```
 
-### Q Creation Spikes
+### Creation Spikes
 
 
 ```sql
+WITH user_opinions as (
+  SELECT
+    user_id
+    ,created_on
+    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
+  FROM impeachment_production.user_details_v6_slim
+)
+
+-- are the spike users more polarized?
+SELECT
+  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+  ,count(distinct user_id) as user_count
+  ,count(distinct case when opinion_score < 0.5 then user_id end) as users_opinion_0
+  ,count(distinct case when opinion_score > 0.5 then user_id end) as users_opinion_1
+  ,round(avg(case when opinion_score < 0.5 then opinion_score end),4) as avg_opinion_0
+  ,round(avg(case when opinion_score > 0.5 then opinion_score end),4) as avg_opinion_1
+FROM user_opinions
+GROUP BY 1
 
 ```
 
+```sql
+WITH user_opinions as (
+  SELECT
+    user_id
+    ,created_on
+    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
+    ,opinion_community
+  FROM impeachment_production.user_details_v6_slim
+)
 
+---- are the spike users more polarized?
+--SELECT
+--  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+--  ,opinion_community
+--  ,count(distinct user_id) as user_count
+--  ,round(avg(opinion_score),4) as avg_opinion
+--FROM user_opinions
+--GROUP BY 1,2
+
+SELECT
+  user_id
+  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+  ,opinion_score
+FROM user_opinions
+
+
+```
+
+Save to drive as "user_details_v6/all_users_creation_spike_opinions.csv".
 
 
 ### Adding Q Lookup to Daily Nodes CSV Files
