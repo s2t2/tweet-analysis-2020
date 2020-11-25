@@ -1282,5 +1282,72 @@ CREATE TABLE IF NOT EXISTS impeachment_production.active_human_follower_friend_c
   WHERE f.is_bot=False
   GROUP BY 1,2
 )
+-- 3,287,621
+```
 
+
+```sql
+SELECT
+  count(distinct follower_id) as follower_count -- 3,287,621
+  ,count(distinct case when b0_friend_count > 0 and b1_friend_count = 0 then follower_id end) as b0_only_follower_count
+  ,count(distinct case when b0_friend_count = 0 and b1_friend_count > 0 then follower_id end) as b1_only_follower_count
+  ,count(distinct case when b0_friend_count > 0 and b1_friend_count > 0 then follower_id end) as both_follower_count
+FROM impeachment_production.active_human_follower_friend_counts
+```
+
+## Creation Spike Language
+
+
+Top status tags by spiker opinion community:
+
+```sql
+-- for users created during the spike, what hashtags are they talking about most often?
+-- what about hashtags for left vs right spikers?
+
+SELECT
+  stf.tag
+  ,count(distinct stf.user_id) as user_count
+  ,count(distinct stf.status_id) as tweet_count
+FROM impeachment_production.status_tags_v2_flat stf
+JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
+WHERE u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
+ --and u.is_bot=True
+ and u.opinion_community=0
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 20
+```
+
+
+```sql
+-- for users created during the spike, what hashtags are they talking about most often?
+-- what about hashtags for left vs right spikers?
+
+SELECT
+  stf.tag
+  ,count(distinct stf.user_id) as user_count
+  ,count(distinct stf.status_id) as tweet_count
+FROM impeachment_production.status_tags_v2_flat stf
+JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
+WHERE NOT u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
+ --and u.is_bot=True
+ and u.opinion_community=0
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 20
+```
+
+```sql
+SELECT
+  stf.tag
+  ,count(distinct stf.user_id) as user_count
+  ,count(distinct stf.status_id) as tweet_count
+FROM impeachment_production.status_tags_v2_flat stf
+JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
+WHERE NOT u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
+ and u.is_bot=True and u.is_q=True
+ --and u.opinion_community=1
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 20
 ```
