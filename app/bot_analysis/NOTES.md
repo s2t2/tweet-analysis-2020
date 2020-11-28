@@ -977,62 +977,6 @@ CREATE TABLE IF NOT EXISTS impeachment_production.q_users_v2 as (
 )
 ```
 
-### Creation Spikes
-
-
-```sql
-WITH user_opinions as (
-  SELECT
-    user_id
-    ,created_on
-    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
-  FROM impeachment_production.user_details_v6_slim
-)
-
--- are the spike users more polarized?
-SELECT
-  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
-  ,count(distinct user_id) as user_count
-  ,count(distinct case when opinion_score < 0.5 then user_id end) as users_opinion_0
-  ,count(distinct case when opinion_score > 0.5 then user_id end) as users_opinion_1
-  ,round(avg(case when opinion_score < 0.5 then opinion_score end),4) as avg_opinion_0
-  ,round(avg(case when opinion_score > 0.5 then opinion_score end),4) as avg_opinion_1
-FROM user_opinions
-GROUP BY 1
-
-```
-
-```sql
-WITH user_opinions as (
-  SELECT
-    user_id
-    ,created_on
-    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
-    ,opinion_community
-  FROM impeachment_production.user_details_v6_slim
-)
-
----- are the spike users more polarized?
---SELECT
---  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
---  ,opinion_community
---  ,count(distinct user_id) as user_count
---  ,round(avg(opinion_score),4) as avg_opinion
---FROM user_opinions
---GROUP BY 1,2
-
-SELECT
-  user_id
-  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
-  ,opinion_score
-FROM user_opinions
-
-
-```
-
-Save to drive as "user_details_v6/all_users_creation_spike_opinions.csv".
-
-
 ### Adding Q Lookup to Daily Nodes CSV Files
 
 ```sql
@@ -1295,15 +1239,75 @@ SELECT
 FROM impeachment_production.active_human_follower_friend_counts
 ```
 
-## Creation Spike Language
 
-
-Top status tags by spiker opinion community:
+## Creation Spike - Jan 2017
 
 ```sql
--- for users created during the spike, what hashtags are they talking about most often?
--- what about hashtags for left vs right spikers?
+WITH user_opinions as (
+  SELECT
+    user_id
+    ,created_on
+    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
+  FROM impeachment_production.user_details_v6_slim
+)
 
+-- are the spike users more polarized?
+SELECT
+  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+  ,count(distinct user_id) as user_count
+  ,count(distinct case when opinion_score < 0.5 then user_id end) as users_opinion_0
+  ,count(distinct case when opinion_score > 0.5 then user_id end) as users_opinion_1
+  ,round(avg(case when opinion_score < 0.5 then opinion_score end),4) as avg_opinion_0
+  ,round(avg(case when opinion_score > 0.5 then opinion_score end),4) as avg_opinion_1
+FROM user_opinions
+GROUP BY 1
+
+```
+
+```sql
+WITH user_opinions as (
+  SELECT
+    user_id
+    ,created_on
+    ,coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as opinion_score
+    ,opinion_community
+  FROM impeachment_production.user_details_v6_slim
+)
+
+---- are the spike users more polarized?
+--SELECT
+--  if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+--  ,opinion_community
+--  ,count(distinct user_id) as user_count
+--  ,round(avg(opinion_score),4) as avg_opinion
+--FROM user_opinions
+--GROUP BY 1,2
+
+SELECT
+  user_id
+  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+  ,opinion_score
+FROM user_opinions
+```
+
+Save to drive as "user_details_v6/all_users_creation_spike_opinions.csv".
+
+
+
+
+
+
+### Creation Spike Language
+
+```sql
+SELECT
+  count(distinct rt.user_id) as user_count
+  ,count(distinct u.user_id) as user_count_w_deets
+FROM impeachment_production.retweets_v2 rt
+LEFT JOIN impeachment_production.user_details_v6_slim u ON u.user_id = rt.user_id -- the user who retweeted
+```
+
+```sql
 SELECT
   stf.tag
   ,count(distinct stf.user_id) as user_count
@@ -1311,43 +1315,35 @@ SELECT
 FROM impeachment_production.status_tags_v2_flat stf
 JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
 WHERE u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
- --and u.is_bot=True
+ --and u.is_bot=True and u.is_q=True
  and u.opinion_community=0
 GROUP BY 1
 ORDER BY 3 DESC
 LIMIT 20
 ```
 
+### Creation Spike Beneficiaries
+
+We have details about all retweeters. Great.
 
 ```sql
--- for users created during the spike, what hashtags are they talking about most often?
--- what about hashtags for left vs right spikers?
-
 SELECT
-  stf.tag
-  ,count(distinct stf.user_id) as user_count
-  ,count(distinct stf.status_id) as tweet_count
-FROM impeachment_production.status_tags_v2_flat stf
-JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
-WHERE NOT u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
- --and u.is_bot=True
- and u.opinion_community=0
-GROUP BY 1
-ORDER BY 3 DESC
-LIMIT 20
+  count(distinct rt.user_id) as user_count -- 2756852
+  ,count(distinct u.user_id) as user_count_w_deets -- 2756852
+FROM impeachment_production.retweets_v2 rt
+LEFT JOIN impeachment_production.user_details_v6_slim u ON u.user_id = rt.user_id -- the user who retweeted
+```
+
+We have details about most (95.8%) of retweeted users.
+
+```sql
+SELECT
+  count(distinct rt.retweeted_user_id) as retweeted_user_count -- 413,264
+  ,count(distinct ru.user_id) as retweeted_user_count_w_deets -- 396,176
+FROM impeachment_production.retweets_v2 rt
+LEFT JOIN impeachment_production.user_details_v6_slim ru ON ru.user_id = rt.retweeted_user_id -- the user who was retweeted
+
 ```
 
 ```sql
-SELECT
-  stf.tag
-  ,count(distinct stf.user_id) as user_count
-  ,count(distinct stf.status_id) as tweet_count
-FROM impeachment_production.status_tags_v2_flat stf
-JOIN impeachment_production.user_details_v6_slim u on u.user_id = stf.user_id
-WHERE NOT u.created_on BETWEEN '2017-01-01' AND '2017-01-31' -- spike community
- and u.is_bot=True and u.is_q=True
- --and u.opinion_community=1
-GROUP BY 1
-ORDER BY 3 DESC
-LIMIT 20
 ```
