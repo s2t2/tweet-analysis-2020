@@ -1375,4 +1375,59 @@ LEFT JOIN impeachment_production.user_details_v6_slim ru ON ru.user_id = rt.retw
 ```
 
 ```sql
+-- for each retweeted user (sn is fine):
+--   how many times retweeted
+--   how many times retweeted by bots
+--   how many times retweeted by q
+--   how many times retweeted by jan-17
+--   how many times retweeted by jan-17-inaug
+--   how many times retweeted by opinion-0
+--   how many times retweeted by opinion-1
+
+DROP TABLE IF EXISTS impeachment_production.retweeted_user_details_v6;
+CREATE TABLE IF NOT EXISTS impeachment_production.retweeted_user_details_v6 as (
+  SELECT
+    upper(split(SPLIT(t.status_text, "@")[OFFSET(1)], ":")[OFFSET(0)]) retweeted_user_sn
+    ,count(distinct status_id) as rt_count
+
+    ,count(distinct case when u.is_bot=True then t.status_id end) rt_by_bot
+    ,count(distinct case when u.is_q=True then t.status_id end) rt_by_q
+    ,count(distinct case when u.created_on BETWEEN '2017-01-01' AND '2017-01-31' then t.status_id end) rt_by_jan17
+    ,count(distinct case when u.created_on BETWEEN '2017-01-20' AND '2017-01-22' then t.status_id end) rt_by_jan17_inaug
+
+    ,count(distinct case when u.opinion_community=0 then t.status_id end) rt_by_0
+    ,count(distinct case when u.opinion_community=1 then t.status_id end) rt_by_1
+
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.user_details_v6_slim u on u.user_id = cast(t.user_id as int64)
+  WHERE retweet_status_id is not null
+  GROUP BY 1
+  ORDER BY 2 DESC
+  --LIMIT 10
+)
+```
+
+... then save a copy of this table drive as "user_details_v6/retweeted_users.csv".
+
+```sql
+SELECT count(distinct retweeted_user_sn) as rt_user_count -- 429,340
+FROM impeachment_production.retweeted_user_details_v6
+--ORDER BY rt_count DESC
+--LIMIT 10
+```
+
+
+```sql
+SELECT
+   retweeted_user_sn
+   ,rt_count
+   ,rt_by_bot
+   ,rt_by_q
+   ,rt_by_jan17
+   ,rt_by_jan17_inaug
+
+   ,round(rt_by_1 / (rt_by_1 + rt_by_0),4) as retweeter_opinion
+FROM impeachment_production.retweeted_user_details_v6
+--ORDER BY rt_count DESC
+LIMIT 10
 ```
