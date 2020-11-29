@@ -1539,22 +1539,16 @@ class BigQueryService():
     def fetch_tweet_details_v6(self, limit=None):
         sql = f"""
             SELECT
-                t.user_id
-                ,t.screen_name_count
-                ,t.screen_names
-                ,t.created_on
-                ,t.is_bot
-                ,t.is_q
-                ,t.is_spiked
-                ,t.opinion_community
+                status_id
+                ,status_created_at
+                ,is_rt ,rt_user_screen_name
 
-                ,t.status_id
-                ,t.is_rt
-                ,t.rt_user_sn
-                ,t.status_text
-                ,t.created_at
-
-            FROM `{self.dataset_address}.tweet_details_v6` t
+                ,user_id
+                ,screen_names ,screen_name_count
+                ,created_on ,created_jan17 ,created_inaug
+                ,is_bot ,is_q
+                ,opinion_community ,mean_opinion
+            FROM `{self.dataset_address}.tweet_details_v6_slim`
         """
         if limit:
             sql += f" LIMIT {int(limit)};"

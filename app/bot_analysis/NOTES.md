@@ -990,39 +990,68 @@ Export to drive as "user_details_v6/q_user_lookups.csv"
 ## Tweet Details
 
 ```sql
-DROP TABLE IF EXISTS impeachment_production.tweet_details_v6;
-CREATE TABLE IF NOT EXISTS impeachment_production.tweet_details_v6 as (
-SELECT
-  u.user_id
-  ,u.screen_name_count
-  ,u.screen_names
-  ,u.created_on
-  ,u.is_bot
-  ,u.is_q
-  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+--DROP TABLE IF EXISTS impeachment_production.tweet_details_v6;
+--CREATE TABLE IF NOT EXISTS impeachment_production.tweet_details_v6 as (
+--SELECT
+--  u.user_id
+--  ,u.screen_name_count
+--  ,u.screen_names
+--  ,u.created_on
+--  ,u.is_bot
+--  ,u.is_q
+--  ,if(created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as is_spiked
+--
+--  ,u.opinion_community
+--
+--  ,cast(t.status_id as int64) as status_id
+--  ,case when t.retweet_status_id IS NULL then true else false end is_rt
+--  ,case when t.retweet_status_id is not null
+--    then upper(split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)])  end rt_user_sn
+--  ,t.status_text
+--  ,t.created_at
+--FROM impeachment_production.user_details_v6_slim u
+--JOIN impeachment_production.tweets t on cast(t.user_id as int64) = u.user_id
+--WHERE u.created_on <> '1970-01-01'
+---- LIMIT 10
+--)
+```
 
-  ,u.opinion_community
 
-  ,cast(t.status_id as int64) as status_id
-  ,case when t.retweet_status_id IS NULL then true else false end is_rt
-  ,case when t.retweet_status_id is not null
-    then upper(split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)])  end rt_user_sn
-  ,t.status_text
-  ,t.created_at
-FROM impeachment_production.user_details_v6_slim u
-JOIN impeachment_production.tweets t on cast(t.user_id as int64) = u.user_id
-WHERE u.created_on <> '1970-01-01'
--- LIMIT 10
+
+
+```sql
+DROP TABLE IF EXISTS impeachment_production.tweet_details_v6_slim;
+CREATE TABLE IF NOT EXISTS impeachment_production.tweet_details_v6_slim as (
+  SELECT
+   cast(status_id as int64) as status_id
+   ,created_at as status_created_at
+   ,case when retweet_status_id is not null then true else false end is_rt
+   ,case when t.retweet_status_id is not null then
+      upper(split(SPLIT(status_text, "@")[OFFSET(1)], ":")[OFFSET(0)])
+    end rt_user_screen_name
+
+   ,u.user_id
+   ,u.screen_names
+   ,u.screen_name_count
+   ,u.created_on
+   ,if(u.created_on BETWEEN '2017-01-01' AND '2017-01-31', true, false) as created_jan17
+   ,if(u.created_on BETWEEN '2017-01-20' AND '2017-01-22', true, false) as created_inaug
+
+   ,u.is_q
+   ,u.is_bot
+   ,u.opinion_community
+   ,coalesce(u.avg_score_bert, u.avg_score_nb, u.avg_score_lr) as mean_opinion
+
+  FROM impeachment_production.tweets t
+  JOIN impeachment_production.user_details_v6_slim u on u.user_id = cast(t.user_id as int64)
+  --LIMIT 10
 )
 ```
 
-
-
 ```sh
+# this takes seven hours
 LIMIT=1000 BATCH_SIZE=100 DESTRUCTIVE=true python -m app.bot_analysis.download_tweet_details_v6
 ```
-
-
 
 
 
