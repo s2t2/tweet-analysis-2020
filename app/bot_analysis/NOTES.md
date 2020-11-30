@@ -1271,6 +1271,8 @@ FROM impeachment_production.active_human_follower_friend_counts
 
 ## Creation Spike - Jan 2017
 
+### Creation Spike Opinion Polarization
+
 ```sql
 WITH user_opinions as (
   SELECT
@@ -1350,6 +1352,48 @@ GROUP BY 1
 ORDER BY 3 DESC
 LIMIT 20
 ```
+
+
+```sql
+-- for each hashtag:
+--   appears in how many tweets
+--   appears in how many tweets by bots
+--   appears in how many tweets by q
+--   appears in how many tweets by jan-17
+--   appears in how many tweets by jan-17-inaug
+--   appears in how many tweets by opinion-0
+--   appears in how many tweets by opinion-1
+
+DROP TABLE IF EXISTS impeachment_production.hashtag_details_v6;
+CREATE TABLE IF NOT EXISTS impeachment_production.hashtag_details_v6 as (
+  SELECT
+    tag
+    ,count(distinct status_id) as status_count
+    ,count(distinct case when u.is_bot=True then tg.status_id end) status_count_bot
+    ,count(distinct case when u.is_q=True then tg.status_id end) status_count_q
+    ,count(distinct case when u.created_on BETWEEN '2017-01-01' AND '2017-01-31' then tg.status_id end) status_count_jan17
+    ,count(distinct case when u.created_on BETWEEN '2017-01-20' AND '2017-01-22' then tg.status_id end) status_count_inaug
+    ,count(distinct case when u.opinion_community=0 then tg.status_id end) status_count_0
+    ,count(distinct case when u.opinion_community=1 then tg.status_id end) status_count_1
+
+  FROM impeachment_production.status_tags_v2_flat tg
+  JOIN impeachment_production.user_details_v6_slim u on u.user_id = tg.user_id
+  GROUP BY 1
+  ORDER BY 2 DESC
+)
+```
+
+
+```sql
+select count(distinct tag) as tag_count -- 304,772
+FROM impeachment_production.hashtag_details_v6
+```
+
+
+
+
+
+
 
 ### Creation Spike Beneficiaries
 
