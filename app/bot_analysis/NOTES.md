@@ -1390,7 +1390,35 @@ FROM impeachment_production.hashtag_details_v6
 ```
 
 
+```sql
+DROP TABLE IF EXISTS impeachment_production.hashtag_details_v6_opinion;
+CREATE TABLE IF NOT EXISTS impeachment_production.hashtag_details_v6_opinion as (
+  SELECT
+    tag
+    ,count(distinct status_id) as status_count
+    ,count(distinct case when u.is_bot=True then tg.status_id end) status_count_bot
+    ,count(distinct case when u.is_q=True then tg.status_id end) status_count_q
+    ,count(distinct case when u.created_on BETWEEN '2017-01-01' AND '2017-01-31' then tg.status_id end) status_count_jan17
+    ,count(distinct case when u.created_on BETWEEN '2017-01-20' AND '2017-01-22' then tg.status_id end) status_count_inaug
 
+    ,count(distinct case when u.opinion_community=0 then tg.status_id end) status_count_0
+    ,count(distinct case when u.opinion_community=0 and u.is_bot=True then tg.status_id end) status_count_0_bot
+    ,count(distinct case when u.opinion_community=0 and u.is_q=True then tg.status_id end) status_count_0_q
+    ,count(distinct case when u.opinion_community=0 and u.created_on BETWEEN '2017-01-01' AND '2017-01-31' then tg.status_id end) status_count_0_jan17
+    ,count(distinct case when u.opinion_community=0 and u.created_on BETWEEN '2017-01-20' AND '2017-01-22' then tg.status_id end) status_count_0_inaug
+
+    ,count(distinct case when u.opinion_community=1 then tg.status_id end) status_count_1
+    ,count(distinct case when u.opinion_community=1 and u.is_bot=True then tg.status_id end) status_count_1_bot
+    ,count(distinct case when u.opinion_community=1 and u.is_q=True then tg.status_id end) status_count_1_q
+    ,count(distinct case when u.opinion_community=1 and u.created_on BETWEEN '2017-01-01' AND '2017-01-31' then tg.status_id end) status_count_1_jan17
+    ,count(distinct case when u.opinion_community=1 and u.created_on BETWEEN '2017-01-20' AND '2017-01-22' then tg.status_id end) status_count_1_inaug
+
+  FROM impeachment_production.status_tags_v2_flat tg
+  JOIN impeachment_production.user_details_v6_slim u on u.user_id = tg.user_id
+  GROUP BY 1
+  ORDER BY 2 DESC
+)
+```
 
 
 
@@ -1474,4 +1502,28 @@ SELECT
 FROM impeachment_production.retweeted_user_details_v6
 --ORDER BY rt_count DESC
 LIMIT 10
+```
+
+## All Users
+
+Save the result of this query as "user_details_v6/all_users_slim.csv":
+
+```sql
+SELECT
+
+user_id
+,created_on
+,screen_name_count	,screen_names
+,is_bot	,bot_rt_network
+,is_q	,q_status_count
+,status_count	,rt_count
+,avg_score_lr	,avg_score_nb	,avg_score_bert
+, coalesce(avg_score_bert, avg_score_nb, avg_score_lr) as mean_opinion
+,opinion_community
+
+,follower_count	,follower_count_b	,follower_count_h
+,friend_count	,friend_count_b	,friend_count_h
+
+FROM impeachment_production.user_details_v6_slim
+
 ```
