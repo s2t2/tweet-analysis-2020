@@ -27,13 +27,16 @@ def dt_to_date(dt):
     """
     return dt.strftime("%Y-%m-%d")
 
-def to_ts(dt): # todo: rename as dt_to_ts
+def to_ts(dt): # todo: replace references with dt_to_ts
     """
     Converts datetime object to UTC timestamp (seconds since epoch) like 1595759389.828663. Inverse of to_dt() function.
 
     Params: dt (datetime) like ... datetime(2020, 7, 26, 10, 29, 49, 828663)
     """
     return dt.replace(tzinfo=timezone.utc).timestamp()
+
+def dt_to_ts(dt):
+    return to_ts(dt)
 
 #
 # TIMESTAMP DECORATORS
@@ -69,3 +72,14 @@ def s_to_dt(s):
 
 def s_to_date(s):
     return dt_to_date(s_to_dt(s))
+
+def date_to_dt(date):
+    return datetime.strptime(date, "%Y-%m-%d")
+
+def date_to_ts(date):
+    """
+    Converts datetime object to UTC timestamp (seconds since epoch) like 1329609600.0
+
+    Params: date (str) like "2020-01-01"
+    """
+    return dt_to_ts(date_to_dt(date))

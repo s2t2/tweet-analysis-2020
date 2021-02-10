@@ -1497,6 +1497,82 @@ class BigQueryService():
             sql += f" LIMIT {int(limit)};"
         return self.execute_query(sql)
 
+    def fetch_sn_nodes_with_active_edges_v7(self, limit=None):
+        sql = f"""
+            SELECT user_id, screen_name, status_count as rate, is_bot as bot, community_id, friend_names, friend_count
+            FROM`{self.dataset_address}.nodes_with_active_edges_v7_sn`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+    #
+    # BOT ANALYSIS
+    #
+
+    def fetch_statuses_with_tags(self, limit=None):
+        sql = f"""
+            SELECT user_id, is_bot, status_id, status_text
+            FROM`{self.dataset_address}.statuses_with_tags`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+    def fetch_user_details_vq(self, limit=None):
+        sql = f"""
+            SELECT
+                user_id ,creation_date ,screen_name_count, screen_names
+                ,status_count, rt_count
+                ,is_bot ,bot_community
+                ,mean_opinion ,opinion_community
+                ,q_status_count ,q_status_pct
+            FROM`{self.dataset_address}.user_details_vq`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+    def fetch_tweet_details_v6(self, limit=None):
+        sql = f"""
+            SELECT
+                status_id
+                ,status_created_at
+                ,is_rt ,rt_user_screen_name
+
+                ,user_id
+                ,screen_names ,screen_name_count
+                ,created_on ,created_jan17 ,created_inaug
+                ,is_bot ,is_q
+                ,opinion_community ,mean_opinion
+            FROM `{self.dataset_address}.tweet_details_v6_slim`
+        """
+        if limit:
+            sql += f" LIMIT {int(limit)};"
+        return self.execute_query(sql)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

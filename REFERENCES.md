@@ -28,7 +28,7 @@ Working with BigQuery:
   + https://stackoverflow.com/questions/53737407/resources-exceeded-bigquery/53739742
   + https://cloud.google.com/bigquery/docs/exporting-data#bigquery_extract_table_compressed-python
   + https://cloud.google.com/bigquery/docs/parameterized-queries
-
+  + https://cloud.google.com/bigquery/docs/reference/standard-sql/string_functions#regexp_extract_all
 
 ## Twitter Resources
 
@@ -192,6 +192,7 @@ Grouping and aggregation, working with multi-indices:
 ## Regular Expressions
 
   + https://stackoverflow.com/questions/2527892/parsing-a-tweet-to-extract-hashtags-into-an-array
+  + https://www.regexpal.com/96916
 
 ## Basilica
 
@@ -220,3 +221,7 @@ Grouping and aggregation, working with multi-indices:
 
   + https://flask.palletsprojects.com/en/1.1.x/testing/
   + https://flask-cors.readthedocs.io/en/latest/api.html
+
+## Disinformation Campaign Info
+
+  + https://wt.social/post/fighting-misinformation/nvrqyhu5325591624484
