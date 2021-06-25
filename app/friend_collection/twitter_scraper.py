@@ -54,6 +54,7 @@ def next_page_of_friends(screen_name, next_cursor_id=None):
     except urllib.error.HTTPError as err: # consider allowing error to bubble up and be handled at the worker level (friend_collector.py)
         if VERBOSE_SCRAPER:
             print("FRIENDS PAGE NOT FOUND:", screen_name.upper())
+            breakpoint()
         return [], None
 
     response_body = response.read()
