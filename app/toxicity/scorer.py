@@ -6,16 +6,21 @@ from copy import copy
 from dotenv import load_dotenv
 from detoxify import Detoxify
 
-from app.bq_service import BigQueryService
+from app.bq_service import BigQueryService, generate_timestamp
 
 load_dotenv()
 
 MODEL_NAME = os.getenv("MODEL_NAME", default="original")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100"))
 
-def rounded_score(score):
-    """Rounds to eight decimal places"""
-    return round(score, 8)
+def rounded_score(np_float):
+    """Converts toxicity scores to decimals that can be saved in BigQuery.
+        Converts numpy floats to native floats (prevents non serializable errors).
+        Rounds to eight decimal places (to save some storage space maybe).
+
+    Params: np_float (numpy.float32)
+    """
+    return round(np_float.item(), 8)
 
 
 if __name__ == '__main__':
@@ -49,6 +54,7 @@ if __name__ == '__main__':
     print("SCORING...")
 
     batch = []
+    counter = 0
     for row in rows:
         scores = model.predict(row["status_text"])
 
@@ -70,19 +76,14 @@ if __name__ == '__main__':
             print(record)
             batch.append(record)
             #del record
+            counter +=1
 
         if len(batch) >= BATCH_SIZE:
-            print("SAVING BATCH...")
-            print(batch)
-
-            breakpoint()
+            print("SAVING BATCH...", generate_timestamp(), counter)
             bq_service.insert_records_in_batches(scores_table, batch)
             batch = []
 
     if any(batch):
-        print("SAVING FINAL BATCH...")
-        print(batch)
-
-        breakpoint()
+        print("SAVING FINAL BATCH...", generate_timestamp(), counter)
         bq_service.insert_records_in_batches(scores_table, batch)
         batch = []
