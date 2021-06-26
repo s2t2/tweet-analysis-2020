@@ -21,7 +21,9 @@ scikit-learn
 nltk
 spacy
 gensim
-basilica
+#basilica
+#transformers
+detoxify
 
 matplotlib
 plotly
