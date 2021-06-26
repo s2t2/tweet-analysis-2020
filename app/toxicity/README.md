@@ -44,6 +44,13 @@ JOIN `tweet-collector-py.impeachment_production.tweets` t on cast(t.status_id as
 
 ## Usage
 
+For a list of available models and their descriptions, see the [Detoxify Docs](https://github.com/unitaryai/detoxify#prediction).
+
+  + `original`: `bert-base-uncased` / Toxic Comment Classification Challenge
+  + `unbiased`: `roberta-base` / Unintended Bias in Toxicity Classification
+
 ```sh
-python -m app.toxicity.classifier
+MODEL_NAME="original" python -m app.toxicity.scorer
+
+MODEL_NAME="unbiased" python -m app.toxicity.scorer
 ```
