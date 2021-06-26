@@ -1,17 +1,22 @@
 
 import os
-from pprint import pprint
+#from pprint import pprint
+from copy import copy
 
 from dotenv import load_dotenv
 from detoxify import Detoxify
-from pandas import DataFrame
+
+from app.bq_service import BigQueryService
 
 load_dotenv()
 
 MODEL_NAME = os.getenv("MODEL_NAME", default="original")
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100"))
 
 def rounded_score(score):
+    """Rounds to eight decimal places"""
     return round(score, 8)
+
 
 if __name__ == '__main__':
 
@@ -20,6 +25,15 @@ if __name__ == '__main__':
 
     model = Detoxify(MODEL_NAME)
     print(model)
+
+    print("----------------")
+    print("BQ SERVICE...")
+
+    bq_service = BigQueryService()
+
+    scores_table_name = f"{bq_service.dataset_address}.status_toxicity_scores_{MODEL_NAME.lower()}"
+    print("SCORES TABLE:", scores_table_name.upper())
+    scores_table = bq_service.client.get_table(scores_table_name)
 
     print("----------------")
     print("TEXTS...")
@@ -34,27 +48,41 @@ if __name__ == '__main__':
     print("----------------")
     print("SCORING...")
 
-    records = []
+    batch = []
     for row in rows:
-        status_ids = row["status_ids"]
-        status_text = row["status_text"]
+        scores = model.predict(row["status_text"])
 
-        scores = model.predict(status_text)
-
-        record = {
-            "status_text": status_text,
-            "status_ids": status_ids,
-
+        scores = {
+            "status_id": None, # use this order for storing in BQ (prevent append from adding this key at the end)
             "identity_hate": rounded_score(scores["identity_hate"]),
             "insult": rounded_score(scores["insult"]),
             "obscene": rounded_score(scores["obscene"]),
             "severe_toxicity": rounded_score(scores["severe_toxicity"]),
             "threat": rounded_score(scores["threat"]),
             "toxicity": rounded_score(scores["toxicity"]),
-        }
-        pprint(record)
+        } # round the scores
 
-        records.append(record)
+        # record per status (slower for initial storage, faster for subsequent retrieval / querying)
+        for status_id in row["status_ids"]:
+            record = copy(scores)
+            record["status_id"] = status_id
+            print("----")
+            print(record)
+            batch.append(record)
+            #del record
 
-    #df = DataFrame(records)
-    #print(df.head())
+        if len(batch) >= BATCH_SIZE:
+            print("SAVING BATCH...")
+            print(batch)
+
+            breakpoint()
+            bq_service.insert_records_in_batches(scores_table, batch)
+            batch = []
+
+    if any(batch):
+        print("SAVING FINAL BATCH...")
+        print(batch)
+
+        breakpoint()
+        bq_service.insert_records_in_batches(scores_table, batch)
+        batch = []
