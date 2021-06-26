@@ -103,10 +103,15 @@ if __name__ == '__main__':
             batch.append(record)
             status_counter +=1
 
-        if len(batch) >= BATCH_SIZE:
-            print("SAVING BATCH...", generate_timestamp(), " | ", fmt_n(text_counter), " | ", len(batch), " | ", fmt_n(status_counter))
-            bq_service.insert_records_in_batches(scores_table, batch)
-            batch = []
+            if len(batch) >= BATCH_SIZE:
+                print("SAVING BATCH...", generate_timestamp(), " | ", fmt_n(text_counter), " | ", len(batch), " | ", fmt_n(status_counter))
+                bq_service.insert_records_in_batches(scores_table, batch)
+                batch = []
+
+        #if len(batch) >= BATCH_SIZE:
+        #    print("SAVING BATCH...", generate_timestamp(), " | ", fmt_n(text_counter), " | ", len(batch), " | ", fmt_n(status_counter))
+        #    bq_service.insert_records_in_batches(scores_table, batch)
+        #    batch = []
 
     if any(batch):
         print("SAVING FINAL BATCH...", generate_timestamp(), " | ", fmt_n(text_counter), " | ", len(batch), " | ", fmt_n(status_counter))
