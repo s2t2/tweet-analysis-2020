@@ -64,14 +64,47 @@ JOIN t on t.status_id in unnest(txt.status_ids)
 
 This is not good.
 
-How bad would it be to save 67M inserts back into a row per status table structure instead? This would make the analysis query joins much easier later.
+How bad would it be to save 67M inserts back into a row per status table structure instead? This would make the analysis query joins much easier later. But saving the 67M records would still be five times slower than necessary. Let's try making a join table - maybe BQ will be able to join faster using the join table than joining on nested array values.
+
+
+```sql
+-- row per status_text_id, per status_id (essentially linking the texts to the statuses)
+--
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.statuses_texts`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.statuses_texts` as (
+    SELECT status_text_id, status_id
+    FROM `tweet-collector-py.impeachment_production.status_texts`,
+    UNNEST(status_ids) as status_id
+)
+
+```
+
+Can re-join fast?
+
+```sql
+SELECT DISTINCT
+  txt.status_text_id
+  ,txt.status_text
+  --,txt.status_ids
+  ,txt.status_count
+  ,st.status_id
+FROM `tweet-collector-py.impeachment_production.status_texts` txt
+JOIN `tweet-collector-py.impeachment_production.statuses_texts` st ON st.status_text_id = txt.status_text_id
+WHERE txt.status_text_id = 308
+LIMIT 10000
+```
+
+Yeah this works.
+
+
+So we can store one record of scores per text.
 
 Migrate table for storing toxicity scores (where "original" references the toxicity model name):
 
 ```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.status_toxicity_scores_original`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.status_toxicity_scores_original` (
-    status_id INT64,
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
+    status_text_id INT64,
     identity_hate FLOAT64,
     insult FLOAT64,
     obscene FLOAT64,
@@ -79,6 +112,21 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.status_tox
     threat FLOAT64,
     toxicity FLOAT64
 );
+```
+
+
+So the query to figure out which texts haven't yet already been looked up is:
+
+```sql
+SELECT DISTINCT
+  txt.status_text_id
+  ,txt.status_text
+  --,txt.status_ids
+  --,txt.status_count
+FROM `tweet-collector-py.impeachment_production.status_texts` txt
+LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores ON scores.status_text_id = txt.status_text_id
+WHERE scores.status_text_id IS NULL
+LIMIT 10000
 ```
 
 ## Usage
