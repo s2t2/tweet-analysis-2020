@@ -137,5 +137,5 @@ python -m app.toxicity.scorer
 MODEL_NAME="original" python -m app.toxicity.scorer
 MODEL_NAME="unbiased" python -m app.toxicity.scorer
 
-MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" BATCH_SIZE=1500 python -m app.toxicity.scorer
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10000 BATCH_SIZE=1500 python -m app.toxicity.scorer
 ```
