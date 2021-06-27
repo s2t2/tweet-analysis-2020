@@ -54,11 +54,12 @@ if __name__ == '__main__':
     """
     if LIMIT:
         sql += f" LIMIT {int(LIMIT)} "
+    #print(sql)
 
     batch = []
     counter = 0
-    #for row in bq_service.execute_query_in_batches(texts_sql):
-    for row in bq_service.execute_query(sql):
+    for row in bq_service.execute_query_in_batches(sql):
+    #for row in bq_service.execute_query(sql):
 
         scores = model.predict(row["status_text"])
 
@@ -76,11 +77,11 @@ if __name__ == '__main__':
         counter +=1
 
         if len(batch) >= BATCH_SIZE:
-            print("SAVING BATCH...", generate_timestamp(), " | ", fmt_n(counter))
+            print("SAVING BATCH...", generate_timestamp(), " | ", len(batch), " | ", fmt_n(counter))
             bq_service.insert_records_in_batches(scores_table, batch)
             batch = []
 
     if any(batch):
-        print("SAVING FINAL BATCH...", generate_timestamp(), " | ", fmt_n(counter))
+        print("SAVING FINAL BATCH...", generate_timestamp(), " | ", len(batch), " | ",  fmt_n(counter))
         bq_service.insert_records_in_batches(scores_table, batch)
         batch = []
