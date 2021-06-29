@@ -1,12 +1,13 @@
 
 import os
 #from pprint import pprint
-from copy import copy
+#from copy import copy
+from functools import lru_cache
 
 from dotenv import load_dotenv
 from detoxify import Detoxify
 
-from app.bq_service import BigQueryService, generate_timestamp
+from app.bq_service import BigQueryService, generate_timestamp, split_into_batches
 from app.decorators.number_decorators import fmt_n
 
 load_dotenv()
@@ -25,63 +26,85 @@ def rounded_score(np_float):
     return round(np_float.item(), 8)
 
 
-if __name__ == '__main__':
+class ToxicityScorer:
+    def __init__(self, model_name=MODEL_NAME, limit=LIMIT, batch_size=BATCH_SIZE, bq_service=None):
+        self.model_name = model_name.lower()
+        self.limit = limit
+        self.batch_size = batch_size
+        self.bq_service = bq_service or BigQueryService()
+
+        print("----------------")
+        print("TOXICITY SCORER...")
+        print("MODEL:", self.model_name.upper())
+        print("LIMIT:", self.limit)
+        print("BATCH SIZE:", self.batch_size)
+
+    @property
+    def scores_table_name(self):
+        return f"{self.bq_service.dataset_address}.toxicity_scores_{self.model_name}"
+
+    @property
+    @lru_cache(maxsize=None)
+    def scores_table(self):
+        return self.bq_service.client.get_table(self.scores_table_name) # API call
+
+    @property
+    @lru_cache(maxsize=None)
+    def model(self):
+        return Detoxify(self.model_name) # expensive kinda
+
+    @property
+    def fetch_texts_sql(self):
+        sql = f"""
+            SELECT DISTINCT
+                txt.status_text_id
+                ,txt.status_text
+            FROM `{self.bq_service.dataset_address}.status_texts` txt
+            LEFT JOIN `{self.scores_table_name}` scores ON scores.status_text_id = txt.status_text_id
+            WHERE scores.status_text_id IS NULL
+        """
+        if self.limit:
+            sql += f" LIMIT {int(self.limit)} "
+        return sql
+
+    def fetch_texts(self):
+        return self.bq_service.execute_query(self.fetch_texts_sql)
+
+    def save_scores(self, records):
+        self.bq_service.insert_records_in_batches(self.scores_table, records)
+
+
+if __name__ == "__main__":
+
+    scorer = ToxicityScorer()
 
     print("----------------")
-    print("MODEL:", MODEL_NAME.upper())
-    print("LIMIT:", LIMIT)
-    print("BATCH SIZE:", BATCH_SIZE)
+    print("FETCHING TEXTS...")
+    texts = scorer.fetch_texts()
 
-    bq_service = BigQueryService()
-
-    scores_table_name = f"{bq_service.dataset_address}.toxicity_scores_{MODEL_NAME.lower()}"
-    print("SCORES TABLE:", scores_table_name.upper())
-    scores_table = bq_service.client.get_table(scores_table_name)
-
+    batches = split_into_batches(texts, batch_size=scorer.batch_size)
     print("----------------")
-    print("FETCHING AND SCORING TEXTS...")
+    print("ASSEMBLED", len(batches), "BATCHES")
 
-    model = Detoxify(MODEL_NAME)
-    print(model)
+    for batch in batches:
 
-    sql = f"""
-        SELECT DISTINCT
-            txt.status_text_id
-            ,txt.status_text
-        FROM `{bq_service.dataset_address}.status_texts` txt
-        LEFT JOIN `{scores_table_name}` scores ON scores.status_text_id = txt.status_text_id
-        WHERE scores.status_text_id IS NULL
-    """
-    if LIMIT:
-        sql += f" LIMIT {int(LIMIT)} "
-    #print(sql)
+        status_text_ids = [row["status_text_id"] for row in batch]
+        status_texts = [row["status_text"] for row in batch]
 
-    batch = []
-    counter = 0
-    for row in bq_service.execute_query_in_batches(sql):
-    #for row in bq_service.execute_query(sql):
+        scores = scorer.model.predict(status_texts)
 
-        scores = model.predict(row["status_text"])
+        breakpoint()
 
-        record = {
-            "status_text_id": row["status_text_id"],
-            "identity_hate": rounded_score(scores["identity_hate"]),
-            "insult": rounded_score(scores["insult"]),
-            "obscene": rounded_score(scores["obscene"]),
-            "severe_toxicity": rounded_score(scores["severe_toxicity"]),
-            "threat": rounded_score(scores["threat"]),
-            "toxicity": rounded_score(scores["toxicity"]),
-        } # round the scores
+        #record = {
+        #    "status_text_id": row["status_text_id"],
+        #    "identity_hate": rounded_score(scores["identity_hate"]),
+        #    "insult": rounded_score(scores["insult"]),
+        #    "obscene": rounded_score(scores["obscene"]),
+        #    "severe_toxicity": rounded_score(scores["severe_toxicity"]),
+        #    "threat": rounded_score(scores["threat"]),
+        #    "toxicity": rounded_score(scores["toxicity"]),
+        #} # round the scores
 
-        batch.append(record)
-        counter +=1
 
-        if len(batch) >= BATCH_SIZE:
-            print("SAVING BATCH...", generate_timestamp(), " | ", len(batch), " | ", fmt_n(counter))
-            bq_service.insert_records_in_batches(scores_table, batch)
-            batch = []
-
-    if any(batch):
-        print("SAVING FINAL BATCH...", generate_timestamp(), " | ", len(batch), " | ",  fmt_n(counter))
-        bq_service.insert_records_in_batches(scores_table, batch)
-        batch = []
+        #print("SAVING BATCH...", generate_timestamp(), " | ", len(batch), " | ", fmt_n(counter))
+        #scorer.save_scores(records)
