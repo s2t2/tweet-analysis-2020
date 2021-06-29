@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 from detoxify import Detoxify
+from pandas import DataFrame
 
 from app.bq_service import BigQueryService, generate_timestamp, split_into_batches
 from app.decorators.number_decorators import fmt_n
@@ -80,9 +81,9 @@ if __name__ == "__main__":
 
     print("----------------")
     print("FETCHING TEXTS...")
-    texts = scorer.fetch_texts()
+    texts = list(scorer.fetch_texts())
 
-    batches = split_into_batches(texts, batch_size=scorer.batch_size)
+    batches = list(split_into_batches(texts, batch_size=scorer.batch_size))
     print("----------------")
     print("ASSEMBLED", len(batches), "BATCHES")
 
@@ -92,7 +93,7 @@ if __name__ == "__main__":
         status_texts = [row["status_text"] for row in batch]
 
         scores = scorer.model.predict(status_texts)
-
+        scores_df = DataFrame(scores)
         breakpoint()
 
         #record = {
