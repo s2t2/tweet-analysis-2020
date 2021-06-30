@@ -23,7 +23,12 @@ spacy
 gensim
 #basilica
 #transformers
-detoxify
+
+#detoxify
+# searching for ligher dependencies, so it will install on Heroku
+# see: https://github.com/unitaryai/detoxify/issues/19
+git+https://github.com/s2t2/detoxify.git
+#git+ssh://git@github.com/s2t2/detoxify.git
 
 matplotlib
 plotly

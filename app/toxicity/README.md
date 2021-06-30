@@ -206,8 +206,8 @@ heroku config:set MODEL_NAME="unbiased" -r heroku-6
 Deploy:
 
 ```sh
-git push heroku tox:main -r heroku-5
-git push heroku tox:main -r heroku-6
+git push heroku-5 tox:master -f
+git push heroku-6 tox:master -f
 ```
 
 Then turn on the "toxicity_scorer" dyno (see Procfile). It will process LIMIT items at a time, then restart and fetch the next batch, until there are no more to process.
