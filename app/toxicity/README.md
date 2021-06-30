@@ -92,6 +92,12 @@ The highest processing rate for the toxicity model seems to be around 1,000 text
 
 
 
+### Comparing Pytorch Models
+
+```sh
+python -m app.toxicity.investigate_models
+```
+
 ## Setup
 
 ### Database Migrations

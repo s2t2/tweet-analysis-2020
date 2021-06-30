@@ -2,6 +2,7 @@
 from pprint import pprint
 
 from detoxify import Detoxify
+import torch
 from pandas import DataFrame
 
 if __name__ == '__main__':
@@ -13,31 +14,25 @@ if __name__ == '__main__':
         "RT @RepAdamSchiff: Lt. Col. Vindman did his job. As a soldier in Iraq, he received a Purple Heart. Then he displayed another rare form o…"
     ]
 
-    # original: bert-base-uncased / Toxic Comment Classification Challenge
-    original = Detoxify("original")
-
-    # unbiased: roberta-base / Unintended Bias in Toxicity Classification
-    unbiased = Detoxify("unbiased")
-
-    original_small = Detoxify("original-small")
+    model_names = [
+        "toxic_bert", #> ImportError: cannot import name 'toxic_albert' from 'detoxify' (/opt/anaconda3/envs/tweet-analyzer-env-38/lib/python3.8/site-packages/detoxify/__init__.py)
+        "unbiased_toxic_roberta" #> ImportError: cannot import name 'toxic_albert' from 'detoxify' (/opt/anaconda3/envs/tweet-analyzer-env-38/lib/python3.8/site-packages/detoxify/__init__.py)
+    ]
 
     for text in texts:
 
         print("----------------")
         print(f"TEXT: '{text}'")
 
-        original_results = original.predict(text)
-        #original_results["text"] = text
-        original_results["model"] = "original"
-
-        unbiased_results = unbiased.predict(text)
-        #unbiased_results["text"] = text
-        unbiased_results["model"] = "unbiased"
-
-        original_small_results = original_small.predict(text)
-        original_small_results["model"] = "original-small"
+        records = []
+        for model_name in model_names:
+            model = torch.hub.load("unitaryai/detoxify", model_name)
+            record = model.predict(text)
+            record["model_name"] = model_name
+            records.append(record)
 
         print(f"SCORES:")
-        records = [original_results, unbiased_results, original_small_results]
-        df = DataFrame(records, columns=["toxicity", "severe_toxicity", "obscene", "threat", "insult", "identity_hate", "model"])
+
+        #df = DataFrame(records, columns=["toxicity", "severe_toxicity", "obscene", "threat", "insult", "identity_hate", "model"])
+        df = DataFrame(records)
         print(df.round(8).head())
