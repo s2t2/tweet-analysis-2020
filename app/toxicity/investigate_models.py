@@ -2,7 +2,7 @@
 from pprint import pprint
 
 from detoxify import Detoxify
-
+from pandas import DataFrame
 
 if __name__ == '__main__':
 
@@ -14,15 +14,26 @@ if __name__ == '__main__':
     ]
 
     # original: bert-base-uncased / Toxic Comment Classification Challenge
+    original = Detoxify("original")
+
     # unbiased: roberta-base / Unintended Bias in Toxicity Classification
-    for model_name in ["original", "unbiased"]:
+    unbiased = Detoxify("unbiased")
+
+    for text in texts:
 
         print("----------------")
-        print(model_name.upper())
+        print(f"TEXT: '{text}'")
 
-        model = Detoxify(model_name)
+        original_results = original.predict(text)
+        #original_results["text"] = text
+        original_results["model"] = "original"
 
-        results = model.predict(texts)
-        pprint(results)
+        unbiased_results = unbiased.predict(text)
+        #unbiased_results["text"] = text
+        unbiased_results["model"] = "unbiased"
 
-        #results_df = DataFrame(results, index=input_text).round(5))
+        print(f"SCORES:")
+
+        records = [original_results, unbiased_results]
+        df = DataFrame(records, columns=["toxicity", "severe_toxicity", "obscene", "threat", "insult", "identity_hate", "model"])
+        print(df.round(8).head())
