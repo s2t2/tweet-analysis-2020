@@ -52,6 +52,18 @@ There are some differences between the two main toxicity models. We'll probably 
 #> 1  0.000909         0.000002  0.000063  0.000141  0.000227            NaN  unbiased
 ```
 
+Looks like the unbiased model has different class names actually:
+
+```sh
+'toxicity',
+'severe_toxicity',
+'obscene',
+'identity_attack',
+'insult',
+'threat',
+'sexual_explicit'
+```
+
 ### Benchmarking Batch Sizes
 
 The models are capable of scoring many texts at a time. But how many is most efficient?
@@ -142,11 +154,14 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_s
     toxicity FLOAT64,
     severe_toxicity FLOAT64,
     obscene FLOAT64,
-    threat FLOAT64,
+    identity_attack FLOAT64,
     insult FLOAT64,
-    identity_hate FLOAT64,
+    threat FLOAT64,
+    sexual_explicit FLOAT64
 );
 ```
+
+> FYI: the different models have different class / column names
 
 So the query to figure out which texts haven't yet already been looked up is:
 
@@ -156,7 +171,7 @@ FROM `tweet-collector-py.impeachment_production.status_texts` txt
 LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores
     ON scores.status_text_id = txt.status_text_id
 WHERE scores.status_text_id IS NULL
-LIMIT 10000
+LIMIT 10000;
 ```
 
 ## Usage
@@ -166,7 +181,9 @@ Running the scorer (ideal batch size is 1,000):
 ```sh
 LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 
-MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=50_000 BATCH_SIZE=1_000 python -m app.toxicity.scorer
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
+
+MODEL_NAME="unbiased" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 ```
 
 ## Testing

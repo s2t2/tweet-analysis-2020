@@ -2,9 +2,11 @@
 from app.toxicity.scorer import ToxicityScorer
 
 def test_toxicity_scorer():
-    scorer = ToxicityScorer() # todo: use fixture
+    # the different models have different class names
+    # so we need different table structures to store the resulting scores
 
-    assert scorer.model.class_names == [
+    original = ToxicityScorer(model_name="original") # todo: use fixture
+    assert original.model.class_names == [
         'toxicity',
         'severe_toxicity',
         'obscene',
@@ -13,12 +15,13 @@ def test_toxicity_scorer():
         'identity_hate'
     ]
 
-    #assert scorer.scores_table_column_names == [
-    #    'status_text_id',
-    #    'toxicity',
-    #    'severe_toxicity',
-    #    'obscene',
-    #    'threat',
-    #    'insult',
-    #    'identity_hate'
-    #]
+    unbiased = ToxicityScorer(model_name="unbiased") # todo: use fixture
+    assert unbiased.model.class_names == [
+        'toxicity',
+        'severe_toxicity',
+        'obscene',
+        'identity_attack',
+        'insult',
+        'threat',
+        'sexual_explicit'
+    ]
