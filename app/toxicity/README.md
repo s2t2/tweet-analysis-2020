@@ -1,181 +1,13 @@
 # Toxicity Classification
 
-## Toxicity Models
+## Notes
+
+### Toxicity Models
 
 Using the Detoxify package for toxicity classification transformer models. For a list of available models and their descriptions, see the [Detoxify Docs](https://github.com/unitaryai/detoxify#prediction).
 
   + `original`: `bert-base-uncased` / Toxic Comment Classification Challenge
   + `unbiased`: `roberta-base` / Unintended Bias in Toxicity Classification
-
-
-## Database Migrations
-
-```sql
-SELECT
-  count(distinct status_id) as status_count -- 67666557
-  ,count(distinct user_id) as user_count  -- 3600545
-  ,count(distinct status_text) as text_count -- 13539079
-FROM `tweet-collector-py.impeachment_production.tweets`
-
-```
-
-Of 67M tweets, only 13M unique status texts, so let's just operate on those (while making sure we can still join via status_id).
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.status_texts`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.status_texts` as (
-    SELECT
-        ROW_NUMBER() OVER() status_text_id
-        ,status_text
-        ,status_ids
-        ,status_count
-    FROM (
-        SELECT
-            status_text
-            ,array_agg(cast(status_id as int64)) as status_ids
-            ,count(distinct status_id) as status_count
-        FROM `tweet-collector-py.impeachment_production.tweets`
-        GROUP BY 1
-        --ORDER BY 3 DESC
-        --LIMIT 1000
-    )
-);
-```
-
-Making sure we can re-join later (although this query is super / too slow hmmm):
-
-```sql
-WITH t as (
-    SELECT
-        cast(status_id as int64) as status_id
-        ,status_text
-    FROM  `tweet-collector-py.impeachment_production.tweets`
-)
-
-SELECT
-  txt.status_text_id
-  ,txt.status_text
-  --,txt.status_ids
-  ,txt.status_count
-  ,t.status_id
-FROM `tweet-collector-py.impeachment_production.status_texts` txt
-JOIN t on t.status_id in unnest(txt.status_ids)
-```
-
-This is not good.
-
-How bad would it be to save 67M inserts back into a row per status table structure instead? This would make the analysis query joins much easier later. But saving the 67M records would still be five times slower than necessary. Let's try making a join table - maybe BQ will be able to join faster using the join table than joining on nested array values.
-
-
-```sql
--- row per status_text_id, per status_id (essentially linking the texts to the statuses)
---
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.statuses_texts`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.statuses_texts` as (
-    SELECT status_text_id, status_id
-    FROM `tweet-collector-py.impeachment_production.status_texts`,
-    UNNEST(status_ids) as status_id
-)
-
-```
-
-Can re-join fast?
-
-```sql
-SELECT DISTINCT
-  txt.status_text_id
-  ,txt.status_text
-  --,txt.status_ids
-  ,txt.status_count
-  ,st.status_id
-FROM `tweet-collector-py.impeachment_production.status_texts` txt
-JOIN `tweet-collector-py.impeachment_production.statuses_texts` st ON st.status_text_id = txt.status_text_id
-WHERE txt.status_text_id = 308
-LIMIT 10000
-```
-
-Yeah this works.
-
-
-So we can store one record of scores per text.
-
-Migrate table for storing toxicity scores (where "original" references the toxicity model name):
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
-    status_text_id INT64,
-    identity_hate FLOAT64,
-    insult FLOAT64,
-    obscene FLOAT64,
-    severe_toxicity FLOAT64,
-    threat FLOAT64,
-    toxicity FLOAT64
-);
-```
-
-
-So the query to figure out which texts haven't yet already been looked up is:
-
-```sql
-SELECT DISTINCT
-  txt.status_text_id
-  ,txt.status_text
-  --,txt.status_ids
-  --,txt.status_count
-FROM `tweet-collector-py.impeachment_production.status_texts` txt
-LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores ON scores.status_text_id = txt.status_text_id
-WHERE scores.status_text_id IS NULL
-LIMIT 10000
-```
-
-
-Development Database Setup:
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.status_texts`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.status_texts` as (
-    SELECT
-        ROW_NUMBER() OVER() status_text_id
-        ,status_text
-        ,status_ids
-        ,status_count
-    FROM (
-        SELECT
-            status_text
-            ,array_agg(cast(status_id as int64)) as status_ids
-            ,count(distinct status_id) as status_count
-        FROM `tweet-collector-py.impeachment_production.tweets`
-        GROUP BY 1
-        --ORDER BY 3 DESC
-        LIMIT 1000
-    )
-);
-```
-
-```sql
--- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.statuses_texts`;
--- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.statuses_texts` as (
---     SELECT status_text_id, status_id
---     FROM `tweet-collector-py.impeachment_production.status_texts`,
---     UNNEST(status_ids) as status_id
--- );
-```
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.toxicity_scores_original`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.toxicity_scores_original` (
-    status_text_id INT64,
-    toxicity FLOAT64
-    severe_toxicity FLOAT64,
-    obscene FLOAT64,
-    threat FLOAT64,
-    insult FLOAT64,
-    identity_hate FLOAT64,
-);
-```
-
-## Investigation
 
 ### Comparing Models
 
@@ -220,7 +52,7 @@ There are some differences between the two main toxicity models. We'll probably 
 #> 1  0.000909         0.000002  0.000063  0.000141  0.000227            NaN  unbiased
 ```
 
-### Benchmarking Prediction Batch Sizes
+### Benchmarking Batch Sizes
 
 The models are capable of scoring many texts at a time. But how many is most efficient?
 
@@ -245,12 +77,120 @@ python -m app.toxicity.investigate_benchmarks
 
 The highest processing rate for the toxicity model seems to be around 1,000 texts at a time (50 per second, 300 per minute, 180K per hour, 4.32M per day). This can work. We'd need to run server for like 3 days. Very reasonable.
 
+
+
+
+## Setup
+
+### Database Migrations
+
+Of 67M tweets, there are only 13M unique status texts. To avoid unnecessary processing, we'll score only the unique texts.
+
+```sql
+SELECT
+  count(distinct status_id) as status_count -- 67666557
+  ,count(distinct user_id) as user_count  -- 3600545
+  ,count(distinct status_text) as text_count -- 13539079
+FROM `tweet-collector-py.impeachment_production.tweets`
+```
+
+So we'll want a table of unique texts ("status_texts"), and the ability to join them back via `status_id`. If we nest these `status_ids` as an array in the texts table, we aren't able to join back later (BQ has a hard time with the joins). So instead we'll make a separate join table ("statuses_texts").
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.status_texts`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.status_texts` as (
+    SELECT
+        ROW_NUMBER() OVER() status_text_id
+        ,status_text
+        ,status_ids
+        ,status_count
+    FROM (
+        SELECT
+            status_text
+            ,array_agg(cast(status_id as int64)) as status_ids
+            ,count(distinct status_id) as status_count
+        FROM `tweet-collector-py.impeachment_production.tweets`
+        GROUP BY 1
+    )
+);
+
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.statuses_texts`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.statuses_texts` as (
+    SELECT status_text_id, status_id
+    FROM `tweet-collector-py.impeachment_production.status_texts`,
+    UNNEST(status_ids) as status_id
+)
+```
+
+We'll make a table for storing toxicity scores from each model (where "original" references the toxicity model name):
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
+    status_text_id INT64,
+    toxicity FLOAT64,
+    severe_toxicity FLOAT64,
+    obscene FLOAT64,
+    threat FLOAT64,
+    insult FLOAT64,
+    identity_hate FLOAT64,
+);
+
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased` (
+    status_text_id INT64,
+    toxicity FLOAT64,
+    severe_toxicity FLOAT64,
+    obscene FLOAT64,
+    threat FLOAT64,
+    insult FLOAT64,
+    identity_hate FLOAT64,
+);
+```
+
+So the query to figure out which texts haven't yet already been looked up is:
+
+```sql
+SELECT DISTINCT txt.status_text_id ,txt.status_text
+FROM `tweet-collector-py.impeachment_production.status_texts` txt
+LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores
+    ON scores.status_text_id = txt.status_text_id
+WHERE scores.status_text_id IS NULL
+LIMIT 10000
+```
+
 ## Usage
 
+Running the scorer (ideal batch size is 1,000):
 
 ```sh
 LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 
-
-MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=50000 BATCH_SIZE=1000 python -m app.toxicity.scorer
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=50_000 BATCH_SIZE=1_000 python -m app.toxicity.scorer
 ```
+
+## Testing
+
+```sh
+APP_ENV="test" pytest test/test_toxicity_scorer.py
+```
+
+## Deployment
+
+Using server #5 for original model and server #6 for unbiased model.
+
+Config:
+
+```sh
+heroku config:set MODEL_NAME="original" -r heroku-5
+heroku config:set MODEL_NAME="unbiased" -r heroku-6
+```
+
+Deploy:
+
+```sh
+git push heroku tox:main -r heroku-5
+git push heroku tox:main -r heroku-6
+```
+
+Then turn on the "toxicity_scorer" dyno (see Procfile). It will process LIMIT items at a time, then restart and fetch the next batch, until there are no more to process.

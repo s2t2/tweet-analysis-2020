@@ -9,7 +9,7 @@ retweet_grapher: python -m app.retweet_graphs_v2.retweet_grapher
 k_days_grapher: python -m app.retweet_graphs_v2.k_days.grapher
 k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 
-basilica_embedder: python -m app.nlp.basilica.embedder
-basilica_embedder_parallel: python -m app.nlp.basilica.embedder_parallel
-
+# need to turn this off on all non-API servers:
 web: gunicorn "api:create_app()"
+
+toxicity_scorer: python -m app.toxicity.scorer
