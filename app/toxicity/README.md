@@ -129,6 +129,52 @@ WHERE scores.status_text_id IS NULL
 LIMIT 10000
 ```
 
+
+Development Database Setup:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.status_texts`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.status_texts` as (
+    SELECT
+        ROW_NUMBER() OVER() status_text_id
+        ,status_text
+        ,status_ids
+        ,status_count
+    FROM (
+        SELECT
+            status_text
+            ,array_agg(cast(status_id as int64)) as status_ids
+            ,count(distinct status_id) as status_count
+        FROM `tweet-collector-py.impeachment_production.tweets`
+        GROUP BY 1
+        --ORDER BY 3 DESC
+        LIMIT 1000
+    )
+);
+```
+
+```sql
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.statuses_texts`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.statuses_texts` as (
+--     SELECT status_text_id, status_id
+--     FROM `tweet-collector-py.impeachment_production.status_texts`,
+--     UNNEST(status_ids) as status_id
+-- );
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.toxicity_scores_original`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.toxicity_scores_original` (
+    status_text_id INT64,
+    toxicity FLOAT64
+    severe_toxicity FLOAT64,
+    obscene FLOAT64,
+    threat FLOAT64,
+    insult FLOAT64,
+    identity_hate FLOAT64,
+);
+```
+
 ## Usage
 
 ```sh
@@ -145,4 +191,9 @@ MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10000
 python -m app.toxicity.scorer_in_batches
 
 MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10000 BATCH_SIZE=500 python -m app.toxicity.scorer_in_batches
+
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=100 BATCH_SIZE=30 python -m app.toxicity.score_in_batches
+
+
+LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.score_in_batches
 ```
