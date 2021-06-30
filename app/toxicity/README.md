@@ -243,18 +243,14 @@ python -m app.toxicity.investigate_benchmarks
 #> ---------------------
 ```
 
-The highest processing rate for the toxicity model seems to be around 1,000 texts at a time.
+The highest processing rate for the toxicity model seems to be around 1,000 texts at a time (50 per second, 300 per minute, 180K per hour, 4.32M per day). This can work. We'd need to run server for like 3 days. Very reasonable.
 
 ## Usage
 
 
 ```sh
-python -m app.toxicity.scorer_in_batches
-
-MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10000 BATCH_SIZE=500 python -m app.toxicity.scorer_in_batches
-
-MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=100 BATCH_SIZE=30 python -m app.toxicity.score_in_batches
+LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 
 
-LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.score_in_batches
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=50000 BATCH_SIZE=1000 python -m app.toxicity.scorer
 ```
