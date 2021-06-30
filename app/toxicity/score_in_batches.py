@@ -18,15 +18,6 @@ MODEL_NAME = os.getenv("MODEL_NAME", default="original")
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", default="100"))
 LIMIT = os.getenv("LIMIT") # None by default
 
-def rounded_score(np_float):
-    """Converts toxicity scores to decimals that can be saved in BigQuery.
-        Converts numpy floats to native floats (prevents non serializable errors).
-        Rounds to eight decimal places (to save some storage space maybe).
-
-    Params: np_float (numpy.float32)
-    """
-    return round(np_float.item(), 8)
-
 
 class ToxicityScorer:
     def __init__(self, model_name=MODEL_NAME, limit=LIMIT, batch_size=BATCH_SIZE, bq_service=None):
@@ -87,6 +78,7 @@ class ToxicityScorer:
 if __name__ == "__main__":
 
     scorer = ToxicityScorer()
+    print(scorer.model.class_names)
 
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
@@ -100,7 +92,7 @@ if __name__ == "__main__":
     batch_count = len(batches)
     print("ASSEMBLED", batch_count, "BATCHES OF", scorer.batch_size)
 
-    score_columns = ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
+    score_columns = scorer.model.class_names #> ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
     all_columns_in_order = ["status_text_id"] + score_columns
 
     for index, batch in enumerate(batches):
