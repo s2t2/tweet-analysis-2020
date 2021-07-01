@@ -12,4 +12,4 @@ k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 # need to turn this off on all non-API servers:
 web: gunicorn "api:create_app()"
 
-toxicity_scorer: python -m app.toxicity.scorer
+#toxicity_scorer: python -m app.toxicity.scorer

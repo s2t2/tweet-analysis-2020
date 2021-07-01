@@ -184,6 +184,9 @@ LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
 
 MODEL_NAME="unbiased" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
+
+
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=25000 BATCH_SIZE=1000 python -m app.toxicity.scorer
 ```
 
 ## Testing
@@ -211,3 +214,5 @@ git push heroku-6 tox:master -f
 ```
 
 Then turn on the "toxicity_scorer" dyno (see Procfile). It will process LIMIT items at a time, then restart and fetch the next batch, until there are no more to process.
+
+> EDIT: the detoxify package won't load on heroku, so need to run this locally

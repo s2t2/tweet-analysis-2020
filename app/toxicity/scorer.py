@@ -97,6 +97,40 @@ class ToxicityScorer:
             records = scores_df.to_dict("records")
             self.save_scores(records)
 
+    def perform_better(self):
+        print("----------------")
+        print(f"FETCHING AND SCORING TEXTS IN BATCHES...")
+
+        batch = []
+        batch_counter=0
+        counter = 0
+        for row in self.fetch_texts():
+            counter+=1
+            batch.append(row)
+
+            if len(batch) >= self.batch_size:
+                batch_counter +=1
+                print(f"  BATCH {batch_counter} | {len(batch)} ITEMS |", generate_timestamp())
+
+                status_text_ids = [row["status_text_id"] for row in batch]
+                status_texts = [row["status_text"] for row in batch]
+
+                scores = self.model.predict(status_texts)
+                scores["status_text_id"] = status_text_ids
+
+                scores_df = DataFrame(scores)
+                # reorder columns for BQ (or else they won't save properly):
+                scores_table_cols = ["status_text_id"] + self.model.class_names
+                scores_df = scores_df.reindex(scores_table_cols, axis="columns")
+                # round scores, to reduce storage requirements:
+                for scores_col in self.model.class_names:
+                    scores_df[scores_col] = scores_df[scores_col].round(8)
+
+                records = scores_df.to_dict("records")
+                self.save_scores(records)
+                batch = []
+
+
 
 if __name__ == "__main__":
 
@@ -105,7 +139,8 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
-    scorer.perform()
+    #scorer.perform()
+    scorer.perform_better()
 
     print("----------------")
     print("JOB COMPLETE!")
