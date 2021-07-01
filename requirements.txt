@@ -22,16 +22,17 @@ nltk
 spacy
 gensim
 #basilica
-#transformers
 
-#
-# searching for ligher dependencies, so it will install on Heroku
-# see: https://github.com/unitaryai/detoxify/issues/19
-#
-detoxify
+
+# detoxify
 #git+https://github.com/s2t2/detoxify.git
-torch
-torchvision
+
+transformers
+
+#torch
+#torchvision
+# https://download.pytorch.org/whl/cpu/torch-X.Y.Z.blah-blah-blah-linux_x86_64.whl
+
 
 
 

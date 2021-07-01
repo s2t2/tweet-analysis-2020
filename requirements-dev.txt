@@ -1,0 +1,4 @@
+
+# for now, unable to get this to install on heroku?
+# see: https://github.com/unitaryai/detoxify/issues/19
+detoxify
