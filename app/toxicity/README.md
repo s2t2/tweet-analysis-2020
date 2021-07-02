@@ -189,6 +189,18 @@ MODEL_NAME="unbiased" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BA
 MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=25000 BATCH_SIZE=1000 python -m app.toxicity.scorer
 ```
 
+> NOTE: you probably want to run multithreaded though...
+
+Running multithreaded:
+
+```sh
+LIMIT=500 BATCH_SIZE=100 MAX_THREADS=5 python -m app.toxicity.scorer_async
+
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=500 BATCH_SIZE=100  MAX_THREADS=5 python -m app.toxicity.scorer_async
+
+MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=500 BATCH_SIZE=100  MAX_THREADS=5 python -m app.toxicity.scorer_async
+```
+
 ## Testing
 
 ```sh
