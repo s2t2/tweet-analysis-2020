@@ -12,10 +12,18 @@
 #   https://pytorch.org/docs/stable/generated/torch.no_grad.html
 #
 
+import os
 from pprint import pprint
+from functools import lru_cache
 
+from dotenv import load_dotenv
 import torch
 import transformers
+#from pandas import DataFrame
+
+load_dotenv()
+
+MODEL_NAME = os.getenv("MODEL_NAME", default="original") # "original" or "unbiased" (see README)
 
 CHECKPOINTS = {
     "original": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_original-c1212f89.ckpt",
@@ -24,81 +32,102 @@ CHECKPOINTS = {
     "original-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/original-albert-0e1d6498.ckpt",
     "unbiased-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/unbiased-albert-c8519128.ckpt"
 }
+CHECKPOINT_URL = CHECKPOINTS[MODEL_NAME]
 
-@torch.no_grad()
-def predict_scores(text, model, tokenizer, class_names):
-    model.eval()
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True).to(model.device)
-    out = model(**inputs)[0]
-    scores = torch.sigmoid(out).cpu().detach().numpy()
-    return scores
+class ModelManager:
+    def __init__(self, checkpoint_url=CHECKPOINT_URL):
+        self.checkpoint_url = checkpoint_url
+
+        self.model_state = None
+
+        self.state_dict = None
+        self.config = None
+
+        self.tokenizer_name = None
+        self.model_name = None
+        self.model_type = None
+        self.num_classes = None
+        self.class_names = None
+
+    def load_model_state(self):
+        print("---------------------------")
+        print("LOADING MODEL STATE...")
+        # see: https://pytorch.org/docs/stable/hub.html#torch.hub.load_state_dict_from_url
+        self.model_state = torch.hub.load_state_dict_from_url(self.checkpoint_url, map_location="cpu")
+
+        self.state_dict = self.model_state["state_dict"]
+        self.config = self.model_state["config"]
+
+        self.tokenizer_name = self.config["arch"]["args"]["tokenizer_name"] #> BertTokenizer
+        self.model_name = self.config["arch"]["args"]["model_name"] #> BertForSequenceClassification
+        self.model_type = self.config["arch"]["args"]["model_type"] #> bert-base-uncased
+        self.num_classes = self.config["arch"]["args"]["num_classes"] #> 6
+        self.class_names = self.config["dataset"]["args"]["classes"]
+
+        print("---------------------------")
+        print("MODEL TYPE:", self.model_type)
+        print("MODEL NAME:", self.model_name)
+        print("TOKENIZER NAME:", self.tokenizer_name)
+        print(f"CLASS NAMES ({self.num_classes}):", self.class_names)
+
+    @property
+    @lru_cache(maxsize=None)
+    def model(self):
+        if not self.model_state and self.model_name and self.model_type and self.num_classes and self.state_dict:
+            self.load_model_state()
+
+        # see: https://huggingface.co/transformers/main_classes/model.html#transformers.PreTrainedModel.from_pretrained
+        return getattr(transformers, self.model_name).from_pretrained(
+            pretrained_model_name_or_path=None,
+            config=self.model_type,
+            num_labels=self.num_classes,
+            state_dict=self.state_dict,
+        )
+
+    @property
+    @lru_cache(maxsize=None)
+    def tokenizer(self):
+        if not self.model_state and self.tokenizer_name and self.model_type:
+            self.load_model_state()
+
+        return getattr(transformers, self.tokenizer_name).from_pretrained(self.model_type)
+
+    @torch.no_grad()
+    def predict_scores(self, texts):
+        self.model.eval()
+        inputs = self.tokenizer(texts, return_tensors="pt", truncation=True, padding=True).to(self.model.device)
+        out = self.model(**inputs)[0]
+        scores = torch.sigmoid(out).cpu().detach().numpy()
+        return scores
 
 
 if __name__ == '__main__':
-
-
-    model_state = torch.hub.load_state_dict_from_url(CHECKPOINTS["original"], map_location="cpu")
-
-    state_dict = model_state["state_dict"]
-
-    config = model_state["config"]
-    tokenizer_name = config["arch"]["args"]["tokenizer_name"] #> BertTokenizer
-    model_name = config["arch"]["args"]["model_name"] #> BertForSequenceClassification
-    model_type = config["arch"]["args"]["model_type"] #> bert-base-uncased
-    num_classes = config["arch"]["args"]["num_classes"] #> 6
-    class_names = config["dataset"]["args"]["classes"]
-
-    print("---------------------------")
-    print("MODEL TYPE:", model_type)
-    print("MODEL NAME:", model_name)
-    print("TOKENIZER NAME:", tokenizer_name)
-    print(f"CLASS NAMES ({num_classes}):", class_names)
-
-    # assert list(state_dict.keys()) == []
-    assert tokenizer_name == "BertTokenizer"
-    assert model_name == "BertForSequenceClassification"
-    assert model_type == "bert-base-uncased"
-    assert class_names == ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
-    assert num_classes == 6
-
-
-    print("---------------------------")
-
-    model = getattr(transformers, model_name).from_pretrained(
-        pretrained_model_name_or_path=None,
-        config=model_type,
-        num_labels=num_classes,
-        state_dict=state_dict,
-    )
-    print("MODEL:", type(model))
-
-    tokenizer = getattr(transformers, tokenizer_name).from_pretrained(model_type)
-    print("TOKENIZER:", type(tokenizer))
-
-
-
-
-
-
 
     texts = [
         "RT @realDonaldTrump: Crazy Nancy Pelosi should spend more time in her decaying city and less time on the Impeachment Hoax! https://t.co/eno…",
         "RT @SpeakerPelosi: The House cannot choose our impeachment managers until we know what sort of trial the Senate will conduct. President Tr…",
     ]
 
+    mgr = ModelManager()
 
-    scores = predict_scores(texts, model, tokenizer, class_names)
+    mgr.load_model_state()
+
+    print("------------")
+    print("MODEL:", type(mgr.model))
+    print("TOKENIZER:", type(mgr.tokenizer))
+
+    scores = mgr.predict_scores(texts)
     print("------------")
     print("SCORES:", type(scores), scores.shape, scores[0])
 
-    results = []
+    #results = []
     for score_index, score_row in enumerate(scores):
         #print(score_row)
         result = {}
         result["text"] = texts[score_index]
-        for class_index, class_name in enumerate(class_names):
+        for class_index, class_name in enumerate(mgr.class_names):
             result[class_name] = score_row[class_index]
 
         print("----")
         print(result)
-        results.append(result)
+        #results.append(result)
