@@ -129,5 +129,5 @@ if __name__ == '__main__':
             result[class_name] = score_row[class_index]
 
         print("----")
-        print(result)
+        pprint(result)
         #results.append(result)
