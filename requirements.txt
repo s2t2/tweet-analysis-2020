@@ -22,7 +22,8 @@ nltk
 spacy
 gensim
 #basilica
-#transformers
+transformers
+torch
 
 matplotlib
 plotly
