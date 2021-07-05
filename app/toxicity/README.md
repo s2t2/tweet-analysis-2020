@@ -225,6 +225,20 @@ git push heroku-5 tox:master -f
 git push heroku-6 tox:master -f
 ```
 
+
+The deploy will fail if the compressed size of all package dependencies is too big (>500MB). The detoxify package was way too big itslef (800MB), so we loaded its component torch dependencies directly, but with a smaller size (for CPUs, don't need GPU support). And we also have to temporarily comment-out some of the other packages (like some dataviz packages we're not using for this specific process) in the requirements.txt file. And now the deploy works.
+
+Writing a new scorer to work with this dependency situation:
+
+
+```sh
+python app.toxicity.scorer_light
+
+python app.toxicity.scorer_async_light
+```
+
+
+
 Then turn on the "toxicity_scorer" dyno (see Procfile). It will process LIMIT items at a time, then restart and fetch the next batch, until there are no more to process.
 
 > EDIT: the detoxify package won't load on heroku, so need to run this locally

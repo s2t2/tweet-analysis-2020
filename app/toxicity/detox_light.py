@@ -100,6 +100,16 @@ class ModelManager:
         scores = torch.sigmoid(out).cpu().detach().numpy()
         return scores
 
+    def predict_records(self, texts):
+        records = []
+        for i, score_row in enumerate(self.predict_scores(texts)):
+            record = {}
+            record["text"] = texts[i]
+            for class_index, class_name in enumerate(self.class_names):
+                record[class_name] = score_row[class_index]
+            records.append(record)
+        return records
+
 
 if __name__ == '__main__':
 
@@ -118,16 +128,10 @@ if __name__ == '__main__':
 
     scores = mgr.predict_scores(texts)
     print("------------")
-    print("SCORES:", type(scores), scores.shape, scores[0])
+    print("SCORES:", type(scores), scores.shape)
+    print(scores[0])
 
-    #results = []
-    for score_index, score_row in enumerate(scores):
-        #print(score_row)
-        result = {}
-        result["text"] = texts[score_index]
-        for class_index, class_name in enumerate(mgr.class_names):
-            result[class_name] = score_row[class_index]
-
-        print("----")
-        pprint(result)
-        #results.append(result)
+    records = mgr.predict_records(texts)
+    print("------------")
+    print("RECORDS:", type(records), len(records))
+    print(records[0])
