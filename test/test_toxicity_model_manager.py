@@ -46,7 +46,7 @@ def test_original_model(original_model_manager):
         }
     ]
 
-    df = mgr.predict_df(records)
+    df = mgr.predict_df(texts)
     assert isinstance(df, DataFrame)
 
 
