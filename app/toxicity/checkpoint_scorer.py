@@ -4,6 +4,7 @@
 import os
 from functools import lru_cache
 #from pprint import pprint
+import gc
 
 from dotenv import load_dotenv
 
@@ -61,6 +62,9 @@ class ToxicityScorer:
 
             self.process_batch(batch)
             batch = []
+
+        #del batch
+        #gc.collect()
 
     def fetch_texts(self):
         sql = f"""
@@ -136,4 +140,6 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
+    del scorer
+    gc.collect()
     server_sleep(seconds=5*60) # give the server a break before restarting
