@@ -31,6 +31,8 @@ class ToxicityScorer:
         print("  LIMIT:", fmt_n(self.limit))
         print("  BATCH SIZE:", fmt_n(self.batch_size))
 
+        self.predict = self.mgr.predict_scores # method alias
+
         seek_confirmation()
 
     def perform(self):
@@ -80,7 +82,7 @@ class ToxicityScorer:
             texts.append(text_row["status_text"])
             text_ids.append(text_row["status_text_id"])
 
-        results = self.mgr.predict_scores(texts)
+        results = self.predict(texts)
 
         score_rows = []
         for text_id, result in zip(text_ids, results):
@@ -134,4 +136,4 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
-    server_sleep(seconds=10*60) # give the server a break before restarting
+    server_sleep(seconds=5*60) # give the server a break before restarting

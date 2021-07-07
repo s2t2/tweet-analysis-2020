@@ -254,4 +254,4 @@ Writing a new scorer to work with this dependency situation (see "Detoxify Model
 
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
 
-Memory exceeded, turning up to "Standard-1X" size.
+Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K.
