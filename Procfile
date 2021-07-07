@@ -13,3 +13,4 @@ k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 web: gunicorn "api:create_app()"
 
 #toxicity_scorer: python -m app.toxicity.scorer
+toxicity_checkpoint_scorer: python -m app.toxicity.checkpoint_scorer

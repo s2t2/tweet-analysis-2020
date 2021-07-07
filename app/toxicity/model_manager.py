@@ -50,6 +50,8 @@ class ModelManager:
         self.num_classes = None
         self.class_names = None
 
+
+
     def load_model_state(self):
         """Loads pre-trained model from saved checkpoint metadata."""
         print("---------------------------")

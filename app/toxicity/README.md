@@ -134,11 +134,13 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.statuses_t
 )
 ```
 
-We'll make a table for storing toxicity scores from each model (where "original" references the toxicity model name):
+We'll make a table for storing toxicity scores from each model (where "original" references the toxicity model name and "ckpt" references scores from models reconstituted from checkpoints):
 
 ```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` (
     status_text_id INT64,
     toxicity FLOAT64,
     severe_toxicity FLOAT64,
@@ -148,8 +150,10 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_s
     identity_hate FLOAT64,
 );
 
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased` (
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased` (
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt` (
     status_text_id INT64,
     toxicity FLOAT64,
     severe_toxicity FLOAT64,
@@ -176,6 +180,8 @@ LIMIT 10000;
 
 ## Usage
 
+### Detoxify Models
+
 Running the scorer (ideal batch size is 1,000):
 
 ```sh
@@ -200,6 +206,16 @@ MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=500 
 
 MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=500 BATCH_SIZE=100  MAX_THREADS=5 python -m app.toxicity.scorer_async
 ```
+
+### Detoxify Model Checkpoints
+
+
+Use toxicity models reconstituted from checkpoints:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 SCORE_BATCH_SIZE=10 SAVE_BATCH_SIZE=1000 python -m app.toxicity.checkpoint_scorer
+```
+
 
 ## Testing
 
@@ -228,17 +244,6 @@ git push heroku-6 tox:master -f
 
 The deploy will fail if the compressed size of all package dependencies is too big (>500MB). The detoxify package was way too big itslef (800MB), so we loaded its component torch dependencies directly, but with a smaller size (for CPUs, don't need GPU support). And we also have to temporarily comment-out some of the other packages (like some dataviz packages we're not using for this specific process) in the requirements.txt file. And now the deploy works.
 
-Writing a new scorer to work with this dependency situation:
+Writing a new scorer to work with this dependency situation (see "Detoxify Model Checkpoints" section above.)
 
-
-```sh
-python app.toxicity.scorer_light
-
-python app.toxicity.scorer_async_light
-```
-
-
-
-Then turn on the "toxicity_scorer" dyno (see Procfile). It will process LIMIT items at a time, then restart and fetch the next batch, until there are no more to process.
-
-> EDIT: the detoxify package won't load on heroku, so need to run this locally
+Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).

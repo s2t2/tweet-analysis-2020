@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from detoxify import Detoxify
 from pandas import DataFrame
 
-from app import server_sleep
+from app import server_sleep, seek_confirmation
 from app.decorators.number_decorators import fmt_n
 from app.bq_service import BigQueryService, generate_timestamp, split_into_batches
 from app.toxicity.model_manager import ModelManager, CHECKPOINT_NAME
@@ -27,26 +27,40 @@ class ToxicityScorer:
         self.mgr = model_manager or ModelManager()
 
         print("----------------")
-        print("NEW TOXICITY SCORER...")
-        print("  MODEL:", self.mgr.checkpoint_name.upper(), self.mgr.checkpoint_url)
+        print("TOXICITY SCORER...")
+        print("  MODEL CHECKPOINT:", self.mgr.checkpoint_name.upper(), self.mgr.checkpoint_url)
+        print("  SCORES TABLE NAME:", self.scores_table_name)
         print("  LIMIT:", fmt_n(self.limit))
         print("  BATCH SIZE:", fmt_n(self.batch_size))
 
+        seek_confirmation()
+
         #self.mgr.load_model_state()
 
-    @property
-    @lru_cache(maxsize=None)
-    def scores_table_name(self):
-        model_name = self.mgr.checkpoint_name.lower().replace("-","_").replace(";","") # using this model name in queries, so be super safe about SQL injection, although its not a concern right now
-        return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}_cpkt"
+    def perform(self):
+        print("----------------")
+        print(f"FETCHING TEXTS...")
+        print(f"SCORING TEXTS IN BATCHES...")
 
-    def count_scores(self):
-        sql = f"""
-            SELECT count(DISTINCT status_text_id) as text_count
-            FROM `{self.scores_table_name}`
-        """
-        results = self.bq_service.execute_query(sql) # API call
-        return list(results)[0]["text_count"]
+        batch = []
+        counter = 0
+        for row in self.fetch_texts():
+            batch.append(row)
+
+            if len(batch) >= self.batch_size:
+                counter += len(batch)
+                print("  ", generate_timestamp(), "|", fmt_n(counter))
+
+                self.process_batch(batch)
+                batch = []
+
+        # process final (potentially incomplete) batch
+        if any(batch):
+            counter += len(batch)
+            print("  ", generate_timestamp(), "|", fmt_n(counter))
+
+            self.process_batch(batch)
+            batch = []
 
     def fetch_texts(self):
         sql = f"""
@@ -61,11 +75,22 @@ class ToxicityScorer:
             sql += f" LIMIT {int(self.limit)} "
         return self.bq_service.execute_query(sql) # API call
 
-    @property
-    @lru_cache(maxsize=None)
-    def scores_table_colnames(self):
-        """Returns the column names in the proper order."""
-        return ["status_text_id"] + self.mgr.class_names
+    def process_batch(self, batch):
+        texts = []
+        text_ids = []
+        for text_row in batch:
+            texts.append(text_row["status_text"])
+            text_ids.append(text_row["status_text_id"])
+
+        results = self.mgr.predict_scores(texts)
+
+        score_rows = []
+        for text_id, result in zip(text_ids, results):
+            score_row = result.round(8).tolist()
+            score_row.insert(0, text_id) # adds the text_id to the front of the list (proper column order -- see table definition)
+            score_rows.append(score_row)
+
+        self.save_scores(score_rows)
 
     def save_scores(self, values):
         """Params : values (list of lists corresponding with the proper column order)"""
@@ -76,57 +101,24 @@ class ToxicityScorer:
     def scores_table(self):
         return self.bq_service.client.get_table(self.scores_table_name) # API call
 
-    def process_batch(self, batch):
-        texts = []
-        text_ids = []
-        for text_row in batch:
-            texts.append(text_row["status_text"])
-            text_ids.append(text_row["status_text_id"])
+    @property
+    @lru_cache(maxsize=None)
+    def scores_table_name(self):
+        model_name = self.mgr.checkpoint_name.lower().replace("-","_").replace(";","") # using this model name in queries, so be super safe about SQL injection, although its not a concern right now
+        return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}_ckpt"
 
-        score_rows = self.mgr.predict_scores(texts)
+    def count_scores(self):
+        sql = f"""
+            SELECT count(DISTINCT status_text_id) as scored_text_count
+            FROM `{self.scores_table_name}`
+        """
+        results = self.bq_service.execute_query(sql) # API call
+        return list(results)[0]["scored_text_count"]
 
 
-        #"status_text_id"] = [row["status_text_id"] for row in batch]
 
-        values = []
-        for text_id, score_row in zip(text_ids, score_rows):
-            score_row.insert(0, text_id)
-            values.append(score_row)
 
-        breakpoint()
 
-        #self.save_scores(values)
-
-    def perform(self):
-        print("----------------")
-        print(f"FETCHING TEXTS...")
-        rows = list(self.fetch_texts())
-
-        print(f"ASSEMBLING BATCHES...")
-        batches = list(split_into_batches(rows, batch_size=self.batch_size))
-
-        print(f"SCORING TEXTS IN BATCHES...")
-        counter = 0
-        for index, batch in enumerate(batches):
-            counter += len(batch)
-            print("  ", generate_timestamp(), f"BATCH {index+1}", f"| {fmt_n(counter)}")
-            self.process_batch(batch)
-
-    def perform_better(self):
-        print("----------------")
-        print(f"FETCHING TEXTS...")
-        print(f"SCORING TEXTS IN BATCHES...")
-
-        batch = []
-        counter = 0
-        for row in self.fetch_texts():
-            batch.append(row)
-
-            if len(batch) >= self.batch_size:
-                counter+=len(batch)
-                print("  ", generate_timestamp(), "|", fmt_n(counter))
-                self.process_batch(batch)
-                batch = []
 
 
 
@@ -137,16 +129,11 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
-    #scorer.perform()
-    scorer.perform_better()
-    #scorer.perform_better_timed()
-    #duration_seconds = scorer.perform_better_timed()
-    #items_per_second = round(scorer.limit / duration_seconds, 2)
-    #print(f"PROCESSED {fmt_n(scorer.limit)} ITEMS IN {duration_seconds} SECONDS ({items_per_second} ITEMS / SECOND)")
+    scorer.mgr.load_model_state()
+    scorer.perform()
 
     print("----------------")
     print("JOB COMPLETE!")
-
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
