@@ -29,14 +29,15 @@ CHECKPOINT_NAME = os.getenv("CHECKPOINT_NAME", default="original") # "original" 
 CHECKPOINT_URLS = {
     "original": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_original-c1212f89.ckpt",
     "unbiased": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_bias-4e693588.ckpt",
-    "multilingual": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_multilingual-bbddc277.ckpt",
-    "original-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/original-albert-0e1d6498.ckpt",
-    "unbiased-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/unbiased-albert-c8519128.ckpt"
+    #"multilingual": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_multilingual-bbddc277.ckpt",
+    #"original-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/original-albert-0e1d6498.ckpt",
+    #"unbiased-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/unbiased-albert-c8519128.ckpt"
 }
 
 class ModelManager:
-    def __init__(self, checkpoint_name=CHECKPOINT_NAME, checkpoint_url=None):
-        self.checkpoint_url = checkpoint_url or CHECKPOINT_URLS[checkpoint_name]
+    def __init__(self, checkpoint_name=None):
+        self.checkpoint_name = checkpoint_name or CHECKPOINT_NAME
+        self.checkpoint_url = CHECKPOINT_URLS[self.checkpoint_name]
 
         self.model_state = None
 
