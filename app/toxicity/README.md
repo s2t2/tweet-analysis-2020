@@ -253,3 +253,5 @@ The deploy will fail if the compressed size of all package dependencies is too b
 Writing a new scorer to work with this dependency situation (see "Detoxify Model Checkpoints" section above.)
 
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
+
+Memory exceeded, turning up to "Standard-1X" size.
