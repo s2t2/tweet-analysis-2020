@@ -14,3 +14,4 @@ web: gunicorn "api:create_app()"
 
 #toxicity_scorer: python -m app.toxicity.scorer
 toxicity_checkpoint_scorer: python -m app.toxicity.checkpoint_scorer
+toxicity_checkpoint_scorer_async: python -m app.toxicity.checkpoint_scorer_async

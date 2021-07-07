@@ -33,9 +33,9 @@ class ToxicityScorer:
 
         seek_confirmation()
 
-        #self.mgr.load_model_state()
-
     def perform(self):
+        self.mgr.load_model_state()
+
         print("----------------")
         print(f"FETCHING TEXTS...")
         print(f"SCORING TEXTS IN BATCHES...")
@@ -127,7 +127,6 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
-    scorer.mgr.load_model_state()
     scorer.perform()
 
     print("----------------")

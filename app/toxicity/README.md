@@ -213,7 +213,13 @@ MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=500 B
 Use toxicity models reconstituted from checkpoints:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 SCORE_BATCH_SIZE=10 SAVE_BATCH_SIZE=1000 python -m app.toxicity.checkpoint_scorer
+BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 BATCH_SIZE=10 python -m app.toxicity.checkpoint_scorer
+```
+
+... async:
+
+```sh
+BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 BATCH_SIZE=10 MAX_THREADS=10 python -m app.toxicity.checkpoint_scorer_async
 ```
 
 

@@ -54,25 +54,26 @@ class ModelManager:
 
     def load_model_state(self):
         """Loads pre-trained model from saved checkpoint metadata."""
-        print("---------------------------")
-        print("LOADING MODEL STATE...")
-        # see: https://pytorch.org/docs/stable/hub.html#torch.hub.load_state_dict_from_url
-        self.model_state = torch.hub.load_state_dict_from_url(self.checkpoint_url, map_location="cpu")
+        if not self.model_state:
+            print("---------------------------")
+            print("LOADING MODEL STATE...")
+            # see: https://pytorch.org/docs/stable/hub.html#torch.hub.load_state_dict_from_url
+            self.model_state = torch.hub.load_state_dict_from_url(self.checkpoint_url, map_location="cpu")
 
-        self.state_dict = self.model_state["state_dict"]
-        self.config = self.model_state["config"]
+            self.state_dict = self.model_state["state_dict"]
+            self.config = self.model_state["config"]
 
-        self.tokenizer_name = self.config["arch"]["args"]["tokenizer_name"] #> BertTokenizer
-        self.model_name = self.config["arch"]["args"]["model_name"] #> BertForSequenceClassification
-        self.model_type = self.config["arch"]["args"]["model_type"] #> bert-base-uncased
-        self.num_classes = self.config["arch"]["args"]["num_classes"] #> 6
-        self.class_names = self.config["dataset"]["args"]["classes"] #> ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
+            self.tokenizer_name = self.config["arch"]["args"]["tokenizer_name"] #> BertTokenizer
+            self.model_name = self.config["arch"]["args"]["model_name"] #> BertForSequenceClassification
+            self.model_type = self.config["arch"]["args"]["model_type"] #> bert-base-uncased
+            self.num_classes = self.config["arch"]["args"]["num_classes"] #> 6
+            self.class_names = self.config["dataset"]["args"]["classes"] #> ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
 
-        print("---------------------------")
-        print("MODEL TYPE:", self.model_type)
-        print("MODEL NAME:", self.model_name)
-        print("TOKENIZER NAME:", self.tokenizer_name)
-        print(f"CLASS NAMES ({self.num_classes}):", self.class_names)
+            print("---------------------------")
+            print("MODEL TYPE:", self.model_type)
+            print("MODEL NAME:", self.model_name)
+            print("TOKENIZER NAME:", self.tokenizer_name)
+            print(f"CLASS NAMES ({self.num_classes}):", self.class_names)
 
     @property
     @lru_cache(maxsize=None)
