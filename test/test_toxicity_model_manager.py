@@ -5,7 +5,7 @@ from pandas import DataFrame
 
 import pytest
 
-from app.toxicity.detox_light import ModelManager
+from app.toxicity.model_manager import ModelManager
 
 @pytest.fixture(scope="module")
 def original_model_manager():
