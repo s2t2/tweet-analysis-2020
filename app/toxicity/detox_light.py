@@ -2,6 +2,7 @@
 #
 # adapted from: https://github.com/unitaryai/detoxify/blob/master/detoxify/detoxify.py
 #
+# using the pre-trained toxicity models provided via Detoxify checkpoints, but...
 # 1) let's try different / lighter torch requirement approaches (to enable installation on heroku) - see requirements.txt file
 # 2) let's also try to return the raw scores (to save processing time)
 #
@@ -19,24 +20,23 @@ from functools import lru_cache
 from dotenv import load_dotenv
 import torch
 import transformers
-#from pandas import DataFrame
+from pandas import DataFrame
 
 load_dotenv()
 
-MODEL_NAME = os.getenv("MODEL_NAME", default="original") # "original" or "unbiased" (see README)
+CHECKPOINT_NAME = os.getenv("CHECKPOINT_NAME", default="original") # "original" or "unbiased" (see README)
 
-CHECKPOINTS = {
+CHECKPOINT_URLS = {
     "original": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_original-c1212f89.ckpt",
     "unbiased": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_bias-4e693588.ckpt",
     "multilingual": "https://github.com/unitaryai/detoxify/releases/download/v0.1-alpha/toxic_multilingual-bbddc277.ckpt",
     "original-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/original-albert-0e1d6498.ckpt",
     "unbiased-small": "https://github.com/unitaryai/detoxify/releases/download/v0.1.2/unbiased-albert-c8519128.ckpt"
 }
-CHECKPOINT_URL = CHECKPOINTS[MODEL_NAME]
 
 class ModelManager:
-    def __init__(self, checkpoint_url=CHECKPOINT_URL):
-        self.checkpoint_url = checkpoint_url
+    def __init__(self, checkpoint_name=CHECKPOINT_NAME, checkpoint_url=None):
+        self.checkpoint_url = checkpoint_url or CHECKPOINT_URLS[checkpoint_name]
 
         self.model_state = None
 
@@ -50,6 +50,7 @@ class ModelManager:
         self.class_names = None
 
     def load_model_state(self):
+        """Loads pre-trained model from saved checkpoint metadata."""
         print("---------------------------")
         print("LOADING MODEL STATE...")
         # see: https://pytorch.org/docs/stable/hub.html#torch.hub.load_state_dict_from_url
@@ -62,7 +63,7 @@ class ModelManager:
         self.model_name = self.config["arch"]["args"]["model_name"] #> BertForSequenceClassification
         self.model_type = self.config["arch"]["args"]["model_type"] #> bert-base-uncased
         self.num_classes = self.config["arch"]["args"]["num_classes"] #> 6
-        self.class_names = self.config["dataset"]["args"]["classes"]
+        self.class_names = self.config["dataset"]["args"]["classes"] #> ['toxicity', 'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_hate']
 
         print("---------------------------")
         print("MODEL TYPE:", self.model_type)
@@ -94,6 +95,7 @@ class ModelManager:
 
     @torch.no_grad()
     def predict_scores(self, texts):
+        """Returns the raw scores, without formatting (for those desiring a faster experience)."""
         self.model.eval()
         inputs = self.tokenizer(texts, return_tensors="pt", truncation=True, padding=True).to(self.model.device)
         out = self.model(**inputs)[0]
@@ -101,14 +103,19 @@ class ModelManager:
         return scores
 
     def predict_records(self, texts):
+        """Optional, if you want the scores returned as a list of dict, with the texts in there as well."""
         records = []
         for i, score_row in enumerate(self.predict_scores(texts)):
             record = {}
             record["text"] = texts[i]
             for class_index, class_name in enumerate(self.class_names):
-                record[class_name] = score_row[class_index]
+                record[class_name] = float(score_row[class_index])
             records.append(record)
         return records
+
+    def predict_df(self, texts):
+        """Optional, if you want the scores returned as a dataframe."""
+        return DataFrame(self.predict_records(texts))
 
 
 if __name__ == '__main__':
