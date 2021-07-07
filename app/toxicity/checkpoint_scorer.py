@@ -6,8 +6,6 @@ from functools import lru_cache
 #from pprint import pprint
 
 from dotenv import load_dotenv
-from detoxify import Detoxify
-from pandas import DataFrame
 
 from app import server_sleep, seek_confirmation
 from app.decorators.number_decorators import fmt_n
