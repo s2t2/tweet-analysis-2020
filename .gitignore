@@ -11,3 +11,6 @@ credentials.json
 data/
 
 workbooks/
+
+# ignore AWS keys
+*.pem
