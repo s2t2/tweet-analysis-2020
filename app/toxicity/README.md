@@ -139,8 +139,10 @@ We'll make a table for storing toxicity scores from each model (where "original"
 ```sql
 -- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
 -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` (
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` (
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow` (
     status_text_id INT64,
     toxicity FLOAT64,
     severe_toxicity FLOAT64,
@@ -152,17 +154,19 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_s
 
 -- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased`;
 -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased` (
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt` (
-    status_text_id INT64,
-    toxicity FLOAT64,
-    severe_toxicity FLOAT64,
-    obscene FLOAT64,
-    identity_attack FLOAT64,
-    insult FLOAT64,
-    threat FLOAT64,
-    sexual_explicit FLOAT64
-);
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt` (
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt_slow`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt_slow` (
+--     status_text_id INT64,
+--     toxicity FLOAT64,
+--     severe_toxicity FLOAT64,
+--     obscene FLOAT64,
+--     identity_attack FLOAT64,
+--     insult FLOAT64,
+--     threat FLOAT64,
+--     sexual_explicit FLOAT64
+-- );
 ```
 
 > FYI: the different models have different class / column names
@@ -172,11 +176,14 @@ So the query to figure out which texts haven't yet already been looked up is:
 ```sql
 SELECT DISTINCT txt.status_text_id ,txt.status_text
 FROM `tweet-collector-py.impeachment_production.status_texts` txt
-LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores
+--LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores
+--LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` scores
+LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow` scores
     ON scores.status_text_id = txt.status_text_id
 WHERE scores.status_text_id IS NULL
 LIMIT 10000;
 ```
+
 
 ## Usage
 
@@ -226,18 +233,18 @@ BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 BATCH_SIZE=10 MAX_THRE
 ## Testing
 
 ```sh
-APP_ENV="test" pytest test/test_toxicity_scorer.py
+APP_ENV="test" pytest test/test_toxicity_*
 ```
 
 ## Deployment
 
-Using server #5 for original model and server #6 for unbiased model.
+Using server #5 for original model.
 
 Config:
 
 ```sh
 heroku config:set MODEL_NAME="original" -r heroku-5
-heroku config:set MODEL_NAME="unbiased" -r heroku-6
+heroku config:set MODEL_NAME="original" -r heroku-6
 ```
 
 Deploy:
@@ -254,4 +261,6 @@ Writing a new scorer to work with this dependency situation (see "Detoxify Model
 
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
 
-Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K.
+Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K. Seems to be running consistently.
+
+> NOTE: after starting this process on server 5 (using "_ckpt" tables), we're locking dependencies for reproducibility, and re-running the process on server 6 (using the toxicity_checkpoint_scorer_async approach if possible)

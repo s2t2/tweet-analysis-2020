@@ -3,23 +3,21 @@ import numpy as np
 from transformers import BertForSequenceClassification, BertTokenizer
 from pandas import DataFrame
 
-import pytest
+from conftest import toxicity_texts
 
-from app.toxicity.model_manager import ModelManager
+def test_packaged_model():
+    model = Detoxify("original")
+    results = model.predict(toxicity_texts)
+    assert results == {
+        'toxicity': [0.12640126049518585, 0.0008546802564524114],
+        'severe_toxicity': [0.00022532008006237447, 0.00011462702241260558],
+        'obscene': [0.0018298450158908963, 0.00016588227299507707],
+        'threat': [0.0005070280167274177, 0.00013761487207375467],
+        'insult': [0.009287197142839432, 0.0001857876923168078],
+        'identity_hate': [0.0018323149997740984, 0.00015746793360449374]
+    }
 
-@pytest.fixture(scope="module")
-def original_model_manager():
-    mgr = ModelManager(checkpoint_name="original")
-    mgr.load_model_state()
-    return mgr
-
-
-texts = [
-    "RT @realDonaldTrump: Crazy Nancy Pelosi should spend more time in her decaying city and less time on the Impeachment Hoax! https://t.co/eno…",
-    "RT @SpeakerPelosi: The House cannot choose our impeachment managers until we know what sort of trial the Senate will conduct. President Tr…",
-]
-
-def test_original_model(original_model_manager):
+def test_reconstituted_model(original_model_manager):
     mgr = original_model_manager
     assert mgr.tokenizer_name == "BertTokenizer"
     assert mgr.model_name == "BertForSequenceClassification"
@@ -29,13 +27,13 @@ def test_original_model(original_model_manager):
     assert isinstance(mgr.model, BertForSequenceClassification)
     assert isinstance(mgr.tokenizer, BertTokenizer)
 
-    scores = mgr.predict_scores(texts)
+    scores = mgr.predict_scores(toxicity_texts)
     assert isinstance(scores, np.ndarray)
     assert scores.shape == (2, 6)
     assert scores[0].tolist() == [0.12640126049518585, 0.00022532008006237447, 0.0018298450158908963, 0.0005070280167274177, 0.009287197142839432, 0.0018323149997740984]
     assert scores[1].tolist() == [0.0008546802564524114, 0.00011462702241260558, 0.00016588227299507707, 0.00013761487207375467, 0.0001857876923168078, 0.00015746793360449374]
 
-    records = mgr.predict_records(texts)
+    records = mgr.predict_records(toxicity_texts)
     assert records == [
         {
             'text': 'RT @realDonaldTrump: Crazy Nancy Pelosi should spend more time in her decaying city and less time on the Impeachment Hoax! https://t.co/eno…',
@@ -46,18 +44,5 @@ def test_original_model(original_model_manager):
         }
     ]
 
-    df = mgr.predict_df(texts)
+    df = mgr.predict_df(toxicity_texts)
     assert isinstance(df, DataFrame)
-
-
-def test_provided_model():
-    model = Detoxify("original")
-    results = model.predict(texts)
-    assert results == {
-        'toxicity': [0.12640126049518585, 0.0008546802564524114],
-        'severe_toxicity': [0.00022532008006237447, 0.00011462702241260558],
-        'obscene': [0.0018298450158908963, 0.00016588227299507707],
-        'threat': [0.0005070280167274177, 0.00013761487207375467],
-        'insult': [0.009287197142839432, 0.0001857876923168078],
-        'identity_hate': [0.0018323149997740984, 0.00015746793360449374]
-    }

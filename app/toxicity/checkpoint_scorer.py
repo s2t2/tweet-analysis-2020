@@ -109,7 +109,9 @@ class ToxicityScorer:
     @lru_cache(maxsize=None)
     def scores_table_name(self):
         model_name = self.mgr.checkpoint_name.lower().replace("-","_").replace(";","") # using this model name in queries, so be super safe about SQL injection, although its not a concern right now
-        return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}_ckpt"
+        #return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}"
+        #return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}_ckpt"
+        return f"{self.bq_service.dataset_address}.toxicity_scores_{model_name}_ckpt_slow" # used in conjunction with _fast_init=False (for max accuracy?)
 
     def count_scores(self):
         sql = f"""
