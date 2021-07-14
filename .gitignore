@@ -1,5 +1,6 @@
 
 .DS_Store
+.vscode
 
 .env
 
@@ -10,3 +11,6 @@ credentials.json
 data/
 
 workbooks/
+
+# ignore AWS keys
+*.pem

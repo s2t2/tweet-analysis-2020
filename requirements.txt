@@ -1,3 +1,22 @@
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cpu; platform_system == "Linux"
+torchvision==0.9.1+cpu; platform_system == "Linux"
+# https://forums.fast.ai/t/deploying-in-heroku-error-not-a-supported-wheel-on-this-platform/76196/6
+# torch==1.9.0+cpu
+# torchvision==0.10.0+cpu
+
+# https://www.python.org/dev/peps/pep-0508/#environment-markers
+# on heroku, use the smaller deps above, else use the full deps below on Mac (Darwin) / Windows
+torch; platform_system != "Linux"
+torchvision; platform_system != "Linux"
+
+
+
+
+
+
+
+
 python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
 
 tweepy
@@ -13,25 +32,44 @@ sendgrid==6.0.5
 # psycopg2 (OPTIONAL)
 sqlalchemy
 
-pandas
-networkx
-numpy
-scipy
-scikit-learn
-nltk
-spacy
-gensim
-basilica
 
-matplotlib
-plotly
-kaleido # required by plotly to save static images
-squarify
-#pyldavis
+
+
+
+
+pandas
+#networkx
+#numpy
+#scipy
+scikit-learn
+#nltk
+#spacy
+#gensim
+#basilica
+transformers
+
+# torch
+
+#matplotlib
+#plotly
+#kaleido # required by plotly to save static images
+#squarify
+
+
+
+
+
 
 Flask
 gunicorn
 flask-cors
+
+
+
+
+
+
+
 
 # formerly known as dev dependencies:
 pytest

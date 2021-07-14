@@ -1,0 +1,5 @@
+# this won't install on heroku (run locally only)
+# see: https://github.com/unitaryai/detoxify/issues/19
+
+#detoxify
+git+https://github.com/s2t2/detoxify.git@fix
