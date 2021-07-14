@@ -59,6 +59,13 @@ sudo service codedeploy-agent status
 
 Alright we have installed the CodeDeploy agent.
 
+## Preparing Repo for Deploy
+
+  + https://docs.aws.amazon.com/codedeploy/latest/userguide/application-revisions-plan.html
+  + https://docs.aws.amazon.com/codedeploy/latest/userguide/application-revisions-appspec-file.html
+
+
+
 
 ## Deploying
 
