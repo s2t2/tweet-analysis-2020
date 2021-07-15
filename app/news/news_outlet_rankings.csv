@@ -1,0 +1,64 @@
+﻿domain,fact_score,fact_category
+nytimes.com,4.714285714,Mainstream
+washingtonpost.com,4.714285714,Mainstream
+bbc.co.uk,4.428571429,Mainstream
+cnn.com,4.285714286,Mainstream
+wsj.com,4.142857143,Mainstream
+latimes.com,4,Mainstream
+bostonglobe.com,4,Mainstream
+msnbc.com,3.785714286,Mainstream
+cbsnews.com,3.785714286,Mainstream
+usatoday.com,3.714285714,Mainstream
+sfchronicle.com,3.571428571,Mainstream
+abcnews.go.com,3.571428571,Mainstream
+chicagotribune.com,3.5,Mainstream
+huffingtonpost.com,3.142857143,Mainstream
+yahoo.com/news,3.071428571,Mainstream
+news.yahoo.com,3.071428571,Mainstream
+aol.com/news,2.714285714,Mainstream
+aol.com/article/news,2.714285714,Mainstream
+nypost.com,2.642857143,Mainstream
+dailymail.co.uk,2.642857143,Mainstream
+foxnews.com,2.571428571,Mainstream
+nydailynews.com,2.428571429,Mainstream
+ijr.com,1.857142857,Hyper-partisan
+dailykos.com,1.785714286,Hyper-partisan
+breitbart.com,1.642857143,Hyper-partisan
+dailywire.com,1.571428571,Hyper-partisan
+dailycaller.com,1.5,Hyper-partisan
+newsmax.com,1.5,Hyper-partisan
+rawstory.com,1.5,Hyper-partisan
+channel24news.com,1.5,Fake News
+crooksandliars.com,1.285714286,Hyper-partisan
+redstate.com,1.285714286,Hyper-partisan
+westernjournal.com,1.214285714,Hyper-partisan
+westernjournalism.com,1.214285714,Hyper-partisan
+conservativetribune.com,1.214285714,Hyper-partisan
+thedailysheeple.com,1.214285714,Hyper-partisan
+commondreams.org,1.142857143,Hyper-partisan
+thepoliticalinsider.com,1.142857143,Hyper-partisan
+yournewswire.com,1.142857143,Fake News
+activepost.com,1.071428571,Hyper-partisan
+dailysignal.com,1.071428571,Hyper-partisan
+infowars.com,1.071428571,Hyper-partisan
+downtrend.com,1.071428571,Fake News
+conservativedailypost.com,1.071428571,Fake News
+beforeitsnews.com,1.071428571,Fake News
+freedomdaily.com,1.071428571,Fake News
+blacklistednews.com,1,Hyper-partisan
+patriotpost.us,1,Hyper-partisan
+antiwar.com,1,Hyper-partisan
+clashdaily.com,1,Fake News
+onepoliticalplaza.com,1,Fake News
+bb4sp.com,1,Fake News
+whatdoesitmean.com,1,Fake News
+socialeverythings.com,1,Fake News
+angrypatriotmovement.com,1,Fake News
+newsbreakshere.com,1,Fake News
+realnewsrightnow.com,1,Fake News
+notallowedto.com,1,Fake News
+now8news.com,1,Fake News
+react365.com,1,Fake News
+americannews.com,1,Fake News
+dailybuzzlive.com,1,Fake News
+thenewyorkevening.com,1,Fake News
