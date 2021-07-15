@@ -139,10 +139,8 @@ We'll make a table for storing toxicity scores from each model (where "original"
 ```sql
 -- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original`;
 -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original` (
--- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt`;
--- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` (
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow` (
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` (
     status_text_id INT64,
     toxicity FLOAT64,
     severe_toxicity FLOAT64,
@@ -156,8 +154,6 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_s
 -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased` (
 -- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt`;
 -- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt` (
--- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt_slow`;
--- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.toxicity_scores_unbiased_ckpt_slow` (
 --     status_text_id INT64,
 --     toxicity FLOAT64,
 --     severe_toxicity FLOAT64,
@@ -177,8 +173,7 @@ So the query to figure out which texts haven't yet already been looked up is:
 SELECT DISTINCT txt.status_text_id ,txt.status_text
 FROM `tweet-collector-py.impeachment_production.status_texts` txt
 --LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original` scores
---LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` scores
-LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt_slow` scores
+LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` scores
     ON scores.status_text_id = txt.status_text_id
 WHERE scores.status_text_id IS NULL
 LIMIT 10000;
@@ -189,7 +184,9 @@ LIMIT 10000;
 
 ### Detoxify Models
 
-Running the scorer (ideal batch size is 1,000):
+> DEPRECATED
+
+Running the scorer:
 
 ```sh
 LIMIT=10 BATCH_SIZE=3 python -m app.toxicity.scorer
@@ -202,9 +199,7 @@ MODEL_NAME="unbiased" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=10 BA
 MODEL_NAME="original" BIGQUERY_DATASET_NAME="impeachment_production" LIMIT=25000 BATCH_SIZE=1000 python -m app.toxicity.scorer
 ```
 
-> NOTE: you probably want to run multithreaded though...
-
-Running multithreaded:
+... async / multithreaded:
 
 ```sh
 LIMIT=500 BATCH_SIZE=100 MAX_THREADS=5 python -m app.toxicity.scorer_async
@@ -223,7 +218,7 @@ Use toxicity models reconstituted from checkpoints:
 BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 BATCH_SIZE=10 python -m app.toxicity.checkpoint_scorer
 ```
 
-... async:
+... async / multithreaded:
 
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_development" LIMIT=100 BATCH_SIZE=10 MAX_THREADS=10 python -m app.toxicity.checkpoint_scorer_async
@@ -247,19 +242,17 @@ heroku config:set MODEL_NAME="original" -r heroku-5
 heroku config:set LIMIT="20000" -r heroku-5
 heroku config:set BATCH_SIZE="20" -r heroku-5
 
-heroku config:set MODEL_NAME="original" -r heroku-6
-heroku config:set LIMIT="50000" -r heroku-6
-heroku config:set BATCH_SIZE="20" -r heroku-6
-heroku config:set MAX_THREADS="10" -r heroku-6
-
+#heroku config:set MODEL_NAME="original" -r heroku-6
+#heroku config:set LIMIT="50000" -r heroku-6
+#heroku config:set BATCH_SIZE="20" -r heroku-6
+#heroku config:set MAX_THREADS="10" -r heroku-6
 ```
 
 Deploy:
 
 ```sh
-# git push heroku-5 tox:master -f
-# don't deploy to server 5 anymore (now that we are using the slow init approach)
-git push heroku-6 tox:master -f
+git push heroku-5 tox:master -f
+#git push heroku-6 tox:master -f
 ```
 
 
@@ -270,5 +263,3 @@ Writing a new scorer to work with this dependency situation (see "Detoxify Model
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
 
 Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K. Seems to be running consistently.
-
-> NOTE: after starting this process on server 5 (using "_ckpt" tables), we're locking dependencies for reproducibility, and re-running the process on server 6 (using the toxicity_checkpoint_scorer_async approach if possible)
