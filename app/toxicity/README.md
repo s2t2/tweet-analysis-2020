@@ -244,13 +244,21 @@ Config:
 
 ```sh
 heroku config:set MODEL_NAME="original" -r heroku-5
+heroku config:set LIMIT="20000" -r heroku-5
+heroku config:set BATCH_SIZE="20" -r heroku-5
+
 heroku config:set MODEL_NAME="original" -r heroku-6
+heroku config:set LIMIT="50000" -r heroku-6
+heroku config:set BATCH_SIZE="20" -r heroku-6
+heroku config:set MAX_THREADS="10" -r heroku-6
+
 ```
 
 Deploy:
 
 ```sh
-git push heroku-5 tox:master -f
+# git push heroku-5 tox:master -f
+# don't deploy to server 5 anymore (now that we are using the slow init approach)
 git push heroku-6 tox:master -f
 ```
 

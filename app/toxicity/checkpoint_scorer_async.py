@@ -2,6 +2,7 @@
 import os
 from threading import current_thread #, BoundedSemaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed # see: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
+import gc
 
 from dotenv import load_dotenv
 
@@ -59,4 +60,6 @@ if __name__ == "__main__":
     print("----------------")
     print("SCORES COUNT:", fmt_n(scorer.count_scores()))
 
-    server_sleep(seconds=10*60) # give the server a break before restarting
+    del scorer
+    gc.collect()
+    server_sleep(seconds=5*60) # give the server a break before restarting

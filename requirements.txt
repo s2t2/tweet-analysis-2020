@@ -36,7 +36,7 @@ sqlalchemy
 
 
 
-
+# temporarily commenting-out some of these packages to get the heroku build size small enough
 pandas
 #networkx
 #numpy
@@ -47,8 +47,6 @@ scikit-learn
 #gensim
 #basilica
 transformers==4.8.2
-
-
 
 #matplotlib
 #plotly
