@@ -87,7 +87,7 @@ class ModelManager:
             config=self.model_type,
             num_labels=self.num_classes,
             state_dict=self.state_dict,
-            _fast_init=False # provides better results? see: https://github.com/unitaryai/detoxify/pull/20#discussion_r664069305 ... after adding this we're now saving the results to the "_slow" tables
+            _fast_init=False
         )
 
     @property
