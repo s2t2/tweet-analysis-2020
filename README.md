@@ -30,6 +30,7 @@ Version 1.0 (works in progress, investigations, archive):
     + [NLP v2](/app/nlp_v2/README.md)
   + [API v0](/api/README.md#Version-0-Endpoints)
   + [API v1](/api/README.md#Version-1-Endpoints)
+  + [Toxicity Classification](/app/toxicity/README.md)
 
 Version 2.0 (current, stable, mature):
 

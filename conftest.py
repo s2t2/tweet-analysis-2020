@@ -7,6 +7,10 @@ from api import create_app
 
 CI_ENV = (os.getenv("CI") == "true")
 
+#
+# RT GRAPHS
+#
+
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test", "data")
 TMP_DATA_DIR = os.path.join(TEST_DATA_DIR, "tmp")
 
@@ -93,3 +97,22 @@ def mock_rt_graph():
 def api_client():
     app = create_app()
     return app.test_client()
+
+
+
+#
+# TOXICITY CLASSIFICATION
+#
+
+from app.toxicity.model_manager import ModelManager
+
+@pytest.fixture(scope="module")
+def original_model_manager():
+    mgr = ModelManager(checkpoint_name="original")
+    mgr.load_model_state()
+    return mgr
+
+toxicity_texts = [
+    "RT @realDonaldTrump: Crazy Nancy Pelosi should spend more time in her decaying city and less time on the Impeachment Hoax! https://t.co/eno…",
+    "RT @SpeakerPelosi: The House cannot choose our impeachment managers until we know what sort of trial the Senate will conduct. President Tr…",
+]

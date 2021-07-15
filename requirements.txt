@@ -1,3 +1,23 @@
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cpu; platform_system == "Linux"
+torchvision==0.9.1+cpu; platform_system == "Linux"
+# https://www.python.org/dev/peps/pep-0508/#environment-markers
+# on heroku, use the smaller deps above, else use the full deps below on Mac (Darwin) / Windows
+torch==1.8.1; platform_system != "Linux"
+torchvision==0.9.1; platform_system != "Linux"
+
+# this won't install on heroku (too big, run locally only)
+# see: https://github.com/unitaryai/detoxify/issues/19
+#detoxify; platform_system != "Linux"
+#git+https://github.com/s2t2/detoxify.git@fix; platform_system != "Linux"
+git+https://github.com/unitaryai/detoxify.git; platform_system != "Linux"
+
+
+
+
+
+
+
 python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
 
 tweepy
@@ -13,29 +33,46 @@ sendgrid==6.0.5
 # psycopg2 (OPTIONAL)
 sqlalchemy
 
-pandas
-networkx
-numpy
-scipy
-scikit-learn
-nltk
-spacy
-gensim
-basilica
 
-matplotlib
-plotly
-kaleido # required by plotly to save static images
-squarify
-#pyldavis
+
+
+
+# temporarily commenting-out some of these packages to get the heroku build size small enough
+pandas
+#networkx
+#numpy
+#scipy
+scikit-learn
+#nltk
+#spacy
+#gensim
+#basilica
+transformers==4.8.2
+
+#matplotlib
+#plotly
+#kaleido # required by plotly to save static images
+#squarify
+
+
+
+
+
 
 Flask
 gunicorn
 flask-cors
+
+
+
+
+
+
+
 
 # formerly known as dev dependencies:
 pytest
 memory_profiler
 
 # dev dependencies:
-autopep8
+#autopep8
