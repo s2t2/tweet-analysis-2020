@@ -8,8 +8,9 @@ torchvision==0.9.1; platform_system != "Linux"
 
 # this won't install on heroku (too big, run locally only)
 # see: https://github.com/unitaryai/detoxify/issues/19
+#detoxify; platform_system != "Linux"
 #git+https://github.com/s2t2/detoxify.git@fix; platform_system != "Linux"
-detoxify; platform_system != "Linux"
+git+https://github.com/unitaryai/detoxify.git; platform_system != "Linux"
 
 
 
