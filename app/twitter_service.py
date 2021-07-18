@@ -8,11 +8,11 @@
 
 import os
 from pprint import pprint
+from app.tweet_parser import parse_urls, parse_full_text
 
 from dotenv import load_dotenv
-import tweepy
-
-from app import seek_confirmation
+from tweepy import OAuthHandler, API, Cursor
+from tweepy.error import TweepError
 
 load_dotenv()
 
@@ -23,30 +23,6 @@ ACCESS_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
 
 SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="barackobama") # just one to use for testing purposes
 
-def parse_full_text(status):
-    """
-    GET FULL TEXT
-
-    h/t: https://github.com/tweepy/tweepy/issues/974#issuecomment-383846209
-
-    Param status (tweepy.models.Status)
-    """
-    if hasattr(status, "extended_tweet"):
-        return status.extended_tweet["full_text"]
-    elif hasattr(status, "full_text"):
-        return status.full_text
-    else:
-        return status.text
-
-
-def parse_urls(status):
-    try:
-        urls = status._json.get("entities").get("urls")
-        return [url_info["expanded_url"] for url_info in urls]
-    except:
-        return None
-
-
 class TwitterService:
     def __init__(self, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_key=ACCESS_KEY, access_secret=ACCESS_SECRET):
         """
@@ -56,9 +32,9 @@ class TwitterService:
             https://bhaskarvk.github.io/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
 
         """
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth = OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_key, access_secret)
-        self.api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        self.api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
     def get_user_id(self, screen_name):
         user = self.api.get_user(screen_name)
@@ -79,9 +55,9 @@ class TwitterService:
             https://developer.twitter.com/en/docs/basics/cursoring
         """
         if screen_name is not None:
-            cursor = tweepy.Cursor(self.api.friends_ids, screen_name=screen_name, cursor=-1)
+            cursor = Cursor(self.api.friends_ids, screen_name=screen_name, cursor=-1)
         elif user_id is not None:
-            cursor = tweepy.Cursor(self.api.friends_ids, user_id=user_id, cursor=-1)
+            cursor = Cursor(self.api.friends_ids, user_id=user_id, cursor=-1)
         else:
             print("OOPS PLEASE PASS SCREEN NAME OR USER ID")
             return None
@@ -91,10 +67,34 @@ class TwitterService:
         try:
             for friend_id in cursor.items(max_friends):
                 friend_ids.append(friend_id)
-        except tweepy.error.TweepError as err:
+        except TweepError as err:
             print("OOPS", err) #> "Not authorized." if user is private / protected (e.g. 1003322728890462209)
         return friend_ids
 
+    def get_user_timeline(self, request_params={}, limit=2_000):
+        """See:
+            https://docs.tweepy.org/en/latest/api.html#timeline-methods
+            https://docs.tweepy.org/en/v3.10.0/cursor_tutorial.html
+
+        Params:
+            request_params (dict) needs either "user_id" or "screen_name" attr
+
+            limit (int) the number of total tweets to fetch per user
+
+        Example: get_user_timeline({"user_id": 10101, "count": 100}, limit=300)
+        """
+        default_params = {
+            "exclude_replies": False,
+            "include_rts": True,
+            "tweet_mode": "extended",
+            "count": 200 # number of tweets per request
+        }
+        request_params = {**default_params, **request_params} # use the defaults, and override with user-specified params (including the required user_id or screen_name)
+        request_params["cursor"] = -1 # use a cursor approach!
+
+        cursor = Cursor(self.api.user_timeline, **request_params)
+        #return cursor.pages()
+        return cursor.items(limit)
 
 
 if __name__ == "__main__":
@@ -111,10 +111,9 @@ if __name__ == "__main__":
 
     print("-------------")
     print("USER TIMELINE:")
-    timeline = service.api.user_timeline(SCREEN_NAME,
-        tweet_mode="extended"
-    )
-    for status in timeline[0:5]:
+    #timeline = service.api.user_timeline(SCREEN_NAME, tweet_mode="extended")
+    timeline = service.get_user_timeline({"screen_name": SCREEN_NAME, "limit":5})
+    for status in list(timeline)[0:5]:
         print(status.id, parse_full_text(status))
         print(parse_urls(status))
         #pprint(status._json)
