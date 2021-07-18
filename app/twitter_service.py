@@ -17,11 +17,35 @@ from app import seek_confirmation
 load_dotenv()
 
 CONSUMER_KEY = os.getenv("TWITTER_CONSUMER_KEY", default="OOPS")
-CONSUMER_SECRET = os.getenv("TWITTER_CONSUMER_SECRET", default="OOPS")
+CONSUMER_SECRET = os.getenv("TWITTER_CONSUMER_KEY_SECRET", default="OOPS")
 ACCESS_KEY = os.getenv("TWITTER_ACCESS_TOKEN", default="OOPS")
 ACCESS_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
 
-SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="elonmusk") # just one to use for testing purposes
+SCREEN_NAME = os.getenv("TWITTER_SCREEN_NAME", default="barackobama") # just one to use for testing purposes
+
+def parse_full_text(status):
+    """
+    GET FULL TEXT
+
+    h/t: https://github.com/tweepy/tweepy/issues/974#issuecomment-383846209
+
+    Param status (tweepy.models.Status)
+    """
+    if hasattr(status, "extended_tweet"):
+        return status.extended_tweet["full_text"]
+    elif hasattr(status, "full_text"):
+        return status.full_text
+    else:
+        return status.text
+
+
+def parse_urls(status):
+    try:
+        urls = status._json.get("entities").get("urls")
+        return [url_info["expanded_url"] for url_info in urls]
+    except:
+        return None
+
 
 class TwitterService:
     def __init__(self, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_key=ACCESS_KEY, access_secret=ACCESS_SECRET):
@@ -32,8 +56,8 @@ class TwitterService:
             https://bhaskarvk.github.io/2015/01/how-to-use-twitters-search-rest-api-most-effectively./
 
         """
-        auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-        auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(access_key, access_secret)
         self.api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
     def get_user_id(self, screen_name):
@@ -71,6 +95,8 @@ class TwitterService:
             print("OOPS", err) #> "Not authorized." if user is private / protected (e.g. 1003322728890462209)
         return friend_ids
 
+
+
 if __name__ == "__main__":
 
     service = TwitterService()
@@ -84,20 +110,42 @@ if __name__ == "__main__":
     print(user_id)
 
     print("-------------")
-    print("STATUSES:")
-    statuses = service.api.user_timeline(SCREEN_NAME)
-    for status in statuses:
+    print("USER TIMELINE:")
+    timeline = service.api.user_timeline(SCREEN_NAME,
+        tweet_mode="extended"
+    )
+    for status in timeline[0:5]:
+        print(status.id, parse_full_text(status))
+        print(parse_urls(status))
+        #pprint(status._json)
+        print("----------------------")
         #breakpoint()
-        print(status.status_text)
 
-    print("-------------")
-    print("FRIEND NAMES:")
+    #ids = [status.id for status in timeline]
+    #print("-------------")
+    #print("STATUSES LOOKUP:")
+    #statuses = service.api.statuses_lookup(
+    #    id_=ids,
+    #    trim_user=True,
+    #    include_card_uri=True,
+    #    tweet_mode="extended"
+    #)
+    #for status in statuses[0:5]:
+    #    #print(parse_full_text(status))
+    #    pprint(status._json)
 
-    #friend_ids = service.api.friends_ids(SCREEN_NAME)
+
+
+    #breakpoint()
+
+    #print("-------------")
+    #print("FRIEND NAMES:")
+#
+    ##friend_ids = service.api.friends_ids(SCREEN_NAME)
+    ##print(len(friend_ids))
+#
+    #friend_ids = service.get_friends(screen_name=SCREEN_NAME)
     #print(len(friend_ids))
-
-    friend_ids = service.get_friends(screen_name=SCREEN_NAME)
-    print(len(friend_ids))
-
-    #friend_ids = service.get_friends(user_id=44196397)
-    #print(len(friend_ids))
+#
+    ##friend_ids = service.get_friends(user_id=44196397)
+    ##print(len(friend_ids))
