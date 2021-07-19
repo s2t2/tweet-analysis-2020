@@ -23,9 +23,10 @@ CLEANUP_MODE = (os.getenv("CLEANUP_MODE", default="true") == "true")
 DEFAULT_START = "2019-12-02 01:00:00" # @deprectated, the "beginning of time" for the impeachment dataset. todo: allow customization via env var
 DEFAULT_END = "2020-03-24 20:00:00" # @deprectated, the "end of time" for the impeachment dataset. todo: allow customization via env var
 
-def generate_timestamp():
-    """Formats datetime for storing in BigQuery"""
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def generate_timestamp(dt=None):
+    """Formats datetime object for storing in BigQuery. Uses current time by default. """
+    dt = dt or datetime.now()
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 def generate_temp_table_id():
     return datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
