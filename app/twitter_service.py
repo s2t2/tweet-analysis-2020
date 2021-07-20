@@ -8,7 +8,7 @@
 
 import os
 from pprint import pprint
-from app.timelines.status_parser import parse_urls, parse_full_text, parse_timeline_status
+#from app.timelines.status_parser import parse_urls, parse_full_text, parse_timeline_status
 
 from dotenv import load_dotenv
 from tweepy import OAuthHandler, API, Cursor
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         #print(status.id, parse_full_text(status), parse_urls(status))
         pprint(status._json)
         print("---")
-        pprint(parse_timeline_status(status))
+        #pprint(parse_timeline_status(status))
         print("---")
         #breakpoint()
 
