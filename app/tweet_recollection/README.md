@@ -101,10 +101,10 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.all_statu
     error_message STRING,
 )
 
---DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.all_statuses_extended`;
---CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.all_statuses_extended` (
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.all_statuses_extended`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.all_statuses_extended` (
+--DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_statuses`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_statuses` (
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_statuses`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_statuses` (
     status_id INT64,
     full_text STRING,
     created_at TIMESTAMP,
