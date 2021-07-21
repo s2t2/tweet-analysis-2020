@@ -6,19 +6,22 @@ def parse_full_text(status):
     # GET FULL TEXT
     # h/t: https://github.com/tweepy/tweepy/issues/974#issuecomment-383846209
 
-    if hasattr(status, "full_text"):
-        full_text = status.full_text
-    elif hasattr(status, "extended_tweet"):
-        full_text = status.extended_tweet.get("full_text")
-    elif hasattr(status, "quoted_status"):
-        full_text = status.quoted_status.get("text")
-    elif hasattr(status, "retweeted_status"):
-        full_text = status.retweeted_status.get("text")
-    else:
-        full_text = status.get("text")
+    #if hasattr(status, "full_text"):
+    #    full_text = status.full_text
+    #elif hasattr(status, "extended_tweet"):
+    #    full_text = status.extended_tweet.get("full_text")
+    #elif hasattr(status, "quoted_status"):
+    #    full_text = status.quoted_status.get("text")
+    #elif hasattr(status, "retweeted_status"):
+    #    full_text = status.retweeted_status.get("text")
+    #else:
+    #    full_text = status.get("text")
 
-    if not full_text:
-        breakpoint()
+    full_text = status.full_text
+
+    #if not full_text:
+    #    breakpoint()
+
 
     return parse_string(full_text)
 

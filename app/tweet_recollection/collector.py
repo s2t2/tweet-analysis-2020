@@ -59,30 +59,31 @@ class Collector:
         recollected_statuses = []
         recollected_urls = []
         for status in self.lookup_statuses(status_ids):
+            status_id = status.id # all statuses will have an id
+            pprint(status._json)
+
+            recollected_status = {"status_id": status_id, "full_text": None} # statuses not-found
+
             try:
 
-                pprint(status._json)
+                recollected_status["full_text"] = parse_full_text(status)
 
-                status_id = status.id_str
 
-                recollected_statuses.append({
-                    "status_id": status_id,
-                    "full_text": parse_full_text(status)
-                })
-
-                for url in status.entities["urls"]:
-                    recollected_urls.append({
-                        "status_id": status.id_str,
-                        "expanded_url": url.get("expanded_url"),
-                        "unwound_url": url.get("unwound").get("url"),
-                        "unwound_title": url.get("unwound").get("title"),
-                        "unwound_description": url.get("unwound").get("description"),
-                    })
+                #for url in status.entities["urls"]:
+                #    recollected_urls.append({
+                #        "status_id": status.id_str,
+                #        "expanded_url": url.get("expanded_url"),
+                #        "unwound_url": url.get("unwound").get("url"),
+                #        "unwound_title": url.get("unwound").get("title"),
+                #        "unwound_description": url.get("unwound").get("description"),
+                #    })
 
             except Exception as err:
                 print('OOPS', err)
                 breakpoint()
 
+
+            print(recollected_status)
 
             # TODO: save batch to BQ
 
