@@ -34,7 +34,6 @@ class Collector:
 
     def perform(self):
         for batch_of_ids in split_into_batches(self.fetch_remaining_status_ids(), batch_size=self.batch_size):
-            print("PROCESSING BATCH...", generate_timestamp())
             self.process_batch(batch_of_ids)
 
     def lookup_statuses(self, status_ids):
@@ -56,14 +55,23 @@ class Collector:
         )
 
     def process_batch(self, status_ids):
+        print("-------")
+        print("PROCESSING BATCH...", generate_timestamp())
+
         recollected_statuses = []
         recollected_urls = []
         success_counter = 0
+
         for status in self.lookup_statuses(status_ids):
             status_id = status.id # all statuses will have an id
             #pprint(status._json)
 
-            recollected_status = {"status_id": status_id, "full_text": None} # statuses not-found
+            # store a record of this lookup in the database - whether successful or not
+            recollected_status = {
+                "status_id": status_id,
+                "full_text": None,
+                "recollect_at": generate_timestamp()
+            } # statuses not-found
 
             # when passing param map_=True to Twitter API,
             # if statuses are not available
@@ -73,22 +81,29 @@ class Collector:
 
                 try:
                     recollected_status["full_text"] = parse_full_text(status)
-                    print("---")
-                    print(recollected_status["full_text"])
+                    #print(recollected_status["full_text"])
+
+                    #if hasattr(status.entities, "urls") and status.entities["urls"]:
+                    for url in status.entities["urls"]:
+                        recollected_url = {
+                            "status_id": status_id,
+                            "expanded_url": url["expanded_url"],
+                            "unwound_url": None,
+                            "unwound_title": None,
+                            "unwound_description": None,
+                        }
+                        if hasattr(url, "unwound") and url["unwound"]:
+                            breakpoint()
+                            recollected_url["unwound_url"] = url["unwound"]["url"]
+                            recollected_url["unwound_title"] = url["unwound"]["title"]
+                            recollected_url["unwound_description"] = url["unwound"]["description"]
+
+                        print(recollected_url["expanded_url"])
+                        recollected_urls.append(recollected_url)
+
                 except Exception as err:
                     print('OOPS', err)
                     breakpoint()
-
-
-                #for url in status.entities["urls"]:
-                #    recollected_urls.append({
-                #        "status_id": status.id_str,
-                #        "expanded_url": url.get("expanded_url"),
-                #        "unwound_url": url.get("unwound").get("url"),
-                #        "unwound_title": url.get("unwound").get("title"),
-                #        "unwound_description": url.get("unwound").get("description"),
-                #    })
-
 
 
             recollected_statuses.append(recollected_status)
