@@ -67,10 +67,19 @@ class Collector:
         for status in self.lookup_statuses(status_ids):
             # when passing param map_=True to Twitter API, if statuses are not available, the status will be present, but will only have an id field
             status_id = status.id # all statuses will have an id
-            recollected_status = {"status_id": status_id, "full_text": None, "lookup_at": generate_timestamp()} # represent failed lookups with null text values
+
+            recollected_status = {
+                "status_id": status_id,
+                "user_id": None,
+                "full_text": None,
+                "created_at": None,
+                "lookup_at": generate_timestamp()
+            } # represent failed lookups with null text values
             if list(status._json.keys()) != ["id"]: # this will be the only field for empty statuses. otherwise try to parse them:
                 success_counter+=1
+                recollected_status["user_id"] = status.user.id
                 recollected_status["full_text"] = parse_full_text(status) # update the full text if possible
+                recollected_status["created_at"] = generate_timestamp(status.created_at)
                 for url in status.entities["urls"]:
                     recollected_urls.append({"status_id": status_id, "expanded_url": url["expanded_url"]})
             recollected_statuses.append(recollected_status)

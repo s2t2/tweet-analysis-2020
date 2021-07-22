@@ -98,7 +98,9 @@ Now making tables to store the new status and url lookups:
 DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_statuses`;
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_statuses` (
     status_id INT64,
+    user_id INT64,
     full_text STRING,
+    created_at TIMESTAMP,
     lookup_at TIMESTAMP
 );
 
