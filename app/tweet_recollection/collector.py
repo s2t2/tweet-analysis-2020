@@ -5,10 +5,9 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
-from app import seek_confirmation
+from app import seek_confirmation, server_sleep
 from app.bq_service import BigQueryService, split_into_batches, generate_timestamp
 from app.twitter_service import TwitterService
-
 from app.tweet_recollection.parser import parse_full_text
 
 load_dotenv()
@@ -23,11 +22,6 @@ class Collector:
         self.limit = STATUS_LIMIT
         self.batch_size = BATCH_SIZE
 
-    #def monitor_progress(self):
-    #    sql = f"""
-    #    """
-    #    return
-
     def fetch_remaining_status_ids(self):
         sql = f"""
             SELECT DISTINCT a.status_id
@@ -39,8 +33,13 @@ class Collector:
         return [row["status_id"] for row in list(self.bq_service.execute_query(sql))]
 
     def perform(self):
-        for batch_of_ids in split_into_batches(self.fetch_remaining_status_ids(), batch_size=self.batch_size):
-            self.process_batch(batch_of_ids)
+        remaining_status_ids = self.fetch_remaining_status_ids()
+        if any(remaining_status_ids):
+            for batch_of_ids in split_into_batches(remaining_status_ids, batch_size=self.batch_size):
+                self.process_batch(batch_of_ids)
+        else:
+            print("OH ALL DONE! SLEEPING...")
+            server_sleep(10*60*60)
 
     def lookup_statuses(self, status_ids):
         """Fetch full status info including urls, and full text.
