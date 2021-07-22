@@ -1,4 +1,7 @@
 
+> NOTE: As we were wanting to do some analysis based on tweet URLs and noticing our truncated tweets don't have full URLs, we were thinking about returning to scrape timlines of users in our dataset (considerations discussed in this doc). But instead we are going with the timeline recollection approach (see README file in this directory).
+
+
 # Queries
 
 The goal is to select users for timeline scraping.
@@ -176,4 +179,42 @@ UNION ALL
   ORDER BY rand()
   LIMIT 10 -- LIMIT
 )
+```
+
+
+
+```sql
+--DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.timeline_lookups`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.timeline_lookups` (
+--    user_id INT64,
+--    timeline_length INT64,
+--    error_type STRING,
+--    error_message STRING,
+--    start_at TIMESTAMP,
+--    end_at TIMESTAMP,
+--);
+```
+
+```sql
+--DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.timeline_tweets`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.timeline_tweets` (
+--    user_id INT64,
+--    status_id INT64,
+--    status_text STRING,
+--    created_at TIMESTAMP,
+--
+--    geo STRING,
+--    is_quote BOOLEAN,
+--    truncated BOOLEAN,
+--
+--    reply_status_id INT64,
+--    reply_user_id INT64,
+--    retweeted_status_id INT64,
+--    retweeted_user_id INT64,
+--    retweeted_user_screen_name STRING,
+--
+--    urls ARRAY<STRING>,
+--
+--    lookup_at TIMESTAMP
+--)
 ```
