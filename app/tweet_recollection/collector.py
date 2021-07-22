@@ -71,24 +71,14 @@ class Collector:
             # when passing param map_=True to Twitter API, if statuses are not available, the status will only have an id field
             status_id = status.id # all statuses will have an id
             recollected_status = {"status_id": status_id, "full_text": None, "lookup_at": generate_timestamp()}
-
             if list(status._json.keys()) != ["id"]:
                 success_counter+=1
-                try:
-                    # PARSE FULL TEXT...
-                    recollected_status["full_text"] = parse_full_text(status)
-                    # PARSE URLS...
-                    for url in status.entities["urls"]:
-                        recollected_urls.append({"status_id": status_id, "expanded_url": url["expanded_url"]})
-                except Exception as err:
-                    print('OOPS', err)
-                    breakpoint()
-
+                recollected_status["full_text"] = parse_full_text(status)
+                for url in status.entities["urls"]:
+                    recollected_urls.append({"status_id": status_id, "expanded_url": url["expanded_url"]})
             recollected_statuses.append(recollected_status)
 
-        print("... STATUSES:", success_counter)
-        print("... URLS", len(recollected_urls))
-
+        print("... STATUSES:", success_counter, "| URLS:", len(recollected_urls))
         # todo: treat this as one transaction if possible:
         self.save_statuses(recollected_statuses)
         self.save_urls(recollected_urls)
