@@ -1,6 +1,7 @@
 
 import os
 from pprint import pprint
+from functools import lru_cache
 
 from dotenv import load_dotenv
 
@@ -22,12 +23,17 @@ class Collector:
         self.limit = STATUS_LIMIT
         self.batch_size = BATCH_SIZE
 
+    #def monitor_progress(self):
+    #    sql = f"""
+    #    """
+    #    return
+
     def fetch_remaining_status_ids(self):
         sql = f"""
-            SELECT DISTINCT ids.status_id
-            FROM `{self.bq_service.dataset_address}.all_status_ids` ids
-            LEFT JOIN `{self.bq_service.dataset_address}.all_status_id_lookups` lookups ON lookups.status_id = ids.status_id
-            WHERE lookups.status_id IS NULL
+            SELECT DISTINCT a.status_id
+            FROM `{self.bq_service.dataset_address}.all_status_ids` a
+            LEFT JOIN `{self.bq_service.dataset_address}.recollected_statuses` completed ON completed.status_id = a.status_id
+            WHERE completed.status_id IS NULL
             LIMIT {self.limit}
         """
         return [row["status_id"] for row in list(self.bq_service.execute_query(sql))]
@@ -56,63 +62,53 @@ class Collector:
 
     def process_batch(self, status_ids):
         print("-------")
-        print("PROCESSING BATCH...", generate_timestamp())
+        print(generate_timestamp(), f"PROCESSING BATCH OF {len(status_ids)}...")
 
         recollected_statuses = []
         recollected_urls = []
         success_counter = 0
-
         for status in self.lookup_statuses(status_ids):
+            # when passing param map_=True to Twitter API, if statuses are not available, the status will only have an id field
             status_id = status.id # all statuses will have an id
-            #pprint(status._json)
+            recollected_status = {"status_id": status_id, "full_text": None, "lookup_at": generate_timestamp()}
 
-            # store a record of this lookup in the database - whether successful or not
-            recollected_status = {
-                "status_id": status_id,
-                "full_text": None,
-                "recollect_at": generate_timestamp()
-            } # statuses not-found
-
-            # when passing param map_=True to Twitter API,
-            # if statuses are not available
-            # the status will only have an id field
             if list(status._json.keys()) != ["id"]:
                 success_counter+=1
-
                 try:
+                    # PARSE FULL TEXT...
                     recollected_status["full_text"] = parse_full_text(status)
-                    #print(recollected_status["full_text"])
-
-                    #if hasattr(status.entities, "urls") and status.entities["urls"]:
+                    # PARSE URLS...
                     for url in status.entities["urls"]:
-                        recollected_url = {
-                            "status_id": status_id,
-                            "expanded_url": url["expanded_url"],
-                            "unwound_url": None,
-                            "unwound_title": None,
-                            "unwound_description": None,
-                        }
-                        if hasattr(url, "unwound") and url["unwound"]:
-                            breakpoint()
-                            recollected_url["unwound_url"] = url["unwound"]["url"]
-                            recollected_url["unwound_title"] = url["unwound"]["title"]
-                            recollected_url["unwound_description"] = url["unwound"]["description"]
-
-                        print(recollected_url["expanded_url"])
-                        recollected_urls.append(recollected_url)
-
+                        recollected_urls.append({"status_id": status_id, "expanded_url": url["expanded_url"]})
                 except Exception as err:
                     print('OOPS', err)
                     breakpoint()
 
-
             recollected_statuses.append(recollected_status)
 
+        print("... STATUSES:", success_counter)
+        print("... URLS", len(recollected_urls))
 
-        # TODO: save batch to BQ
-        print("RE-COLLECTED", success_counter, "OF", len(status_ids), "STATUSES")
-        print("COLLECTED", len(recollected_statuses), "URLS")
-        #breakpoint()
+        # todo: treat this as one transaction if possible:
+        self.save_statuses(recollected_statuses)
+        self.save_urls(recollected_urls)
+
+    def save_statuses(self, recollected_statuses):
+        self.bq_service.insert_records_in_batches(self.recollected_statuses_table, recollected_statuses)
+
+    def save_urls(self, recollected_urls):
+        self.bq_service.insert_records_in_batches(self.recollected_urls_table, recollected_urls)
+
+    @property
+    @lru_cache(maxsize=None)
+    def recollected_statuses_table(self):
+        return self.bq_service.client.get_table(f"{self.bq_service.dataset_address}.recollected_statuses")
+
+    @property
+    @lru_cache(maxsize=None)
+    def recollected_urls_table(self):
+        return self.bq_service.client.get_table(f"{self.bq_service.dataset_address}.recollected_status_urls")
+
 
 
 

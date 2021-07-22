@@ -93,6 +93,8 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.all_statu
 Now making tables to store the new status and url lookups:
 
 ```sql
+--DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_statuses`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_statuses` (
 DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_statuses`;
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_statuses` (
     status_id INT64,
@@ -100,6 +102,8 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollect
     lookup_at TIMESTAMP
 );
 
+--DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_status_urls`;
+--CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_status_urls` (
 DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_status_urls`;
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_status_urls` (
     status_id INT64,
@@ -110,16 +114,25 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollect
 );
 ```
 
-Query to see which statuses have not yet been looked-up:
+
+Monitoring results:
 
 ```sql
-SELECT DISTINCT ids.status_id
-FROM `tweet-collector-py.impeachment_production.all_status_ids` ids
-LEFT JOIN `tweet-collector-py.impeachment_production.all_status_id_lookups` lookups
-  ON lookups.status_id = ids.status_id
-WHERE lookups.status_id IS NULL
---LIMIT 10
+SELECT
+   count(distinct status_id) as status_count
+   ,count(distinct case when full_text is not null then status_id end) as success_count
+   ,count(distinct case when full_text is not null then status_id end) / count(distinct status_id) as success_pct
+FROM `tweet-collector-py.impeachment_production.recollected_statuses`
 ```
+
+```sql
+SELECT
+   count(distinct status_id) as status_count
+   ,count(distinct case when full_text is not null then status_id end) as success_count
+   ,count(distinct case when full_text is not null then status_id end) / count(distinct status_id) as success_pct
+FROM `tweet-collector-py.impeachment_production.recollected_statuses`
+```
+
 
 ## Usage
 
