@@ -1,4 +1,4 @@
-## Tweet Collection Again
+## Tweet Re-Collection
 
 Requirements (two birds one stone):
 
@@ -10,6 +10,8 @@ Limitations:
   + Some user accounts have been deactivated.
   + Some of the original tweets have since been deleted.
 
+Strategy:
+  + We're going to do a second pass over tall the tweet ids we have in the dataset, including retweet targets, and lookup their full text and urls.
 
 ## Queries and Migrations
 
@@ -88,32 +90,24 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.all_statu
 ```
 
 
-Now making tables to store the new lookups and the full tweet info:
+Now making tables to store the new status and url lookups:
 
 ```sql
---DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.all_status_id_lookups`;
---CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.all_status_id_lookups` (
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.all_status_id_lookups`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.all_status_id_lookups` (
-    status_id INT64,
-    lookup_at TIMESTAMP,
-    error_type STRING,
-    error_message STRING,
-)
-
---DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_statuses`;
---CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_statuses` (
 DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_statuses`;
 CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_statuses` (
     status_id INT64,
     full_text STRING,
-    created_at TIMESTAMP,
+    lookup_at TIMESTAMP
+);
 
-    user_id INT64,
-    user_screen_name STRING,
-
-    entity_urls ARRAY<STRING>
-)
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.recollected_status_urls`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.recollected_status_urls` (
+    status_id INT64,
+    expanded_url STRING,
+    --unwound_url STRING,
+    --unwound_title STRING,
+    --unwound_description STRING,
+);
 ```
 
 Query to see which statuses have not yet been looked-up:
@@ -132,5 +126,5 @@ WHERE lookups.status_id IS NULL
 Run the job:
 
 ```sh
-BIGQUERY_DATASET_NAME="impeachment_development" STATUS_LIMIT=10 BATCH_SIZE=10  python -m app.tweet_recollection.second_passer
+BIGQUERY_DATASET_NAME="impeachment_development" STATUS_LIMIT=250 BATCH_SIZE=100 python -m app.tweet_recollection.collector
 ```
