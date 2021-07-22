@@ -61,25 +61,21 @@ class Collector:
         )
 
     def process_batch(self, status_ids):
-        print("-------")
-        print(generate_timestamp(), f"PROCESSING BATCH OF {len(status_ids)}...")
-
         recollected_statuses = []
         recollected_urls = []
         success_counter = 0
         for status in self.lookup_statuses(status_ids):
-            # when passing param map_=True to Twitter API, if statuses are not available, the status will only have an id field
+            # when passing param map_=True to Twitter API, if statuses are not available, the status will be present, but will only have an id field
             status_id = status.id # all statuses will have an id
-            recollected_status = {"status_id": status_id, "full_text": None, "lookup_at": generate_timestamp()}
-            if list(status._json.keys()) != ["id"]:
+            recollected_status = {"status_id": status_id, "full_text": None, "lookup_at": generate_timestamp()} # represent failed lookups with null text values
+            if list(status._json.keys()) != ["id"]: # this will be the only field for empty statuses. otherwise try to parse them:
                 success_counter+=1
-                recollected_status["full_text"] = parse_full_text(status)
+                recollected_status["full_text"] = parse_full_text(status) # update the full text if possible
                 for url in status.entities["urls"]:
                     recollected_urls.append({"status_id": status_id, "expanded_url": url["expanded_url"]})
             recollected_statuses.append(recollected_status)
 
-        print("... STATUSES:", success_counter, "| URLS:", len(recollected_urls))
-        # todo: treat this as one transaction if possible:
+        print(generate_timestamp(), f"| SAVING BATCH OF {len(status_ids)}", "| STATUSES:", success_counter, "| URLS:", len(recollected_urls))
         self.save_statuses(recollected_statuses)
         self.save_urls(recollected_urls)
 
