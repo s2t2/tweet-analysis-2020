@@ -141,3 +141,31 @@ Run the job:
 ```sh
 BIGQUERY_DATASET_NAME="impeachment_development" STATUS_LIMIT=250 BATCH_SIZE=100 python -m app.tweet_recollection.collector
 ```
+
+## Deploying
+
+Run this on server 6.
+
+Configuring:
+
+```sh
+heroku config:set TWITTER_API_KEY="_________" -r heroku-6
+heroku config:set TWITTER_API_KEY_SECRET="_______" -r heroku-6
+heroku config:set TWITTER_ACCESS_TOKEN="________" -r heroku-6
+heroku config:set TWITTER_ACCESS_TOKEN_SECRET="____________" -r heroku-6
+heroku config:set TWITTER_ENVIRONMENT_NAME="______" -r heroku-6
+```
+
+Deploying:
+
+```sh
+git push heroku-6 recollection:main -f
+```
+
+Turn on the "tweet_recollector" dyno.
+
+Monitoring:
+
+```sh
+heroku logs --tail -r heroku-6
+```

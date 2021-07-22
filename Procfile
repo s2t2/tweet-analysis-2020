@@ -15,3 +15,5 @@ k_days_classifier: python -m app.retweet_graphs_v2.k_days.classifier
 #toxicity_scorer: python -m app.toxicity.scorer
 toxicity_checkpoint_scorer: python -m app.toxicity.checkpoint_scorer
 toxicity_checkpoint_scorer_async: python -m app.toxicity.checkpoint_scorer_async
+
+tweet_recollector: python -m app.tweet_recollection.collector
