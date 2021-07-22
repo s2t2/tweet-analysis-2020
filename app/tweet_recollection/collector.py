@@ -58,15 +58,26 @@ class Collector:
     def process_batch(self, status_ids):
         recollected_statuses = []
         recollected_urls = []
+        success_counter = 0
         for status in self.lookup_statuses(status_ids):
             status_id = status.id # all statuses will have an id
-            pprint(status._json)
+            #pprint(status._json)
 
             recollected_status = {"status_id": status_id, "full_text": None} # statuses not-found
 
-            try:
+            # when passing param map_=True to Twitter API,
+            # if statuses are not available
+            # the status will only have an id field
+            if list(status._json.keys()) != ["id"]:
+                success_counter+=1
 
-                recollected_status["full_text"] = parse_full_text(status)
+                try:
+                    recollected_status["full_text"] = parse_full_text(status)
+                    print("---")
+                    print(recollected_status["full_text"])
+                except Exception as err:
+                    print('OOPS', err)
+                    breakpoint()
 
 
                 #for url in status.entities["urls"]:
@@ -78,14 +89,15 @@ class Collector:
                 #        "unwound_description": url.get("unwound").get("description"),
                 #    })
 
-            except Exception as err:
-                print('OOPS', err)
-                breakpoint()
 
 
-            print(recollected_status)
+            recollected_statuses.append(recollected_status)
 
-            # TODO: save batch to BQ
+
+        # TODO: save batch to BQ
+        print("RE-COLLECTED", success_counter, "OF", len(status_ids), "STATUSES")
+        print("COLLECTED", len(recollected_statuses), "URLS")
+        #breakpoint()
 
 
 
