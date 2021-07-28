@@ -267,3 +267,52 @@ Writing a new scorer to work with this dependency situation (see "Detoxify Model
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
 
 Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K. Seems to be running consistently.
+
+## Post-Completion
+
+Re-constitute scores for all individual statuses:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.tweet_toxicity_scores`;
+CREATE TABLE `tweet-collector-py.impeachment_production.tweet_toxicity_scores` as (
+    SELECT
+        s.status_id, s.user_id, s.status_text, s.created_at
+        ,tox.status_text_id, tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+    FROM `tweet-collector-py.impeachment_production.tweets_v2` s
+    LEFT JOIN `tweet-collector-py.impeachment_production.statuses_texts` st ON s.status_id = st.status_id
+    LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox ON st.status_text_id = tox.status_text_id
+    --LIMIT 10
+)
+```
+
+Check to ensure scores have been assigned properly:
+
+```sql
+SELECT
+    count(DISTINCT status_id) as status_count -- 67666557
+    ,count(DISTINCT CASE WHEN ttox.status_text_id IS NULL THEN status_id END) as unscored_count -- 0
+FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` ttox
+```
+
+Now the fun begins.
+
+Aggregate scores per user:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.user_toxicity_scores`;
+CREATE TABLE `tweet-collector-py.impeachment_production.user_toxicity_scores` as (
+    SELECT
+        ttox.user_id
+        ,count(DISTINCT ttox.status_id) as status_count
+        ,count(DISTINCT ttox.status_text_id) as text_count
+        ,avg(ttox.toxicity) as avg_toxicity
+        ,avg(ttox.severe_toxicity) as avg_severe_toxicity
+        ,avg(ttox.obscene) as avg_obscene
+        ,avg(ttox.threat) as avg_threat
+        ,avg(ttox.insult) as avg_insult
+        ,avg(ttox.identity_hate) as avg_identity_hate
+    FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` ttox
+    GROUP BY 1
+    --LIMIT 10
+)
+```
