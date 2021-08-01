@@ -316,3 +316,37 @@ CREATE TABLE `tweet-collector-py.impeachment_production.user_toxicity_scores` as
     --LIMIT 10
 )
 ```
+
+Preliminary Analysis:
+
+```sql
+SELECT
+   count(distinct u.user_id) as user_count
+
+   ,avg(utox.status_count) as avg_status_count
+
+   ,avg(utox.avg_toxicity) as tox_all
+    ,avg(CASE WHEN u.is_bot=true            THEN utox.avg_toxicity END) as tox_bot
+    ,avg(CASE WHEN u.is_bot=false           THEN utox.avg_toxicity END) as tox_human
+    ,avg(CASE WHEN u.is_q=true              THEN utox.avg_toxicity END) as tox_q
+    ,avg(CASE WHEN u.is_q=false             THEN utox.avg_toxicity END) as tox_nonq
+    ,avg(CASE WHEN u.bot_rt_network=0       THEN utox.avg_toxicity END) as tox_bot0
+    ,avg(CASE WHEN u.bot_rt_network=1       THEN utox.avg_toxicity END) as tox_bot1
+    ,avg(CASE WHEN u.opinion_community=0    THEN utox.avg_toxicity END) as tox_op0
+    ,avg(CASE WHEN u.opinion_community=1    THEN utox.avg_toxicity END) as tox_op1
+
+   ,avg(utox.avg_insult) as insult_all
+    ,avg(CASE WHEN u.is_bot=true            THEN utox.avg_insult END) as insult_bot
+    ,avg(CASE WHEN u.is_bot=false           THEN utox.avg_insult END) as insult_human
+    ,avg(CASE WHEN u.is_q=true              THEN utox.avg_insult END) as insult_q
+    ,avg(CASE WHEN u.is_q=false             THEN utox.avg_insult END) as insult_nonq
+    ,avg(CASE WHEN u.bot_rt_network=0       THEN utox.avg_insult END) as insult_bot0
+    ,avg(CASE WHEN u.bot_rt_network=1       THEN utox.avg_insult END) as insult_bot1
+    ,avg(CASE WHEN u.opinion_community=0    THEN utox.avg_insult END) as insult_op0
+    ,avg(CASE WHEN u.opinion_community=1    THEN utox.avg_insult END) as insult_op1
+
+FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
+LEFT JOIN `tweet-collector-py.impeachment_production.user_toxicity_scores` utox ON u.user_id = utox.user_id
+
+
+```
