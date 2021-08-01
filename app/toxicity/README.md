@@ -317,6 +317,8 @@ CREATE TABLE `tweet-collector-py.impeachment_production.user_toxicity_scores` as
 )
 ```
 
+## Results
+
 Preliminary Analysis:
 
 ```sql
@@ -347,6 +349,62 @@ SELECT
 
 FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
 LEFT JOIN `tweet-collector-py.impeachment_production.user_toxicity_scores` utox ON u.user_id = utox.user_id
+```
 
+Reviewing scores for most / least toxic tweets:
 
+```sql
+
+SELECT
+   tox.status_text_id, st.status_text
+  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+FROM `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox
+JOIN `tweet-collector-py.impeachment_production.status_texts` st ON st.status_text_id = tox.status_text_id
+--WHERE tox.toxicity between 0.45 and 0.55
+WHERE tox.toxicity between 0.10 and 0.15
+--ORDER BY tox.toxicity --DESC
+LIMIT 250
+```
+
+Reviewing scores for Q tweets:
+
+```sql
+
+--SELECT
+--   tox.status_text_id, tox.status_text
+--  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.--identity_hate
+--FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` tox
+--JOIN `tweet-collector-py.impeachment_production.user_details_v6_slim` u ON u.--user_id = tox.user_id
+----WHERE tox.toxicity between 0.45 and 0.55
+----WHERE tox.toxicity between 0.10 and 0.15
+--WHERE u.is_q
+-- --AND u.is_bot
+----ORDER BY tox.toxicity --DESC
+--LIMIT 50
+
+WITH q_status_texts as (
+    SELECT DISTINCT status_text_id, status_text
+    FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
+    JOIN `tweet-collector-py.impeachment_production.tweets_v2` t ON t.user_id = u.user_id
+    JOIN  `tweet-collector-py.impeachment_production.statuses_texts` st ON st.status_id = t.status_id
+    WHERE u.is_q
+
+)
+
+SELECT
+   tox.status_text_id, st.status_text
+  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+FROM `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox
+JOIN q_status_texts st ON st.status_text_id = tox.status_text_id
+--WHERE tox.toxicity between 0.45 and 0.55
+--WHERE tox.toxicity between 0.10 and 0.15
+ --AND u.is_bot
+--ORDER BY tox.toxicity --DESC
+LIMIT 50
+```
+
+Reviewing scores for top (most retweeted) tweets:
+
+```sql
+--TODO
 ```
