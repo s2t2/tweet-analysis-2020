@@ -1,12 +1,12 @@
 
-#from app.tweet_recollection.collector import TweetCollector
-#
-#def my_func():
-#
-#    tc = TweetCollector()
-#
-#    assert tc.fetch_all_statuses() == [
-#        {},
-#        {},
-#        {},
-#    ]
+from app.tweet_recollection.collector import Collector
+
+def test_recollection():
+
+    collector = Collector()
+
+    #assert collector.limit == 100000
+    #assert collector.batch_size == 100
+    assert collector.batch_size <= collector.limit
+
+    assert "perform" in list(dir(collector))
