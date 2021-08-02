@@ -7,6 +7,12 @@ def test_recollection():
 
     #assert collector.limit == 100000
     #assert collector.batch_size == 100
+    assert collector.batch_size <= 100
     assert collector.batch_size <= collector.limit
 
-    assert "perform" in list(dir(collector))
+    methods = list(dir(collector))
+    assert "perform" in methods
+    assert "fetch_remaining_status_ids" in methods
+    assert "lookup_statuses" in methods
+    assert "save_statuses" in methods
+    assert "save_urls" in methods
