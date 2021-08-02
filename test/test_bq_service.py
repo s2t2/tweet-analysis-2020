@@ -1,8 +1,14 @@
 
 import pytest
+from datetime import datetime
 
 from conftest import CI_ENV
-from app.bq_service import BigQueryService, split_into_batches
+from app.bq_service import BigQueryService, split_into_batches, generate_timestamp
+
+def test_generate_timestamp():
+    assert isinstance(generate_timestamp(), str)
+    assert isinstance(generate_timestamp(datetime.now()), str)
+    assert generate_timestamp(datetime(2021,10,31)) == '2021-10-31 00:00:00'
 
 
 def test_split_into_batches():
