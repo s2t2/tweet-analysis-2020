@@ -202,4 +202,5 @@ FROM `tweet-collector-py.impeachment_production.recollected_status_urls`
 
 
 urls_count	| distinct_urls_count
+--- | ---
 7,513,868	| 1,380,415
