@@ -267,3 +267,144 @@ Writing a new scorer to work with this dependency situation (see "Detoxify Model
 Then turn on the "toxicity_checkpoint_scorer" dyno (see Procfile).
 
 Memory exceeded, turning up to ... "Standard-2X" size. Decreasing batch size to ... 20. Decreasing limit to 20K. Seems to be running consistently.
+
+## Post-Completion
+
+Re-constitute scores for all individual statuses:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.tweet_toxicity_scores`;
+CREATE TABLE `tweet-collector-py.impeachment_production.tweet_toxicity_scores` as (
+    SELECT
+        s.status_id, s.user_id, s.status_text, s.created_at
+        ,tox.status_text_id, tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+    FROM `tweet-collector-py.impeachment_production.tweets_v2` s
+    LEFT JOIN `tweet-collector-py.impeachment_production.statuses_texts` st ON s.status_id = st.status_id
+    LEFT JOIN `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox ON st.status_text_id = tox.status_text_id
+    --LIMIT 10
+)
+```
+
+Check to ensure scores have been assigned properly:
+
+```sql
+SELECT
+    count(DISTINCT status_id) as status_count -- 67666557
+    ,count(DISTINCT CASE WHEN ttox.status_text_id IS NULL THEN status_id END) as unscored_count -- 0
+FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` ttox
+```
+
+Now the fun begins.
+
+Aggregate scores per user:
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.user_toxicity_scores`;
+CREATE TABLE `tweet-collector-py.impeachment_production.user_toxicity_scores` as (
+    SELECT
+        ttox.user_id
+        ,count(DISTINCT ttox.status_id) as status_count
+        ,count(DISTINCT ttox.status_text_id) as text_count
+        ,avg(ttox.toxicity) as avg_toxicity
+        ,avg(ttox.severe_toxicity) as avg_severe_toxicity
+        ,avg(ttox.obscene) as avg_obscene
+        ,avg(ttox.threat) as avg_threat
+        ,avg(ttox.insult) as avg_insult
+        ,avg(ttox.identity_hate) as avg_identity_hate
+    FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` ttox
+    GROUP BY 1
+    --LIMIT 10
+)
+```
+
+## Results
+
+Preliminary Analysis:
+
+```sql
+SELECT
+   count(distinct u.user_id) as user_count
+
+   ,avg(utox.status_count) as avg_status_count
+
+   ,avg(utox.avg_toxicity) as tox_all
+    ,avg(CASE WHEN u.is_bot=true            THEN utox.avg_toxicity END) as tox_bot
+    ,avg(CASE WHEN u.is_bot=false           THEN utox.avg_toxicity END) as tox_human
+    ,avg(CASE WHEN u.is_q=true              THEN utox.avg_toxicity END) as tox_q
+    ,avg(CASE WHEN u.is_q=false             THEN utox.avg_toxicity END) as tox_nonq
+    ,avg(CASE WHEN u.bot_rt_network=0       THEN utox.avg_toxicity END) as tox_bot0
+    ,avg(CASE WHEN u.bot_rt_network=1       THEN utox.avg_toxicity END) as tox_bot1
+    ,avg(CASE WHEN u.opinion_community=0    THEN utox.avg_toxicity END) as tox_op0
+    ,avg(CASE WHEN u.opinion_community=1    THEN utox.avg_toxicity END) as tox_op1
+
+   ,avg(utox.avg_insult) as insult_all
+    ,avg(CASE WHEN u.is_bot=true            THEN utox.avg_insult END) as insult_bot
+    ,avg(CASE WHEN u.is_bot=false           THEN utox.avg_insult END) as insult_human
+    ,avg(CASE WHEN u.is_q=true              THEN utox.avg_insult END) as insult_q
+    ,avg(CASE WHEN u.is_q=false             THEN utox.avg_insult END) as insult_nonq
+    ,avg(CASE WHEN u.bot_rt_network=0       THEN utox.avg_insult END) as insult_bot0
+    ,avg(CASE WHEN u.bot_rt_network=1       THEN utox.avg_insult END) as insult_bot1
+    ,avg(CASE WHEN u.opinion_community=0    THEN utox.avg_insult END) as insult_op0
+    ,avg(CASE WHEN u.opinion_community=1    THEN utox.avg_insult END) as insult_op1
+
+FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
+LEFT JOIN `tweet-collector-py.impeachment_production.user_toxicity_scores` utox ON u.user_id = utox.user_id
+```
+
+Reviewing scores for most / least toxic tweets:
+
+```sql
+
+SELECT
+   tox.status_text_id, st.status_text
+  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+FROM `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox
+JOIN `tweet-collector-py.impeachment_production.status_texts` st ON st.status_text_id = tox.status_text_id
+--WHERE tox.toxicity between 0.45 and 0.55
+WHERE tox.toxicity between 0.10 and 0.15
+--ORDER BY tox.toxicity --DESC
+LIMIT 250
+```
+
+Reviewing scores for Q tweets:
+
+```sql
+
+--SELECT
+--   tox.status_text_id, tox.status_text
+--  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.--identity_hate
+--FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores` tox
+--JOIN `tweet-collector-py.impeachment_production.user_details_v6_slim` u ON u.--user_id = tox.user_id
+----WHERE tox.toxicity between 0.45 and 0.55
+----WHERE tox.toxicity between 0.10 and 0.15
+--WHERE u.is_q
+-- --AND u.is_bot
+----ORDER BY tox.toxicity --DESC
+--LIMIT 50
+
+WITH q_status_texts as (
+    SELECT DISTINCT status_text_id, status_text
+    FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
+    JOIN `tweet-collector-py.impeachment_production.tweets_v2` t ON t.user_id = u.user_id
+    JOIN  `tweet-collector-py.impeachment_production.statuses_texts` st ON st.status_id = t.status_id
+    WHERE u.is_q
+
+)
+
+SELECT
+   tox.status_text_id, st.status_text
+  ,tox.toxicity, tox.severe_toxicity, tox.obscene, tox.threat, tox.insult, tox.identity_hate
+FROM `tweet-collector-py.impeachment_production.toxicity_scores_original_ckpt` tox
+JOIN q_status_texts st ON st.status_text_id = tox.status_text_id
+--WHERE tox.toxicity between 0.45 and 0.55
+--WHERE tox.toxicity between 0.10 and 0.15
+ --AND u.is_bot
+--ORDER BY tox.toxicity --DESC
+LIMIT 50
+```
+
+Reviewing scores for top (most retweeted) tweets:
+
+```sql
+--TODO
+```

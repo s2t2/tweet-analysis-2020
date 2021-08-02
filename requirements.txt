@@ -20,7 +20,7 @@ git+https://github.com/unitaryai/detoxify.git; platform_system != "Linux"
 
 python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
 
-tweepy
+tweepy==3.10.0
 #twint # for unoficially interfacing with twitter data
 beautifulsoup4 # for scraping mobile Twitter site
 
