@@ -71,4 +71,50 @@ LIMIT 250
 ```
 
 
-Uploading a table of fact check scores from [CSV file](data/domain_fact_scores.csv) to `domain_fact_scores` table...
+Uploading a table of fact check scores from [CSV file](data/domain_fact_scores.csv) to `domain_fact_scores` table... Make sure to check "auto-generate schema".
+
+```sql
+SELECT domain, fact_score, fact_category
+FROM `tweet-collector-py.impeachment_production.domain_fact_scores`
+ORDER BY fact_score DESC
+```
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_status_fact_scores`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_status_fact_scores` as (
+   SELECT
+      urls.status_id
+      ,urls.expanded_url
+      ,urls.url_domain
+      ,facts.domain as fact_domain
+      ,facts.fact_score
+      ,facts.fact_category
+   FROM `tweet-collector-py.impeachment_production.recollected_status_url_domains` urls
+   LEFT JOIN `tweet-collector-py.impeachment_production.domain_fact_scores` facts ON facts.domain = urls.url_domain
+   WHERE facts.id IS NOT NULL
+   --ORDER BY fact_score DESC
+   --LIMIT 10
+)
+```
+
+## Analysis
+
+```sql
+SELECT count(distinct status_id)
+FROM `tweet-collector-py.impeachment_production.recollected_status_urls`
+-- 7,405,940
+```
+
+```sql
+SELECT
+   count(distinct status_id) as status_count
+   ,avg(fact_score) as avg_fact_score
+   ,min(fact_score) as min_fact_score
+   ,max(fact_score) as max_fact_score
+FROM `tweet-collector-py.impeachment_production.recollected_status_fact_scores`
+```
+
+
+status_count	| avg_fact_score	| min_fact_score	| max_fact_score
+--- | --- | --- | ---
+912,633	| 3.10	| 1.00	| 4.71
