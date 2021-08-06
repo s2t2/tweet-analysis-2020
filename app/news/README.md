@@ -112,7 +112,8 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollecte
     --LIMIT 50
 );
 ```
-## Analysis
+
+## Preliminary Analysis
 
 ```sql
 SELECT count(distinct status_id)
@@ -202,3 +203,72 @@ Bots	| 241,873	| 2.912
 Pro-Trump	| 244,386	| 2.328
 Pro-Trump Bots	| 597	| 2.171
 Q	| 21,109	| 2.121
+
+## More Migrations
+
+Creating an updated version of the (slim) user details table, to include toxicity scores and news fact-check scores...
+
+```sql
+SELECT count(distinct user_id) as user_count
+--FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u -- 3,600,545
+--FROM `tweet-collector-py.impeachment_production.user_toxicity_scores` utox -- 3,600,545
+--FROM `tweet-collector-py.impeachment_production.recollected_statuses` rs -- 2,360,104
+FROM `tweet-collector-py.impeachment_production.recollected_user_fact_scores` uf -- 218,417
+```
+
+
+
+```sql
+SELECT  count(distinct rs.user_id) as user_count
+FROM`tweet-collector-py.impeachment_production.recollected_statuses` rs -- 2,360,104
+LEFT JOIN `tweet-collector-py.impeachment_production.user_details_v6_slim` u ON u.user_id = rs.user_id
+WHERE u.user_id IS NULL -- 67,476
+```
+
+There are 67K recollected users (i.e. authors of retweet targets) who aren't in our original user set. For now we can leave these out, but it would be more ideal to union them, but we don't have any user details for them at this point. So yeah, leave out for now.
+
+
+```sql
+
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.user_details_v20210806_slim`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.user_details_v20210806_slim` as (
+   SELECT
+      u.user_id
+      ,u.created_on
+      ,u.screen_name_count	,u.screen_names
+      ,u.is_bot ,u.bot_rt_network
+      ,u.is_q ,u.q_status_count
+      ,u.status_count,u.rt_count
+      ,u.avg_score_lr ,u.avg_score_nb ,u.avg_score_bert ,u.opinion_community
+      ,u.follower_count	,u.follower_count_b	,u.follower_count_h
+      ,u.friend_count ,u.friend_count_b ,u.friend_count_h
+
+      --,utox.status_count as tox_scored_count
+      ,round(utox.avg_toxicity, 8) as avg_toxicity
+      ,round(utox.avg_severe_toxicity, 8) as avg_severe_toxicity
+      ,round(utox.avg_insult, 8) as avg_insult
+      ,round(utox.avg_obscene, 8) as avg_obscene
+      ,round(utox.avg_threat, 8) as avg_threat
+      ,round(utox.avg_identity_hate, 8) as avg_identity_hate
+
+      ,coalesce(ufn.status_count, 0) as fact_scored_count
+      ,round(ufn.avg_fact_score, 8) as avg_fact_score
+
+   FROM `tweet-collector-py.impeachment_production.user_details_v6_slim` u
+   LEFT JOIN `tweet-collector-py.impeachment_production.user_toxicity_scores` utox ON utox.user_id = u.user_id
+   LEFT JOIN  `tweet-collector-py.impeachment_production.recollected_user_fact_scores` ufn on ufn.user_id = u.user_id
+
+   --LIMIT 10
+)
+```
+
+Warehouse migration:
+
+```sql
+DROP TABLE IF EXISTS `tweet-research-shared.impeachment_2020.user_details_v20210806_slim`;
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.user_details_v20210806_slim` as (
+    SELECT *
+    FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim`
+);
+
+```
