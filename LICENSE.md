@@ -1,7 +1,7 @@
 
 # MIT License
 
-Copyright 2019-2020 Zaman Labs team.
+Copyright 2019-2021 Zaman Labs team.
 
 Code in the "start" directory was shared by Tauhid Zaman, and is copyright of its original authors (Tauhid Zaman, Nicolas Guenon Des Mesnards, et. al.), as described by [this paper](https://arxiv.org/abs/1810.12398).
 
