@@ -60,3 +60,34 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.active_user_f
     LIMIT 100000
 );
 ```
+
+Second round of additions:
+
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.tweet_toxicity_scores` as (
+    SELECT *
+    FROM `tweet-collector-py.impeachment_production.tweet_toxicity_scores`
+    -- LIMIT 5
+);
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.nlp_v2_predictions_combined_v2` as (
+    SELECT
+
+        user_id	-- INTEGER	NULLABLE
+        ,screen_name	-- STRING	NULLABLE
+        ,user_created_at	-- TIMESTAMP	NULLABLE
+        ,cast(status_id	as int64) as status_id -- STRING	NULLABLE
+        ,is_rt-- BOOLEAN	NULLABLE
+        ,created_at		--  TIMESTAMP	NULLABLE
+        ,status_text		-- STRING	NULLABLE
+        ,score_lr		-- INTEGER	NULLABLE
+        ,score_nb		-- INTEGER	NULLABLE
+        ,score_bert
+
+    FROM `tweet-collector-py.impeachment_production.nlp_v2_predictions_combined_v2`
+    -- LIMIT 5
+);
+```
