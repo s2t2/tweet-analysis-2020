@@ -3,6 +3,15 @@
 In addition to the [user details table migration](/app/news/README.md), copying over the following tables into the shared environment:
 
 ```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.topics` as (
+    SELECT *
+    FROM `tweet-collector-py.impeachment_production.topics`
+    -- LIMIT 10
+ );
+```
+
+
+```sql
 CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.retweets_v2` as (
     SELECT *
     FROM `tweet-collector-py.impeachment_production.retweets_v2`
