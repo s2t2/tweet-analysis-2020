@@ -126,3 +126,23 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.status_mentio
     -- LIMIT 5
 );
 ```
+
+
+Labeled tweets, for use in model training:
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.2_community_labeled_tweets` as (
+    SELECT user_id, community_id as sentiment_label, status_id, status_text, created_at
+    FROM `tweet-collector-py.impeachment_production.2_community_labeled_tweets`
+);
+```
+
+
+Daily bot probabilities:
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.daily_bot_probabilities` as (
+  SELECT *
+  FROM `tweet-collector-py.impeachment_production.daily_bot_probabilities`
+);
+```
