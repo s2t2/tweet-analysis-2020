@@ -21,48 +21,6 @@ To prevent duplicate lookups, we'll cross reference the table holding the stored
 
 Upon completion, we'll have the job sleep for a day and restart. If we leave it for a week we could get the larger ~50K sample size.
 
-## BQ Migrations
-
-Setup tables to store lookups. We are storing raw scores for each type (english lang / universal, etc.).
-
-```sql
-DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.botometer_scores`;
-CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.botometer_scores` (
--- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.botometer_scores`;
--- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.botometer_scores` (
-    user_id INT64,
-    lookup_at TIMESTAMP,
-    score_type STRING, -- english / universal
-    cap FLOAT64,
-    astroturf FLOAT64,
-    fake_follower FLOAT64,
-    financial FLOAT64,
-    other FLOAT64,
-    overall FLOAT64,
-    self_declared FLOAT64,
-    spammer FLOAT64,
-);
-```
-
-
-
-
-
-
-
-
-
-## Botometer Lookups
-
-Use the `LIMIT` to set the size of the number of bots and humans, respectively. Sample size will be 2x the limit.
-
-```sh
-python -m app.botometer.sampler
-
-# max of 1.5K per day:
-LIMIT=750 python -m app.botometer.sampler
-```
-
 ## Botometer Data Dictionary
 
 Interpreting the botometer scores...
@@ -82,3 +40,47 @@ display scores: same as raw scores, but in the [0,5] range
  + `spammer`: accounts labeled as spambots from several datasets
  + `financial`: bots that post using cashtags
  + `other`: miscellaneous other bots obtained from manual annotation, user feedback, etc.
+
+## BQ Migrations
+
+Setup tables to store lookups. We are storing raw scores for each type (english lang / universal, etc.).
+
+```sql
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_development.botometer_scores`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.botometer_scores` (
+-- DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.botometer_scores`;
+-- CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.botometer_scores` (
+    user_id INT64,
+    lookup_at TIMESTAMP,
+    error_message STRING,
+    score_type STRING, -- english / universal
+    cap FLOAT64,
+    astroturf FLOAT64,
+    fake_follower FLOAT64,
+    financial FLOAT64,
+    other FLOAT64,
+    overall FLOAT64,
+    self_declared FLOAT64,
+    spammer FLOAT64,
+);
+```
+
+Copy over the user details table to development data environment, if necessary:
+
+```sql
+CREATE TABLE `tweet-collector-py.impeachment_development.user_details_v20210806_slim` as (
+  SELECT *
+  FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim`
+)
+```
+
+## Botometer Lookups
+
+Use the `LIMIT` to set the size of the number of bots and humans, respectively. Sample size will be 2x the limit.
+
+```sh
+python -m app.botometer.sampler
+
+# max of 1.5K per day:
+LIMIT=750 python -m app.botometer.sampler
+```

@@ -27,7 +27,7 @@ class BotometerScoreSampler:
 
     def __init__(self, bq=None, limit=LIMIT):
         self.bq = bq or BigQueryService()
-        self.dataset_address = bq.dataset_address.replace(";", "") # super safe about sql injection
+        self.dataset_address = self.bq.dataset_address.replace(";", "") # super safe about sql injection
         self.limit = int(limit)
 
         self.bom = Botometer(wait_on_ratelimit=True, rapidapi_key=RAPID_API_KEY,
@@ -39,14 +39,9 @@ class BotometerScoreSampler:
 
         print("-------------")
         print("BOTOMETER SCORE SAMPLER...")
-        print("BQ:", self.dataset_addres.upper())
-        print("LIMIT:", self.limit)
-        print("BOTOMETER:")
-        print("...", type(self.bom))
-        print("...", self.bom.api_url)
-        print("...", self.bom.bom_api_path)
-        print("...", self.bom.api_version)
-
+        print("  BQ:", self.dataset_address.upper())
+        print("  LIMIT:", self.limit)
+        print("  BOTOMETER:", type(self.bom), self.bom.api_url, f"v{self.bom.api_version}")
 
         seek_confirmation()
 
@@ -54,7 +49,7 @@ class BotometerScoreSampler:
     def bots_sql(self):
         return f"""
             SELECT DISTINCT user_id
-            FROM `{self.dataset_addres}.user_details_v20210806_slim`
+            FROM `{self.dataset_address}.user_details_v20210806_slim`
             WHERE is_bot=True -- BOTS
             ORDER BY rand() -- RANDOM SAMPLE
             LIMIT {self.limit}
@@ -64,7 +59,7 @@ class BotometerScoreSampler:
     def humans_sql(self):
         return f"""
             SELECT DISTINCT user_id
-            FROM `{self.dataset_addres}.user_details_v20210806_slim`
+            FROM `{self.dataset_address}.user_details_v20210806_slim`
             WHERE is_bot=FALSE -- HUMANS
             ORDER BY rand() -- RANDOM SAMPLE
             LIMIT {self.limit}
@@ -91,57 +86,80 @@ class BotometerScoreSampler:
         # print(user_id)
         # print(result)
 
-        #> {'error': 'TweepError: Not authorized.'}
+        lookup_at = generate_timestamp()
 
-        #> {
-        #>    'cap': {'english': 0.8021481695167405, 'universal': 0.8148417533461276}
-        #>    'raw_scores': {
-        #>        'english': {'astroturf': 0.02,
-        #>                            'fake_follower': 0.75,
-        #>                            'financial': 0.03,
-        #>                            'other': 0.49,
-        #>                            'overall': 0.75,
-        #>                            'self_declared': 0.2,
-        #>                            'spammer': 0.29},
-        #>        'universal': {'astroturf': 0.02,
-        #>                              'fake_follower': 0.78,
-        #>                              'financial': 0.05,
-        #>                              'other': 0.45,
-        #>                              'overall': 0.78,
-        #>                              'self_declared': 0.18,
-        #>                              'spammer': 0.25}}
-        #>}
+        records = []
 
-        try:
-            cap_types = sorted(list(result["cap"].keys()))
-            score_types = sorted(list(result["raw_scores"].keys()))
-            if cap_types != score_types:
-                raise AttributeError("OOPS unexpected response structure")
-            #> ["english", "universal"]
+        if "error" in result:
+            #> {'error': 'TweepError: Not authorized.'}
+            #> {'error': "TweepError: [{'code': 32, 'message': 'Could not authenticate you.'}]"}
+            error_message = result["error"] #> str
+            print("  ...", error_message)
+            records.append({
+                "user_id": user_id,
+                "lookup_at": lookup_at,
+                "error_message": error_message,
+                "score_type": None,
+                "cap": None,
+                "astroturf": None,
+                "fake_follower": None,
+                "financial": None,
+                "other": None,
+                "overall": None,
+                "self_declared": None,
+                "spammer": None,
+            })
+        else:
 
-            lookup_at = generate_timestamp()
-            records = []
-            for score_type in score_types:
-                raw_scores = result["raw_scores"][score_type]
-                cap_score = result["cap"][score_type]
-                record = {
-                    "user_id": user_id,
-                    "lookup_at": lookup_at,
-                    "score_type": score_type,
-                    "cap": cap_score,
-                    "astroturf": raw_scores.get("astroturf"),
-                    "fake_follower": raw_scores.get("fake_follower"),
-                    "financial": raw_scores.get("financial"),
-                    "other": raw_scores.get("other"),
-                    "overall": raw_scores.get("overall"),
-                    "self_declared": raw_scores.get("self_declared"),
-                    "spammer": raw_scores.get("spammer"),
-                }
-                records.append(record)
-            return records
-        except Exception as err:
-            print("OOPS", err)
-            return []
+            try:
+
+                #> {
+                #>    'cap': {'english': 0.8021481695167405, 'universal': 0.8148417533461276}
+                #>    'raw_scores': {
+                #>        'english': {'astroturf': 0.02,
+                #>                            'fake_follower': 0.75,
+                #>                            'financial': 0.03,
+                #>                            'other': 0.49,
+                #>                            'overall': 0.75,
+                #>                            'self_declared': 0.2,
+                #>                            'spammer': 0.29},
+                #>        'universal': {'astroturf': 0.02,
+                #>                              'fake_follower': 0.78,
+                #>                              'financial': 0.05,
+                #>                              'other': 0.45,
+                #>                              'overall': 0.78,
+                #>                              'self_declared': 0.18,
+                #>                              'spammer': 0.25}}
+                #>}
+
+                cap_types = sorted(list(result["cap"].keys()))
+                score_types = sorted(list(result["raw_scores"].keys()))
+                if cap_types != score_types:
+                    raise AttributeError("OOPS unexpected response structure")
+                #> ["english", "universal"]
+
+                for score_type in score_types:
+                    raw_scores = result["raw_scores"][score_type]
+                    cap_score = result["cap"][score_type]
+                    records.append({
+                        "user_id": user_id,
+                        "lookup_at": lookup_at,
+                        "error_message": None,
+                        "score_type": score_type,
+                        "cap": cap_score,
+                        "astroturf": raw_scores.get("astroturf"),
+                        "fake_follower": raw_scores.get("fake_follower"),
+                        "financial": raw_scores.get("financial"),
+                        "other": raw_scores.get("other"),
+                        "overall": raw_scores.get("overall"),
+                        "self_declared": raw_scores.get("self_declared"),
+                        "spammer": raw_scores.get("spammer"),
+                    })
+            except Exception as err:
+                print("OOPS", err)
+
+        return records
+
 
     @cached_property
     def scores_table(self):
@@ -152,18 +170,24 @@ class BotometerScoreSampler:
         self.bq.insert_records_in_batches(self.scores_table, scores)
 
     def perform(self):
-        print("BOT IDS:", len(self.bot_ids))
-        print("HUMAN IDS:", len(self.human_ids), self.human_ids[0], self.human_ids[-1])
+        print("-------------------")
+        print("FETCHING SAMPLE...")
+        print("  BOT IDS:", len(self.bot_ids))
+        print("  HUMAN IDS:", len(self.human_ids)) # self.human_ids[0], self.human_ids[-1]
         user_ids = self.bot_ids + self.human_ids
-        print("USER IDS:", len(user_ids))
+        print("  USERS TOTAL:", len(user_ids))
 
+        print("-------------------")
+        print("PERFORMING BOTOMETER LOOKUPS...")
         records = []
         for user_id, result in self.bom.check_accounts_in(user_ids):
+            print("  USER ID:", user_id)
             user_scores = self.parse_scores(user_id, result)
-            if any(user_scores):
-                records += user_scores
+            records += user_scores
 
+        print("-------------------")
         if any(records):
+            print(f"SAVING SCORES ({len(records)}) ...")
             self.save_scores(records)
 
 

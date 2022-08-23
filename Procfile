@@ -17,3 +17,5 @@ toxicity_checkpoint_scorer: python -m app.toxicity.checkpoint_scorer
 toxicity_checkpoint_scorer_async: python -m app.toxicity.checkpoint_scorer_async
 
 tweet_recollector: python -m app.tweet_recollection.collector
+
+botometer_sampler: python -m app.botometer.sampler
