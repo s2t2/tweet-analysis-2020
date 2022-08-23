@@ -9,6 +9,7 @@ Reconfig vars:
 
 ```sh
 heroku config:set RAPID_API_KEY="___________"  -r heroku-9
+heroku config:set LIMIT=1500  -r heroku-9
 
 heroku config:set TWITTER_API_KEY="___________"-r heroku-9
 heroku config:set TWITTER_API_KEY_SECRET="___________" -r heroku-9
@@ -27,3 +28,9 @@ Perform [migrations](README.md#bq-migrations) on the production BQ database.
 ```sh
 git push heroku-9 botometer:main
 ```
+
+```sh
+heroku logs --tail -r heroku-9
+```
+
+Turn on the `botometer_sampler` job.
