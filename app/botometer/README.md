@@ -65,14 +65,7 @@ CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_development.botometer
 );
 ```
 
-Copy over the user details table to development data environment, if necessary:
 
-```sql
-CREATE TABLE `tweet-collector-py.impeachment_development.user_details_v20210806_slim` as (
-  SELECT *
-  FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim`
-)
-```
 
 ## Botometer Lookups
 

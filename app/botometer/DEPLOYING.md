@@ -39,48 +39,29 @@ Turn on the `botometer_sampler` job.
 
 
 ```sql
+-- bom_lookups_v3.csv
 SELECT
+    u.user_id
+      ,u.is_bot, u.is_q, u.opinion_community
+      ,u.avg_fact_score, u.avg_toxicity, u.created_on
 
-    count(distinct bom.user_id) as users_with_lookups
-    ,count(distinct CASE WHEN bom.error_message IS NOT NULL THEN bom.user_id END) users_with_errors
-    ,count(distinct CASE WHEN bom.error_message IS NULL THEN bom.user_id END) users_with_scores
-    ,count(distinct CASE WHEN bom.error_message IS NULL AND u.is_bot=TRUE THEN bom.user_id END) bots_with_scores
-    ,count(distinct CASE WHEN bom.error_message IS NULL AND u.is_bot=FALSE THEN bom.user_id END) humans_with_scores
+    ,bom.score_type
+    ,count(distinct bom.lookup_at) as lookup_count
+    ,any_value(bom.error_message) as lookup_error
 
-    ,avg(cap) as avg_cap
-    ,avg(CASE WHEN u.is_bot=TRUE THEN cap END) as avg_cap_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN cap END) as avg_cap_humans
-
-    ,avg(astroturf) as avg_astroturf
-    ,avg(CASE WHEN u.is_bot=TRUE THEN astroturf END) as avg_astroturf_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN astroturf END) as avg_astroturf_humans
-
-    ,avg(fake_follower) as avg_fake_follower
-    ,avg(CASE WHEN u.is_bot=TRUE THEN fake_follower END) as avg_fake_follower_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN fake_follower END) as avg_fake_follower_humans
-
-    ,avg(financial) as avg_financial
-    ,avg(CASE WHEN u.is_bot=TRUE THEN financial END) as avg_financial_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN financial END) as avg_financial_humans
-
-    ,avg(other) as avg_other
-    ,avg(CASE WHEN u.is_bot=TRUE THEN other END) as avg_other_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN other END) as avg_other_humans
-
-    ,avg(overall) as avg_overall
-    ,avg(CASE WHEN u.is_bot=TRUE THEN overall END) as avg_overall_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN overall END) as avg_overall_humans
-
-    ,avg(self_declared) as avg_declared
-    ,avg(CASE WHEN u.is_bot=TRUE THEN self_declared END) as avg_declared_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN self_declared END) as avg_declared_humans
-
-    ,avg(spammer) as avg_spammer
-    ,avg(CASE WHEN u.is_bot=TRUE THEN spammer END) as avg_spammer_bots
-    ,avg(CASE WHEN u.is_bot=FALSE THEN spammer END) as avg_spammer_humans
-
-
-FROM `tweet-collector-py.impeachment_production.botometer_scores` bom
-JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = bom.user_id
+    ,avg(bom.cap) as cap
+    ,avg(bom.astroturf) as astroturf
+    ,avg(bom.fake_follower) as fake_follower
+    ,avg(bom.financial) as financial
+    ,avg(bom.other) as other
+    ,avg(bom.overall) as overall
+    ,avg(bom.self_declared) as self_declared
+    ,avg(bom.spammer) as spammer
+FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u
+JOIN `tweet-collector-py.impeachment_production.botometer_scores` bom ON bom.user_id = u.user_id -- 8683
+WHERE bom.score_type IS NULL OR bom.score_type = 'english'
+GROUP BY 1,2,3,4,5,6,7,8
+--HAVING lookup_count > 1
+--LIMIT 100
 
 ```

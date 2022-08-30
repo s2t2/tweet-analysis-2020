@@ -146,3 +146,22 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.daily_bot_pro
   FROM `tweet-collector-py.impeachment_production.daily_bot_probabilities`
 );
 ```
+
+User profiles:
+
+```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.user_profiles_v2` as (
+  SELECT *
+  FROM `tweet-collector-py.impeachment_production.user_profiles_v2`
+)
+```
+
+
+User details:
+
+```sql
+CREATE TABLE `tweet-collector-py.impeachment_development.user_details_v20210806_slim` as (
+  SELECT *
+  FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim`
+)
+```
