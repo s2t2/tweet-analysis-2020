@@ -33,6 +33,7 @@ Version 1.0 (works in progress, investigations, archive):
   + [Toxicity Classification](/app/toxicity/README.md)
   + [Tweet Recollection](/app/tweet_recollection/README.md)
   + [News Sources](/app/news/README.md)
+  + [Botometer Sampling](/app/botometer/README.md)
 
 Version 2.0 (current, stable, mature):
 

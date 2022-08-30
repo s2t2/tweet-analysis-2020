@@ -20,7 +20,7 @@ CONSUMER_KEY = os.getenv("TWITTER_API_KEY", default="OOPS")
 CONSUMER_SECRET = os.getenv("TWITTER_API_KEY_SECRET", default="OOPS")
 ACCESS_KEY = os.getenv("TWITTER_ACCESS_TOKEN", default="OOPS")
 ACCESS_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", default="OOPS")
-ENVIRONMENT_NAME = os.getenv("TWITTER_ENVIRONMENT_NAME", default="OOPS") # see: https://developer.twitter.com/en/account/environments
+#ENVIRONMENT_NAME = os.getenv("TWITTER_ENVIRONMENT_NAME", default="OOPS") # see: https://developer.twitter.com/en/account/environments
 
 
 class TwitterService:

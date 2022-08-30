@@ -6,6 +6,7 @@ from pprint import pprint
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from google.cloud.bigquery import QueryJobConfig, ScalarQueryParameter
+from pandas import DataFrame
 
 from app import APP_ENV, seek_confirmation
 from app.decorators.number_decorators import fmt_n
@@ -87,6 +88,13 @@ class BigQueryService():
         job = self.client.query(sql, job_config=job_config)
         print("BATCH QUERY JOB:", type(job), job.job_id, job.state, job.location)
         return job
+
+    def query_to_df(self, sql):
+        """high-level wrapper to return a DataFrame"""
+        results = self.execute_query(sql)
+        records = [dict(row) for row in list(results)]
+        df = DataFrame(records)
+        return df
 
     def insert_records_in_batches(self, table, records):
         """
