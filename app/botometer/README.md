@@ -84,3 +84,35 @@ python -m app.botometer.sampler
 # max of 1.5K per day:
 LIMIT=750 python -m app.botometer.sampler
 ```
+
+
+## Comparison
+
+After lookups are complete, get a list of our bot classifications, and the corresponding botometer scores, so we can compare them:
+
+```sql
+SELECT
+    u.user_id
+    ,u.is_bot
+    ,u.is_q ,u.opinion_community
+    ,u.avg_fact_score, u.avg_toxicity, u.created_on
+
+    --bom.user_id
+    ,bom.score_type as bom_score_type
+    ,count(distinct bom.lookup_at) as bom_lookup_count
+    ,avg(bom.cap) as bom_cap
+    ,avg(bom.astroturf) as bom_astroturf
+    ,avg(bom.fake_follower) as bom_fake_follower
+    ,avg(bom.financial) as bom_financial
+    ,avg(bom.other) as bom_other
+    ,avg(bom.overall) as bom_overall
+    ,avg(bom.self_declared) as bom_self_declared
+    ,avg(bom.spammer) as bom_spammer
+FROM `tweet-research-shared.impeachment_2020.botometer_scores` bom
+JOIN `tweet-research-shared.impeachment_2020.user_details_v20210806_slim` u ON bom.user_id = u.user_id -- 8683
+WHERE bom.score_type = 'english' -- 7,566 users with english scores
+GROUP BY 1,2,3,4,5,6,7,8
+-- HAVING lookup_count > 1 -- 333 users have multiple lookups, so we're going to average them instead of drop them
+```
+
+See [notebook](Botometer_Score_Comparisons.ipynb) for ROC - AUC results.
