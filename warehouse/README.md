@@ -157,11 +157,14 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.user_profiles
 ```
 
 
-User details:
+
+
+Botometer scores:
+
 
 ```sql
-CREATE TABLE `tweet-collector-py.impeachment_development.user_details_v20210806_slim` as (
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.botometer_scores` as (
   SELECT *
-  FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim`
+  FROM `tweet-collector-py.impeachment_production.botometer_scores`
 )
 ```
