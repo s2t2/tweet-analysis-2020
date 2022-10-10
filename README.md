@@ -10,16 +10,16 @@ This project builds upon the research of Tauhid Zaman, Nicolas Guenon Des Mesnar
 
 ## Table of Contents
 
-Version 1.0 (works in progress, investigations, archive):
+Version 2020:
 
   + [Tweet Collection v1](/app/tweet_collection/README.md)
   + [Friend Collection v1](/app/friend_collection/README.md)
     + [Friend Graphs v1](/app/friend_graphs/README.md)
   + [PG Pipeline](/app/pg_pipeline/README.md) (Local Database Migrations)
-  + [Retweet Graphs v1](/app/retweet_graphs/README.md)
-    + [Bot Classification v1](/app/botcode)
-    + [Bot Classification v2](/app/retweet_graphs/README.md#Bot-Classification)
-    + [KS Tests v1](/app/retweet_graphs/README.md#KS-Tests)
+  + ~~[Retweet Graphs v1](/app/retweet_graphs/README.md)~~
+    + ~~[Bot Classification v1](/app/botcode)~~
+    + ~~[Bot Classification v2](/app/retweet_graphs/README.md#Bot-Classification)~~
+    + ~~[KS Tests v1](/app/retweet_graphs/README.md#KS-Tests)~~
   + [Retweet Graphs v2](/app/retweet_graphs_v2/README.md)
     + [Bot Classification v3 (Daily Periods)](/app/retweet_graphs_v2/README.md#k-days-bot-classification)
     + [Bot Community Assignment](/app/bot_communities/README.md#Assignment)
@@ -35,9 +35,11 @@ Version 1.0 (works in progress, investigations, archive):
   + [News Sources](/app/news/README.md)
   + [Botometer Sampling](/app/botometer/README.md)
 
-Version 2.0 (current, stable, mature):
+Version 2021:
 
   + [Tweet Collection v2](/app/tweet_collection_v2/README.md)
+  + Continued at: [Tweet Analysis 2021](https://github.com/s2t2/tweet-analysis-2021)
+
 
 ## Installation
 
