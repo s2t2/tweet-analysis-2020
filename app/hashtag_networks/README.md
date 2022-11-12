@@ -44,4 +44,15 @@ We can make a normal / undirected graph, with the following characteristics:
 
 ## Usage
 
-See [User Profile Hashtag Co-occurance Network notebook](/app/hashtag_networks/User_Profile_Hashtag_Co_occurance_Network.ipynb).
+~~See [User Profile Hashtag Co-occurance Network notebook](/app/hashtag_networks/User_Profile_Hashtag_Co_occurance_Network.ipynb).~~
+
+Use the [User Profile Hashtag Pairs v4](/app/hashtag_networks/User_Profile_Hashtag_Pairs_CSV_and_Co_occurrence_Matrix_v4) notebook to fetch user profile tags from BigQuery and create a CSV file of user profile hashtag pairs (i.e. combinations of two hashtags).
+
+That notebook runs out of memory in Colab when trying to make the co-occurrence matrix, so let's download the resulting CSV file into the "data" directory (as "data/hashtag_networks/user_profile_hashtag_pairs_v4.csv"), and then run the following script to create the co-occurrence matrix:
+
+```sh
+python -m app.hashtag_networks.co_mat
+```
+
+
+Oh, JK quickly runs out of memory on my computer as well. Will need to investigate GPU on Colab, or running on a big server.
