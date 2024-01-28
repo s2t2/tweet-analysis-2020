@@ -116,3 +116,27 @@ GROUP BY 1,2,3,4,5,6,7,8
 ```
 
 See [notebook](Botometer_Score_Comparisons.ipynb) for ROC - AUC results.
+
+
+Making a new version of the table with english scores only and a row per user, for easier joins to the user details table:
+
+```sql
+CREATE TABLE `tweet-collector-py.impeachment_production.botometer_scores_v2` as (
+  SELECT
+        bom.user_id
+        --,bom.score_type as bom_score_type
+        ,count(distinct bom.lookup_at) as bom_lookup_count
+        ,avg(bom.cap) as bom_cap
+        ,avg(bom.astroturf) as bom_astroturf
+        ,avg(bom.fake_follower) as bom_fake_follower
+        ,avg(bom.financial) as bom_financial
+        ,avg(bom.other) as bom_other
+        ,avg(bom.overall) as bom_overall
+        ,avg(bom.self_declared) as bom_self_declared
+        ,avg(bom.spammer) as bom_spammer
+    FROM `tweet-collector-py.impeachment_production.botometer_scores` bom 
+    WHERE bom.score_type = 'english' -- 7,566 users with english scores
+    GROUP BY 1
+    -- LIMIT 10
+)
+```
