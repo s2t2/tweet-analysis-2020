@@ -117,6 +117,7 @@ GROUP BY 1,2,3,4,5,6,7,8
 
 See [notebook](Botometer_Score_Comparisons.ipynb) for ROC - AUC results.
 
+## Updated User Details Table
 
 Making a new version of the table with english scores only and a row per user, for easier joins to the user details table:
 
@@ -139,4 +140,30 @@ CREATE TABLE `tweet-collector-py.impeachment_production.botometer_scores_v2` as 
     GROUP BY 1
     -- LIMIT 10
 )
+```
+
+```sql
+CREATE TABLE `tweet-collector-py.impeachment_production.user_details_v20240128_slim`  as (
+
+    SELECT 
+      u.user_id, u.created_on, u.screen_name_count, u.screen_names
+      ,u.status_count, u.rt_count
+      ,u.is_bot, u.bot_rt_network
+      ,u.opinion_community, u.avg_score_lr, avg_score_nb, avg_score_bert
+
+      , u.is_q, u.q_status_count 
+      , u.follower_count, u.follower_count_b, u.follower_count_h
+      , u.friend_count, u.friend_count_b, u.friend_count_h
+
+      ,u.avg_toxicity, u.avg_severe_toxicity, u.avg_insult, u.avg_obscene, u.avg_threat, u.avg_identity_hate
+      ,u.fact_scored_count, u.avg_fact_score
+      
+      ,bom.bom_lookup_count ,bom.bom_astroturf, bom.bom_overall, bom.bom_cap 
+      ,bom.bom_fake_follower, bom.bom_financial, bom.bom_other, bom.bom_self_declared, bom.bom_spammer
+
+    FROM `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u 
+    LEFT JOIN `tweet-collector-py.impeachment_production.botometer_scores_v2` bom ON bom.user_id = u.user_id
+    -- WHERE bom.user_id IS NOT NULL
+    -- LIMIT 10
+);
 ```
