@@ -47,7 +47,7 @@ scikit-learn
 #spacy
 #gensim
 #basilica
-transformers==4.8.2
+transformers==4.30.0
 botometer==1.6.1
 
 #matplotlib
