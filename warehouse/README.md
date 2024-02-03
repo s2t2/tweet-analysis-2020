@@ -104,9 +104,22 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.nlp_v2_predic
 Hashtag and mention related tables:
 
 ```sql
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.profile_tags_v2` as (
+    SELECT *
+    FROM `tweet-collector-py.impeachment_production.profile_tags_v2`
+    -- LIMIT 5
+);
+
+
 CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.profile_tags_v2_flat` as (
     SELECT *
     FROM `tweet-collector-py.impeachment_production.profile_tags_v2_flat`
+    -- LIMIT 5
+);
+
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.profile_tags_v2_distinct` as (
+    SELECT *
+    FROM `tweet-collector-py.impeachment_production.profile_tags_v2_distinct`
     -- LIMIT 5
 );
 ```
