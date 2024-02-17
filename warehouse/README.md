@@ -168,3 +168,28 @@ CREATE TABLE IF NOT EXISTS `tweet-research-shared.impeachment_2020.botometer_sco
   FROM `tweet-collector-py.impeachment_production.botometer_scores`
 )
 ```
+
+## Future Research
+
+Q user details:
+
+```sql
+-- SELECT count(distinct user_id) as q_count -- 25_360
+-- FROM `tweet-collector-py.impeachment_production.user_details_v20240128_slim` u
+-- WHERE is_q = true
+
+CREATE TABLE IF NOT EXISTS `tweet-research-shared.disinfo_2021.q_user_details_v2020` as (
+    SELECT  
+        user_id, created_on
+        ,screen_name_count, screen_names
+        , status_count, rt_count , q_status_count ,is_q
+        ,is_bot, opinion_community
+        
+        ,avg_toxicity, avg_severe_toxicity, avg_insult, avg_obscene, avg_threat , avg_identity_hate
+        ,fact_scored_count ,avg_fact_score
+    FROM `tweet-collector-py.impeachment_production.user_details_v20240128_slim` u
+    WHERE is_q = true
+    ORDER BY q_status_count DESC
+    -- LIMIT 10
+)
+```
